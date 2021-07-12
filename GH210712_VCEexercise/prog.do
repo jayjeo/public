@@ -11,4 +11,4 @@ To completely uninstall Jay_ado.pkg:
 ado uninstall Jay_ado
 -----------------------------------------------------------------------------*/
 
-use https://raw.githubusercontent.com/jayjeo/public/GH210712_VCE exercise\krueger_example.dta, clear
+use https://raw.githubusercontent.com/jayjeo/public/GH210712_VCEexercise\krueger_example.dta, clear
