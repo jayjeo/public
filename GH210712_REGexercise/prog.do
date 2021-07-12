@@ -139,17 +139,14 @@ mata
 	nc=rows(info)
 	
 	SXX=J(k,k,0)
-		for(i=1; i<=nc; i++){
-			xi=panelsubmatrix(X,i,info)
-			SXX=SXX+xi'*xi
-		}
-
 	SXuuX=J(k,k,0)
 		for(i=1; i<=nc; i++){
 			xi=panelsubmatrix(X,i,info)
 			ui=panelsubmatrix(e_ols,i,info)
+			SXX=SXX+xi'*xi
 			SXuuX=SXuuX+xi'*(ui*ui')*xi
 		}
+
 	dfc=(n-1)/(n-k)*nc/(nc-1)
 	v_ols_cl=dfc*invsym(SXX)*SXuuX*invsym(SXX)
 end
@@ -239,36 +236,30 @@ mata sqrt(diagonal(v_ils_ro_cl))
 ivregress 2sls pscore (cs=sm) wa free sex totexpk, cluster(schgroup)
 
 
-******** FE (later)
+******** FE
 *!start
 clear all
 use default
 mata: mata matuse default
 
-
 mata
 	k=k-1   // Constant dropped from default.
 	info=panelsetup(schgroup,1)
 	nc=rows(info)
-	T=n/nc
 
 	XdXd=J(k,k,0)
-		for(i=1; i<=nc; i++){
-			xdi=panelsubmatrix(Xd,i,info)
-			XdXd=XdXd+xdi'*xdi
-		}
-
 	XdYd=J(k,1,0)
 		for(i=1; i<=nc; i++){
 			xdi=panelsubmatrix(Xd,i,info)
 			ydi=panelsubmatrix(Yd,i,info)
+
+			XdXd=XdXd+xdi'*xdi
 			XdYd=XdYd+xdi'*ydi
-		}	
+		}
 
 	b_fe=luinv(XdXd)*XdYd
 
 	e_fe=Yd-Xd*b_fe
-
 		
 	XduuXd=J(k,k,0)
 	eded=0
@@ -287,16 +278,26 @@ mata
 			XduuXd2=XduuXd2+xdi'*(udi*udi')*xdi
 		} 		
 
-	dfc1=1/(n-nc-k)
-	dfc2=nc/(nc-1)        // Incorrect
-	dfc3=(n-1)/(n-nc-k)*nc/(nc-1)    // Incorrect
-	dfc4=n/(n-nc-k)
-	v_fe=dfc1*eded*luinv(XdXd)
-	v_fe_white=dfc1*luinv(XdXd)*XduuXd*luinv(XdXd)        // White robust estimator (BRU21_642 (17.56.b))
-	v_fe_ro_areg=dfc3*luinv(XdXd)*XduuXd*luinv(XdXd)
+	SXX_fe=J(k,k,0)
+	SXuuX_fe=J(k,k,0)
+	for(i=1; i<=nc; i++){
+		xdi=panelsubmatrix(Xd,i,info)
+		udi=panelsubmatrix(e_fe,i,info)
 
+		SXX_fe=SXX_fe+xdi'*xdi
+		SXuuX_fe=SXuuX_fe+xdi'*(udi*udi')*xdi
+	}
 
+	dfc=1/(n-nc-k)
+	dfc1=(n-1)/(n-nc-k)*nc/(nc-1)       
+	dfc2=(n-1)/(n-1-k)*nc/(nc-1)
+	dfc3=(n-1)/(n-k)*nc/(nc-1)
 
+	v_fe=dfc*eded*luinv(XdXd)						     // homoskedasity estimator (BRUn_616 (17.36))
+	v_fe_white=dfc*luinv(XdXd)*XduuXd*luinv(XdXd)        // White type robust estimator (BRU21_642 (17.56.b))
+	v_fe_cl1=dfc1*luinv(SXX_fe)*SXuuX_fe*luinv(SXX_fe)   // FE cluster type robust estimator (BRUn_617 (17.40))
+	v_fe_cl2=dfc2*luinv(SXX_fe)*SXuuX_fe*luinv(SXX_fe)   // xtreg fe robust result (Don't know what this is)
+	v_fe_cl3=dfc3*luinv(SXX_fe)*SXuuX_fe*luinv(SXX_fe)   // Cluster robust estimator (non-FE version)
 end
 
 mata b_fe
@@ -305,14 +306,12 @@ mata sqrt(diagonal(v_fe))
 xtset schgroup
 xtreg pscore wa free sex totexpk cs, fe
 
-mata sqrt(diagonal(v_fe_ro))
+mata sqrt(diagonal(v_fe_cl2))
 xtreg pscore wa free sex totexpk cs, fe robust
 
-mata sqrt(diagonal(v_fe_ro_areg))
 areg pscore wa free sex totexpk cs, absorb(schgroup) vce(robust)
 
-*dfc=(n-1)/(n-k)*nc/(nc-1)
-
+// Heteroskedasticity-Robust Estimation for Balanced and Unbalanced Case (BRU21_643 (17.58), (17.60))
 
 
 ******** FE TSLS
