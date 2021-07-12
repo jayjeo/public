@@ -25,7 +25,7 @@ tempfile original
 save `original', replace
 
 
-***** Take a look at missinv values.
+***** Take a look at missing values.
 //ssc install mdesc
 keep schgroup pscore wa free sex totexpk cs sm 
 mdesc
@@ -76,7 +76,7 @@ preserve  // To see what if missing rows had not been dropped.
 restore 
 
 
-*** Robust variance
+**** Robust variance
 mata
 	//beta same as b_ols
 	D0=diag(e_ols_2)
