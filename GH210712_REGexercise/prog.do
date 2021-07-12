@@ -25,7 +25,7 @@ tempfile original
 save `original', replace
 
 
-***** Take a look at missing values.
+***** Take a look at missing values
 //ssc install mdesc
 keep schgroup pscore wa free sex totexpk cs sm 
 mdesc
