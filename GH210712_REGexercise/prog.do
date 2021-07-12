@@ -78,7 +78,7 @@ restore
 
 *** Robust variance
 mata
-	//beta same
+	//beta same as b_ols
 	D0=diag(e_ols_2)
 	XD0X=quadcross(X,D0)*X
 	v_ols_ro=n*invsym(n-k)*invsym(XX)*quadcross(X,e_ols_2,X)*invsym(XX) // This also works. 
@@ -105,7 +105,7 @@ qui list schgroup
 //ssc install moremata
 
 mata
-	//beta same
+	//beta same as b_ols
 	info=panelsetup(schgroup,1)
 	info
 	nc=rows(info)
