@@ -316,7 +316,7 @@ areg pscore wa free sex totexpk cs, absorb(schgroup) vce(robust)
 
 ******** FE TSLS
 * error independent but not identical (robust)
-* Fixed effect IV model. Bruce Hansen(2019) p633
+* Fixed effect IV model. BRUn633 (17.69.b)
 *!start
 clear all
 use default
@@ -326,10 +326,33 @@ mata
 	I=I(n)
 	M=I-D*luinv(D'*D)*D'
 	b_iv_fe_ro=luinv(X'*M*Z*luinv(Z'M*Z)*Z'*M*X)*(X'*M*Z*luinv(Z'*M*Z)*Z'M*Y)
+
+	MY=M*Y
+	MX=M*X
+	MZ=M*Z
+
+	e_iv_fe_ro=MY-MX*b_iv_fe_ro
+
+	info=panelsetup(schgroup,1)
+	nc=rows(info)
+
+	MZeeMZ=J(k,k,0)
+		for(i=1; i<=nc; i++){
+			mzi=panelsubmatrix(MZ,i,info)
+			edi=panelsubmatrix(e_iv_fe_ro,i,info)
+
+			MZeeMZ=MZeeMZ+mzi'*(edi*edi')*mzi
+		}
+	v_iv_fe_ro=luinv(MX'*MZ*luinv(MZ'*MZ)*MZ'*MX)*MX'*MZ*luinv(MZ'*MZ)*MZeeMZ*luinv(MZ'*MZ)*MZ'*MX*luinv(MX'*MZ*luinv(MZ'*MZ)*MZ'*MX)
+									//  Cluster robust estimator (BRUn635)
+	dfc3=(n-1)/(n-k)*nc/(nc-1)	
+	v_iv_fe_ro3=dfc3*v_iv_fe_ro     //  xtivreg fe robust result
 end
 
 mata b_iv_fe_ro
+mata sqrt(diagonal(v_iv_fe_ro3))
 
 xtset schgroup
-xtivreg pscore wa free sex totexpk (cs=sm), fe
+xtivreg pscore wa free sex totexpk (cs=sm), fe vce(robust)
+
 
