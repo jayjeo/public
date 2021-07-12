@@ -56,13 +56,13 @@ mata
 
 	k=cols(X)
 
-	b_ols=luinv(XX)*XY
+	b_ols=invsym(XX)*XY
 
-	b_ols=luinv(XX)*(XY)
+	b_ols=invsym(XX)*(XY)
 	e_ols=Y-X*b_ols
 	e_ols_2=e_ols:*e_ols
 	sigma2_ols=mean(e_ols_2)
-	v_ols=n*luinv(n-k)*sigma2_ols*luinv(XX)
+	v_ols=n*invsym(n-k)*sigma2_ols*invsym(XX)
 end
 
 mata b_ols
@@ -81,8 +81,8 @@ mata
 	//beta same
 	D0=diag(e_ols_2)
 	XD0X=quadcross(X,D0)*X
-	v_ols_ro=n*luinv(n-k)*luinv(XX)*quadcross(X,e_ols_2,X)*luinv(XX) // This also works. 
-	v_ols_ro=n*luinv(n-k)*luinv(XX)*quadcross(X,D0)*X*luinv(XX)  
+	v_ols_ro=n*invsym(n-k)*invsym(XX)*quadcross(X,e_ols_2,X)*invsym(XX) // This also works. 
+	v_ols_ro=n*invsym(n-k)*invsym(XX)*quadcross(X,D0)*X*invsym(XX)  
 end
 
 mata XD0X
@@ -123,7 +123,7 @@ mata
 			SXuuX=SXuuX+xi'*(ui*ui')*xi
 		}
 	dfc=(n-1)/(n-k)*nc/(nc-1)
-	v_ols_cl=dfc*luinv(SXX)*SXuuX*luinv(SXX)
+	v_ols_cl=dfc*invsym(SXX)*SXuuX*invsym(SXX)
 end
 
 mata sqrt(diagonal(v_ols_cl))
