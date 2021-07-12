@@ -18,7 +18,7 @@ TRI = Colin Cameron, Pravin K. Trivedi, Microeconometrics: Methods and Applicati
 */
 
 clear all
-use "https://raw.githubusercontent.com/jayjeo/public/master/GH210712_VCEexercise/krueger_example.dta", clear
+use "https://raw.githubusercontent.com/jayjeo/public/master/GH210712_REGexercise/krueger_example.dta", clear
 set matastrict on
 version 14
 tempfile original
