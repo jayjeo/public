@@ -365,7 +365,6 @@ xtivreg pscore wa free sex totexpk (cs=sm), fe vce(robust)
 
 ******** GMM (Numerical maximization)
 // https://blog.stata.com/2016/01/28/programming-an-estimation-command-in-stata-using-optimize-to-estimate-poisson-parameters/
-
 *!start
 clear all
 use default
@@ -391,7 +390,7 @@ mata
 	bh=optimize(S)
 
 	bh
-	sqrt(diagonal(optimize_result_V_robust(S)))'
+	sqrt(diagonal(optimize_result_V_robust(S)))'    // Not identical to canned result. Don't know why. 
 end
 
 
