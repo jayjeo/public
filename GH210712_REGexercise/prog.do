@@ -28,7 +28,7 @@ save original, replace
 
 ******** Take a look at missing values
 //ssc install mdesc
-keep schgroup pscore wa free sex totexpk cs sm 
+keep schgroup pscore wa free sex totexpk cs sm classid
 mdesc
 drop if totexpk==.
 
@@ -354,5 +354,67 @@ mata sqrt(diagonal(v_iv_fe_ro3))
 
 xtset schgroup
 xtivreg pscore wa free sex totexpk (cs=sm), fe vce(robust)
+
+
+******** MoM
+*for ols and just-identified IV, MoM resulsts are identical to conventional ols and iv. 
+*for ols there is no need to use GMM. 
+*for over-identified IV,GMM is necessary. 
+
+******** GMM
+* Over-identified case. 
+* The result varies by selection on weighting matirx, W. See TRI186 Table 6.2
+* Here, focus on OGMM (TRI187)
+
+*corr(cs wa free sex totexpk classid)
+*bidensity cs wa, levels(10)
+// make wa the second instrument, which should be not good IV. 
+
+*!start
+clear all
+use default
+mata: mata matuse default
+	
+mata	
+	Y=pscore
+	n=rows(Y)
+
+	X=cs,     free, sex, totexpk, J(n,1,1)   
+	Z=sm, wa, free, sex, totexpk, J(n,1,1)	  // over-identified case. 
+
+	XX=quadcross(X,X)
+	ZZ=quadcross(Z,Z)
+	XZ=quadcross(X,Z)
+	ZX=quadcross(Z,X)
+	XY=quadcross(X,Y)
+	ZY=quadcross(Z,Y)
+
+	k=cols(X)
+	l=cols(Z)
+
+	b_2sls=luinv(X'*Z*luinv(Z'*Z)*Z'*X)*X'*Z*luinv(Z'*Z)*Z'*Y
+	
+	u_2sls=Y-X*b_2sls
+	u_2sls2=u_2sls:*u_2sls
+	D0=diag(u_2sls2)
+	S=luinv(n)*Z'*D0*Z    // TRI185 (6.40)
+
+	b_ogmm=luinv((X'*Z)*luinv(S)*(Z'*X))*((X'*Z)*luinv(S)*(Z'*Y))
+			// TRI187 (6.43)
+
+	u_ogmm=Y-X*b_ogmm
+	u_ogmm2=u_ogmm:*u_ogmm
+	D0_ogmm=diag(u_ogmm2)
+	S_ogmm=luinv(n)*Z'*D0_ogmm*Z    // TRI185 (6.40)
+
+	v_ogmm1=n*luinv(X'*Z*luinv(S)*Z'*X)
+	v_ogmm2=n*luinv(X'*Z*luinv(S_ogmm)*Z'*X)     // ivregress gmm robust result. (TRI 187)
+end
+
+mata b_ogmm
+mata sqrt(diagonal(v_ogmm1))
+mata sqrt(diagonal(v_ogmm2))
+
+ivregress gmm pscore free sex totexpk (cs=sm wa), robust first  
 
 
