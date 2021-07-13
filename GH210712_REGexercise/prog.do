@@ -419,7 +419,43 @@ ivregress gmm pscore free sex totexpk (cs=sm wa), robust first
 
 
 
-******** MLE (logit)
+******** GMM (Numerical maximization)
+// https://blog.stata.com/2016/01/28/programming-an-estimation-command-in-stata-using-optimize-to-estimate-poisson-parameters/
+
+*!start
+clear all
+use default
+mata: mata matuse default
+
+mata
+	void plleval(real scalar todo, real vector b, ///
+				real vector Y, real matrix X, ///
+				val, grad, hess)
+		{
+			val=-sum((Y-X*b'):*(Y-X*b'))
+		}
+
+	Y=pscore
+	X=cs, wa, free, sex, totexpk, J(rows(Y),1,1)  
+	
+	S=optimize_init()
+	optimize_init_argument(S,1,Y)
+	optimize_init_argument(S,2,X)
+	optimize_init_evaluator(S, &plleval())
+	optimize_init_evaluatortype(S, "gf0")
+	optimize_init_params(S,J(1,6,0))
+	bh=optimize(S)
+
+	bh
+	sqrt(diagonal(optimize_result_V_robust(S)))'
+end
+
+gmm (pscore - {xb:cs wa free sex totexpk _cons}), instruments(cs wa free sex totexpk)
+reg pscore cs wa free sex totexpk, robust
+
+
+
+******** MLE (logit), using ml
 // use sm as dependent variable for practice purpose. 
 
 *!start
@@ -437,7 +473,64 @@ prog mylogit
 	qui replace `lnf' =`y'*ln(`Logit')+(1-`y')*ln(1-`Logit')
 end
 
-ml model lf mylogit (sm = cs wa free sex totexpk)
+ml model lf mylogit (sm = wa free sex totexpk)
 ml maximize
 
-logit sm cs wa free sex totexpk
+
+logit sm wa free sex totexpk
+
+
+
+
+******** MLE (logit), using mata
+*!start
+clear all
+use default
+mata: mata matuse default
+
+mata
+	void plleval(real scalar todo, real vector b, ///
+				real vector Y, real matrix X, ///
+				val, grad, hess)
+		{
+			val=sum(Y:*ln(exp(X*b'):/(1:+exp(X*b'))):+(1:-Y):*ln(1:-exp(X*b'):/(1:+exp(X*b'))))
+		}
+
+	Y=sm
+	X=wa, free, sex, totexpk, J(rows(Y),1,1)  
+	
+	S=optimize_init()
+	optimize_init_argument(S,1,Y)
+	optimize_init_argument(S,2,X)
+	optimize_init_evaluator(S, &plleval())
+	optimize_init_evaluatortype(S, "d0")
+	optimize_init_params(S,J(1,5,0.01))
+	bh=optimize(S)
+
+	bh
+	sqrt(diagonal(optimize_result_V_oim(S)))'
+end
+
+
+logit sm wa free sex totexpk
+
+
+
+******** inverse ols method. (logit) 
+* This method does not work. Need great number of obs to work. (POR454)
+
+/*
+egen X=egroup(wa free sex totexpk)
+sort X
+xtile Xq = X, n(50)
+egen p=mean(sm), by(X)
+
+histogram p
+drop if p==0 | p==1  //This is arbitrary, and will effect the result much. 
+
+
+gen L=ln(p/(1-p))
+reg L wa free sex totexpk
+
+logit sm wa free sex totexpk
+*/
