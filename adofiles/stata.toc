@@ -1,0 +1,6 @@
+v 3
+d Jay Jeong's ado files
+d acubens555@gmail.com
+d https://github.com/jayjeo/stata
+
+p Jay_ado

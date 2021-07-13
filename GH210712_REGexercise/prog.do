@@ -1,7 +1,7 @@
 
 *-----------------------------------------------------------------------------
 * This coding uses some ado files below:
-net install Jay_ado.pkg, from(https://raw.githubusercontent.com/jayjeo/stata/master)
+net install Jay_ado.pkg, from(https://raw.githubusercontent.com/jayjeo/public/master/adofiles)
 
 /*
 To see contents of the Jay_ado.pkg:

@@ -1,0 +1,13 @@
+v 3
+d 'JAY_ADO': Jay Jeong's ado files
+d 
+d Distribution-Date:   20210706
+d License: Academic Free License v3.0
+d 
+F matain.ado
+F mataout.ado
+F dataout.ado
+F rblockdiag.ado
+F part.ado
+F cgmreg.ado
+F cgm_null_mb.ado
