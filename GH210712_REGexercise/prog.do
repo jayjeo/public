@@ -418,3 +418,26 @@ mata sqrt(diagonal(v_ogmm2))
 ivregress gmm pscore free sex totexpk (cs=sm wa), robust first  
 
 
+
+******** MLE (logit)
+// use sm as dependent variable for practice purpose. 
+
+*!start
+clear all
+use default
+mata: mata matuse default
+
+capture program drop mylogit
+prog mylogit
+	version 14
+	args lnf theta1
+	tempvar Logit
+	local y "$ML_y1"
+	gen double `Logit'=exp(`theta1')/(1+exp(`theta1'))
+	qui replace `lnf' =`y'*ln(`Logit')+(1-`y')*ln(1-`Logit')
+end
+
+ml model lf mylogit (sm = cs wa free sex totexpk)
+ml maximize
+
+logit sm cs wa free sex totexpk
