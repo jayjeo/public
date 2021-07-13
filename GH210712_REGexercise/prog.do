@@ -396,8 +396,7 @@ end
 
 
 gmm (pscore - {xb:cs wa free sex totexpk _cons}), instruments(cs wa free sex totexpk)
-reg pscore cs wa free sex totexpk, robust
-
+ivregress gmm pscore cs wa free sex totexpk (=cs wa free sex totexpk), robust  
 
 
 ******** GMM
