@@ -361,6 +361,45 @@ xtivreg pscore wa free sex totexpk (cs=sm), fe vce(robust)
 *for ols there is no need to use GMM. 
 *for over-identified IV,GMM is necessary. 
 
+
+
+******** GMM (Numerical maximization)
+// https://blog.stata.com/2016/01/28/programming-an-estimation-command-in-stata-using-optimize-to-estimate-poisson-parameters/
+
+*!start
+clear all
+use default
+mata: mata matuse default
+
+mata
+	void plleval(real scalar todo, real vector b, ///
+				real vector Y, real matrix X, ///
+				val, grad, hess)
+		{
+			val=-(Y:-X*b'):*(Y:-X*b')
+		}
+
+	Y=pscore
+	X=cs, wa, free, sex, totexpk, J(rows(Y),1,1)  
+	
+	S=optimize_init()
+	optimize_init_argument(S,1,Y)
+	optimize_init_argument(S,2,X)
+	optimize_init_evaluator(S, &plleval())
+	optimize_init_evaluatortype(S, "gf0")
+	optimize_init_params(S,J(1,6,0.01))
+	bh=optimize(S)
+
+	bh
+	sqrt(diagonal(optimize_result_V_robust(S)))'
+end
+
+
+gmm (pscore - {xb:cs wa free sex totexpk _cons}), instruments(cs wa free sex totexpk)
+reg pscore cs wa free sex totexpk, robust
+
+
+
 ******** GMM
 * Over-identified case. 
 * The result varies by selection on weighting matirx, W. See TRI186 Table 6.2
@@ -417,41 +456,6 @@ mata sqrt(diagonal(v_ogmm2))
 
 ivregress gmm pscore free sex totexpk (cs=sm wa), robust first  
 
-
-
-******** GMM (Numerical maximization)
-// https://blog.stata.com/2016/01/28/programming-an-estimation-command-in-stata-using-optimize-to-estimate-poisson-parameters/
-
-*!start
-clear all
-use default
-mata: mata matuse default
-
-mata
-	void plleval(real scalar todo, real vector b, ///
-				real vector Y, real matrix X, ///
-				val, grad, hess)
-		{
-			val=-sum((Y-X*b'):*(Y-X*b'))
-		}
-
-	Y=pscore
-	X=cs, wa, free, sex, totexpk, J(rows(Y),1,1)  
-	
-	S=optimize_init()
-	optimize_init_argument(S,1,Y)
-	optimize_init_argument(S,2,X)
-	optimize_init_evaluator(S, &plleval())
-	optimize_init_evaluatortype(S, "gf0")
-	optimize_init_params(S,J(1,6,0))
-	bh=optimize(S)
-
-	bh
-	sqrt(diagonal(optimize_result_V_robust(S)))'
-end
-
-gmm (pscore - {xb:cs wa free sex totexpk _cons}), instruments(cs wa free sex totexpk)
-reg pscore cs wa free sex totexpk, robust
 
 
 
