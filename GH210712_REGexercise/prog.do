@@ -356,6 +356,20 @@ xtset schgroup
 xtivreg pscore wa free sex totexpk (cs=sm), fe vce(robust)
 
 
+
+******** M-estimation (Numerical optimization using nl)
+// This is mathematically identical to OLS. 
+*!start
+clear all
+use default
+
+gen cons=1
+nl (pscore={xb:cs wa free sex totexpk cons})
+
+reg pscore cs wa free sex totexpk
+
+
+
 ******** MoM
 *for ols and just-identified IV, MoM resulsts are identical to conventional ols and iv. 
 *for ols there is no need to use GMM. 
@@ -363,7 +377,7 @@ xtivreg pscore wa free sex totexpk (cs=sm), fe vce(robust)
 
 
 
-******** GMM (Numerical maximization)
+******** GMM (Numerical maximization using mata)
 // https://blog.stata.com/2016/01/28/programming-an-estimation-command-in-stata-using-optimize-to-estimate-poisson-parameters/
 *!start
 clear all
@@ -396,6 +410,7 @@ end
 
 gmm (pscore - {xb:cs wa free sex totexpk _cons}), instruments(cs wa free sex totexpk)
 ivregress gmm pscore cs wa free sex totexpk (=cs wa free sex totexpk), robust  
+
 
 
 ******** GMM
@@ -457,9 +472,8 @@ ivregress gmm pscore free sex totexpk (cs=sm wa), robust first
 
 
 
-******** MLE (logit), using ml
+******** MLE (logit), Numerical maximization using ml
 // use sm as dependent variable for practice purpose. 
-
 *!start
 clear all
 use default
@@ -483,8 +497,21 @@ logit sm wa free sex totexpk
 
 
 
+******** M-estimation (NLS) (logit), Numerical optimization using nl
+// This is mathematically different from MLE
+*!start
+clear all
+use default
+mata: mata matuse default
 
-******** MLE (logit), using mata
+gen cons=1
+nl (sm=exp({xb:wa free sex totexpk cons})/(1+exp({xb:wa free sex totexpk cons})))
+
+logit sm wa free sex totexpk   // Compare this.
+
+
+
+******** MLE (logit), Numerical maximization using mata
 *!start
 clear all
 use default
