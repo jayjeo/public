@@ -314,6 +314,24 @@ areg pscore wa free sex totexpk cs, absorb(schgroup) vce(robust)
 // Heteroskedasticity-Robust Estimation for Balanced and Unbalanced Case (BRU21_643 (17.58), (17.60))
 
 
+
+******** FE (Numerical optimization using nl)
+*!start
+clear all
+use default
+
+foreach var in pscore cs wa free sex totexpk {
+	egen m`var'=mean(`var'), by(schgroup)
+}
+gen dpscore=pscore-mpscore
+
+nl (dpscore={b1}*(cs-mcs)+{b2}*(wa-mwa)+{b3}*(free-mfree)+{b4}*(sex-msex)+{b5}*(totexpk-mtotexpk)), vce(robust)
+
+xtset schgroup
+xtreg pscore wa free sex totexpk cs, fe robust
+
+
+
 ******** FE TSLS
 * error independent but not identical (robust)
 * Fixed effect IV model. BRUn633 (17.69.b)
@@ -497,20 +515,6 @@ logit sm wa free sex totexpk
 
 
 
-******** M-estimation (NLS) (logit), Numerical optimization using nl
-// This is mathematically different from MLE
-*!start
-clear all
-use default
-mata: mata matuse default
-
-gen cons=1
-nl (sm=exp({xb:wa free sex totexpk cons})/(1+exp({xb:wa free sex totexpk cons})))
-
-logit sm wa free sex totexpk   // Compare this.
-
-
-
 ******** MLE (logit), Numerical maximization using mata
 *!start
 clear all
@@ -545,21 +549,41 @@ logit sm wa free sex totexpk
 
 
 
+******** M-estimation (NLS) (logit), Numerical optimization using nl
+// This is mathematically different from MLE
+*!start
+clear all
+use default
+mata: mata matuse default
+
+gen cons=1
+nl (sm=exp({xb:wa free sex totexpk cons})/(1+exp({xb:wa free sex totexpk cons})))
+
+logit sm wa free sex totexpk   // Compare this.
+
+
+
 ******** inverse ols method. (logit) 
 * This method does not work. Need great number of obs to work. (POR454)
+*!start
+clear all
+use default
+mata: mata matuse default
 
-/*
 egen X=egroup(wa free sex totexpk)
 sort X
-xtile Xq = X, n(50)
-egen p=mean(sm), by(X)
+xtile Xq = X, n(80)  //This is arbitrary, and will effect the result much. 
+egen p=mean(sm), by(Xq)
 
 histogram p
-drop if p==0 | p==1  //This is arbitrary, and will effect the result much. 
-
-
+/* 
+replace p=0.00000000001 if p==0
+replace p=0.99999999999 if p==1
+*/
 gen L=ln(p/(1-p))
+
 reg L wa free sex totexpk
 
 logit sm wa free sex totexpk
-*/
+
+
