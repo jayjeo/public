@@ -313,6 +313,17 @@ areg pscore wa free sex totexpk cs, absorb(schgroup) vce(robust)
 
 // Heteroskedasticity-Robust Estimation for Balanced and Unbalanced Case (BRU21_643 (17.58), (17.60))
 
+******** FE (If data was a balanced panel)
+// make arbitrary data set. Generate individual(ind) variable. 
+*!start
+clear all
+use default
+mata: mata matuse default
+
+sort schgroup
+gen ind=1
+replace ind=ind[_n-1]+1 if schgroup==schgroup[_n-1]
+
 
 
 ******** FE (Numerical optimization using nl)
