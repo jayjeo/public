@@ -378,7 +378,7 @@ xtivreg pscore wa free sex totexpk (cs=sm), fe vce(robust)
 
 ******** FE (If data was a balanced panel)
 // Heteroskedasticity-Robust Estimation for Balanced and Unbalanced Case (BRU21_643 (17.58), (17.60))
-// make arbitrary data set. Generate individual(ind) variable. 
+// Make arbitrary data set. Generate individual(ind) variable. 
 *!start
 clear all
 use default
@@ -387,7 +387,16 @@ sort schgroup
 gen ind=1
 replace ind=ind[_n-1]+1 if schgroup==schgroup[_n-1]
 
-drop if ind>34
+putmata schgroup
+mata 
+	info=panelsetup(schgroup,1)
+	infon=info[.,2]-info[.,1]+J(rows(info),1,1)
+	T=min(infon)
+	st_numscalar("T", T)
+end
+di T
+
+drop if ind>T
 //tsset schgroup ind
 
 putmata pscore wa free sex totexpk cs sm schgroup, replace
@@ -447,16 +456,15 @@ mata
 	dfcw=n/(n-nc-k)
 	dfcw2=n/(n-k)
 	v_fe_white=dfcw*luinv(XdXd)*XdD0Xd*luinv(XdXd)        // White type robust estimator (BRU21_642 (17.56.b))
-	v_fe_white2=dfcw2*luinv(XdXd)*XdD0Xd*luinv(XdXd)        // Without considering nc. This is not the correct dfc. 
+	v_fe_white2=dfcw2*luinv(XdXd)*XdD0Xd*luinv(XdXd)       // Without considering nc. This is not the correct dfc. 
 	B_fe=luinv(XdXd)*XdS2Xd*luinv(XdXd)
-	v_fe_stock=(34-1)/(34-2)*v_fe_white-1/(34-1)*B_fe   // Stock and Watson estimator (BRU21_643 (17.58))
+	v_fe_stock=(T-1)/(T-2)*v_fe_white-1/(T-1)*B_fe         // Stock and Watson estimator (BRU21_643 (17.58))
 end
 
 mata sqrt(diagonal(v_fe_stock))
 mata sqrt(diagonal(v_fe_white))
 mata sqrt(diagonal(v_fe_white2))
 reg pscored csd wad freed sexd totexpkd, ro nocons
-
 
 
 
