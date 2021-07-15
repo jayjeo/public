@@ -10,8 +10,6 @@ mata
 	Y=pscore
 	n=rows(Y)
 
-	*X=wa, free, sex, totexpk, J(n,1,1), cs  // This order also works for even with IV
-	*Z=wa, free, sex, totexpk, J(n,1,1), sm  // This order also works for even with IV
 	X=cs, wa, free, sex, totexpk, J(n,1,1)   
 
 	XX=quadcross(X,X)

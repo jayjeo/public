@@ -271,6 +271,7 @@ mata
 			eded=eded+edi'*edi
 		}		
 
+	/*
 	XduuXd2=J(k,k,0)		// XduuXd2 is the same as XduuXd.
 		for(i=1; i<=nc; i++){
 			xdi=panelsubmatrix(Xd,i,info)
@@ -278,6 +279,18 @@ mata
 			XduuXd2=XduuXd2+xdi'*(udi*udi')*xdi
 		} 		
 
+	XdD0Xd=J(k,k,0)		    // XdD0Xd is the same as XduuXd.
+		for(i=1; i<=nc; i++){
+			xdi=panelsubmatrix(Xd,i,info)
+			ydi=panelsubmatrix(Yd,i,info)
+			edi=ydi-xdi*b_fe
+			ededi=edi:*edi
+			D0i=diag(ededi)
+			XdD0Xd=XdD0Xd+xdi'*D0i*xdi
+			eded=eded+edi'*edi
+		}	
+	*/
+	
 	SXX_fe=J(k,k,0)
 	SXuuX_fe=J(k,k,0)
 	for(i=1; i<=nc; i++){
@@ -390,13 +403,71 @@ replace ind=ind[_n-1]+1 if schgroup==schgroup[_n-1]
 drop if ind>34
 tsset ind schgroup
 
+putmata pscore wa free sex totexpk cs sm schgroup, replace
 
+foreach var in pscore wa free sex totexpk cs sm  {
+	egen `var'mm = mean(`var'), by(schgroup)
+	putmata `var'mm
+	mata `var'd=`var'-`var'mm
+}
 
+mata
+	Y=pscore
+	n=rows(Y)
 
-// do the same FE program as before
-do "https://raw.githubusercontent.com/jayjeo/public/master/GH210712_REGexercise/FE.do"
+	X=cs, wa, free, sex, totexpk, J(n,1,1)   
 
+	XX=quadcross(X,X)
+	XY=quadcross(X,Y)
 
+	k=cols(X)
+		
+	Yd=pscored
+	Xd=csd, wad, freed, sexd, totexpkd
+end
+
+mata
+	k=k-1   // Constant dropped from default.
+	info=panelsetup(schgroup,1)
+	nc=rows(info)
+
+	XdXd=J(k,k,0)
+	XdYd=J(k,1,0)
+		for(i=1; i<=nc; i++){
+			xdi=panelsubmatrix(Xd,i,info)
+			ydi=panelsubmatrix(Yd,i,info)
+
+			XdXd=XdXd+xdi'*xdi
+			XdYd=XdYd+xdi'*ydi
+		}
+
+	b_fe=luinv(XdXd)*XdYd
+
+	e_fe=Yd-Xd*b_fe
+		
+	XdD0Xd=J(k,k,0)	
+	XdS2Xd=J(k,k,0)		    
+		for(i=1; i<=nc; i++){
+			xdi=panelsubmatrix(Xd,i,info)
+			ydi=panelsubmatrix(Yd,i,info)
+			edi=ydi-xdi*b_fe
+			ededi=edi:*edi
+			D0i=diag(ededi)
+			XdD0Xd=XdD0Xd+xdi'*D0i*xdi
+
+			sigma2i=1/(rows(ededi)-1)*rowsum(ededi)  // BRU21_643 (17.59)
+			XdS2Xd=XdS2Xd+xdi'*xdi*sigma2i
+		}		
+
+	dfcw=n/(n-nc-k)
+	
+	v_fe_white=dfcw*luinv(XdXd)*XdD0Xd*luinv(XdXd)        // White type robust estimator (BRU21_642 (17.56.b))
+	B_fe=luinv(XdXd)*XdS2Xd*luinv(XdXd)
+	v_fe_stock=(34-1)/(34-2)*v_fe_white-1/(34-1)*B_fe   // Stock and Watson estimator (BRU21_643 (17.58))
+end
+
+mata sqrt(diagonal(v_fe_white))
+mata sqrt(diagonal(v_fe_stock))
 
 
 
