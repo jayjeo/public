@@ -311,29 +311,6 @@ xtreg pscore wa free sex totexpk cs, fe robust
 
 areg pscore wa free sex totexpk cs, absorb(schgroup) vce(robust)
 
-// Heteroskedasticity-Robust Estimation for Balanced and Unbalanced Case (BRU21_643 (17.58), (17.60))
-
-******** FE (If data was a balanced panel)
-// make arbitrary data set. Generate individual(ind) variable. 
-*!start
-clear all
-use default
-mata: mata matuse default
-
-sort schgroup
-gen ind=1
-replace ind=ind[_n-1]+1 if schgroup==schgroup[_n-1]
-
-mata 
-	info=panelsetup(schgroup,1)
-	nc=rows(info)
-	infon=info[.,2]-info[.,1]+J(rows(info),1,1)
-	min(infon)
-end
-
-drop if ind>34
-tsset ind schgroup
-
 
 
 ******** FE (Numerical optimization using nl)
@@ -393,6 +370,33 @@ mata sqrt(diagonal(v_iv_fe_ro3))
 
 xtset schgroup
 xtivreg pscore wa free sex totexpk (cs=sm), fe vce(robust)
+
+
+
+
+
+******** FE (If data was a balanced panel)
+// Heteroskedasticity-Robust Estimation for Balanced and Unbalanced Case (BRU21_643 (17.58), (17.60))
+// make arbitrary data set. Generate individual(ind) variable. 
+*!start
+clear all
+use default
+
+sort schgroup
+gen ind=1
+replace ind=ind[_n-1]+1 if schgroup==schgroup[_n-1]
+
+drop if ind>34
+tsset ind schgroup
+
+do FE_white
+
+
+
+
+
+
+
 
 
 
