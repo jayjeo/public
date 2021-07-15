@@ -259,6 +259,9 @@ mata
 			XdYd=XdYd+xdi'*ydi
 		}
 
+	XdXd2=Xd'*Xd   // XdXd2 is the same as XdXd, but these two are asymptotically different. 
+	XdYd2=Xd'*Yd   // XdYd2 is the same as XdYd, but these two are asymptotically different.
+
 	b_fe=luinv(XdXd)*XdYd
 
 	e_fe=Yd-Xd*b_fe
@@ -455,10 +458,13 @@ mata
 
 	dfcw=n/(n-nc-k)
 	dfcw2=n/(n-k)
+	dfcw3=n/(n-nc)
 	v_fe_white=dfcw*luinv(XdXd)*XdD0Xd*luinv(XdXd)        // White type robust estimator (BRU21_642 (17.56.b))
 	v_fe_white2=dfcw2*luinv(XdXd)*XdD0Xd*luinv(XdXd)       // Without considering nc. This is not the correct dfc. 
+	v_fe_white3=luinv(XdXd)*XdD0Xd*luinv(XdXd)       
 	B_fe=luinv(XdXd)*XdS2Xd*luinv(XdXd)
 	v_fe_stock=(T-1)/(T-2)*v_fe_white-1/(T-1)*B_fe         // Stock and Watson estimator (BRU21_643 (17.58))
+	v_fe_stock3=(T-1)/(T-2)*v_fe_white3-1/(T-1)*B_fe
 end
 
 mata sqrt(diagonal(v_fe_stock))
@@ -466,6 +472,7 @@ mata sqrt(diagonal(v_fe_white))
 mata sqrt(diagonal(v_fe_white2))
 reg pscored csd wad freed sexd totexpkd, ro nocons
 
+mata sqrt(diagonal(v_fe_stock3))
 
 
 
@@ -481,7 +488,7 @@ gen ind=1
 replace ind=ind[_n-1]+1 if schgroup==schgroup[_n-1]
 gen n=_n
 
-putmata schgroup ind n
+putmata schgroup ind n, replace 
 mata 
 	info=panelsetup(schgroup,1)
 	Ti=info[.,2]-info[.,1]+J(rows(info),1,1)
@@ -526,7 +533,7 @@ mata
 	e_fe=Yd-Xd*b_fe
 	e2=e_fe:*e_fe
 
-	omega=J(1,1,0)
+	omega=J(k,k,0)
 		for(i=1; i<=nc; i++){
 			edi=panelsubmatrix(e_fe,i,info)
 			ededi=edi:*edi
@@ -541,10 +548,10 @@ mata
 				Xdij=Xd[ij,.]
 				e2ij=e2[ij,.]
 
-				omega=omega+Xdij*Xdij'*(Ti[i]*e2ij-sigma2i)*invsym(Ti[i]-2)
+				omega=omega+Xdij'*Xdij*((Ti[i]*e2ij-sigma2i)*invsym(Ti[i]-2))
 			}
 		}	
-	v_fe_unbal=luinv(Xd'*Xd)*luinv(Xd'*Xd)*omega
+	v_fe_unbal=luinv(Xd'*Xd)*omega*luinv(Xd'*Xd)
 end
 
 mata v_fe_unbal
