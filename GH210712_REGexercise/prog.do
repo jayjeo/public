@@ -12,8 +12,8 @@ ado uninstall Jay_ado
 -----------------------------------------------------------------------------*/
 
 /******** useful materials
-http://blog.stata.com/2016/01/05/programming-an-estimation-command-in-stata-computing-ols-objects-in-mata/  
 TRI = Colin Cameron, Pravin K. Trivedi, Microeconometrics: Methods and Applications. 2005
+http://blog.stata.com/2016/01/05/programming-an-estimation-command-in-stata-computing-ols-objects-in-mata/  
 
 */
 
@@ -40,7 +40,7 @@ qui list schgroup
 //ssc install moremata
 
 
-******** generate basic matrices
+******** generate basic variables
 tabulate schgroup, generate(d)
 putmata *, replace
 
@@ -51,6 +51,8 @@ forvalues i=3(1)79 {
 
 foreach var in pscore wa free sex totexpk cs sm  {
 	egen `var'm = mean(`var'), by(schgroup)
+	gen `var'd=`var'-`var'm
+
 	putmata `var'm
 	mata `var'd=`var'-`var'm
 }
@@ -260,26 +262,9 @@ mata
 	b_fe=luinv(XdXd)*XdYd
 
 	e_fe=Yd-Xd*b_fe
-		
-	XduuXd=J(k,k,0)
+
+	XdD0Xd=J(k,k,0)		    
 	eded=0
-		for(i=1; i<=nc; i++){
-			xdi=panelsubmatrix(Xd,i,info)
-			ydi=panelsubmatrix(Yd,i,info)
-			edi=ydi-xdi*b_fe
-			XduuXd=XduuXd+xdi'*(edi*edi')*xdi
-			eded=eded+edi'*edi
-		}		
-
-	/*
-	XduuXd2=J(k,k,0)		// XduuXd2 is the same as XduuXd.
-		for(i=1; i<=nc; i++){
-			xdi=panelsubmatrix(Xd,i,info)
-			udi=panelsubmatrix(e_fe,i,info)
-			XduuXd2=XduuXd2+xdi'*(udi*udi')*xdi
-		} 		
-
-	XdD0Xd=J(k,k,0)		    // XdD0Xd is the same as XduuXd.
 		for(i=1; i<=nc; i++){
 			xdi=panelsubmatrix(Xd,i,info)
 			ydi=panelsubmatrix(Yd,i,info)
@@ -289,7 +274,6 @@ mata
 			XdD0Xd=XdD0Xd+xdi'*D0i*xdi
 			eded=eded+edi'*edi
 		}	
-	*/
 	
 	SXX_fe=J(k,k,0)
 	SXuuX_fe=J(k,k,0)
@@ -302,13 +286,15 @@ mata
 	}
 
 	dfc=1/(n-nc-k)
-	dfcw=n/(n-nc-k)
+	dfcw=(n)/(n-nc-k)
+	dfcw2=(n)/(n-k)
 	dfc1=(n-1)/(n-nc-k)*nc/(nc-1)       
 	dfc2=(n-1)/(n-1-k)*nc/(nc-1)
 	dfc3=(n-1)/(n-k)*nc/(nc-1)
 
 	v_fe=dfc*eded*luinv(XdXd)						     // homoskedasity estimator (BRUn_616 (17.36))
-	v_fe_white=dfcw*luinv(XdXd)*XduuXd*luinv(XdXd)        // White type robust estimator (BRU21_642 (17.56.b))
+	v_fe_white=dfcw*luinv(XdXd)*XdD0Xd*luinv(XdXd)        // White type robust estimator (BRU21_642 (17.56.b))
+	v_fe_white2=dfcw2*luinv(XdXd)*XdD0Xd*luinv(XdXd)      // Without considering nc. This is not the correct dfc. 
 	v_fe_cl1=dfc1*luinv(SXX_fe)*SXuuX_fe*luinv(SXX_fe)   // FE cluster type robust estimator (BRUn_617 (17.40))
 	v_fe_cl2=dfc2*luinv(SXX_fe)*SXuuX_fe*luinv(SXX_fe)   // xtreg fe robust result (Don't know what this is)
 	v_fe_cl3=dfc3*luinv(SXX_fe)*SXuuX_fe*luinv(SXX_fe)   // Cluster robust estimator (non-FE version)
@@ -319,6 +305,9 @@ mata sqrt(diagonal(v_fe))
 
 xtset schgroup
 xtreg pscore wa free sex totexpk cs, fe
+
+mata sqrt(diagonal(v_fe_white))
+reg pscored csd wad freed sexd totexpkd, ro nocons
 
 mata sqrt(diagonal(v_fe_cl2))
 xtreg pscore wa free sex totexpk cs, fe robust
@@ -387,8 +376,6 @@ xtivreg pscore wa free sex totexpk (cs=sm), fe vce(robust)
 
 
 
-
-
 ******** FE (If data was a balanced panel)
 // Heteroskedasticity-Robust Estimation for Balanced and Unbalanced Case (BRU21_643 (17.58), (17.60))
 // make arbitrary data set. Generate individual(ind) variable. 
@@ -401,12 +388,14 @@ gen ind=1
 replace ind=ind[_n-1]+1 if schgroup==schgroup[_n-1]
 
 drop if ind>34
-tsset ind schgroup
+//tsset schgroup ind
 
 putmata pscore wa free sex totexpk cs sm schgroup, replace
 
 foreach var in pscore wa free sex totexpk cs sm  {
 	egen `var'mm = mean(`var'), by(schgroup)
+	replace `var'd=`var'-`var'mm
+
 	putmata `var'mm
 	mata `var'd=`var'-`var'mm
 }
@@ -414,20 +403,14 @@ foreach var in pscore wa free sex totexpk cs sm  {
 mata
 	Y=pscore
 	n=rows(Y)
-
-	X=cs, wa, free, sex, totexpk, J(n,1,1)   
-
-	XX=quadcross(X,X)
-	XY=quadcross(X,Y)
-
-	k=cols(X)
 		
 	Yd=pscored
 	Xd=csd, wad, freed, sexd, totexpkd
+	k=cols(Xd)
 end
 
+
 mata
-	k=k-1   // Constant dropped from default.
 	info=panelsetup(schgroup,1)
 	nc=rows(info)
 
@@ -444,7 +427,7 @@ mata
 	b_fe=luinv(XdXd)*XdYd
 
 	e_fe=Yd-Xd*b_fe
-		
+
 	XdD0Xd=J(k,k,0)	
 	XdS2Xd=J(k,k,0)		    
 		for(i=1; i<=nc; i++){
@@ -455,23 +438,24 @@ mata
 			D0i=diag(ededi)
 			XdD0Xd=XdD0Xd+xdi'*D0i*xdi
 
-			sigma2i=1/(rows(ededi)-1)*rowsum(ededi)  // BRU21_643 (17.59)
+			sigma2i=1*invsym(rows(ededi)-1)*colsum(ededi)  // BRU21_643 (17.59)
 			XdS2Xd=XdS2Xd+xdi'*xdi*sigma2i
+
+			eded`i'_check=ededi
 		}		
 
 	dfcw=n/(n-nc-k)
-	
+	dfcw2=n/(n-k)
 	v_fe_white=dfcw*luinv(XdXd)*XdD0Xd*luinv(XdXd)        // White type robust estimator (BRU21_642 (17.56.b))
+	v_fe_white2=dfcw2*luinv(XdXd)*XdD0Xd*luinv(XdXd)        // Without considering nc. This is not the correct dfc. 
 	B_fe=luinv(XdXd)*XdS2Xd*luinv(XdXd)
 	v_fe_stock=(34-1)/(34-2)*v_fe_white-1/(34-1)*B_fe   // Stock and Watson estimator (BRU21_643 (17.58))
 end
 
-mata sqrt(diagonal(v_fe_white))
 mata sqrt(diagonal(v_fe_stock))
-
-
-
-
+mata sqrt(diagonal(v_fe_white))
+mata sqrt(diagonal(v_fe_white2))
+reg pscored csd wad freed sexd totexpkd, ro nocons
 
 
 
