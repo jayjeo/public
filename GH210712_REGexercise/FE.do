@@ -77,3 +77,6 @@ mata
 	v_fe_white=dfc*luinv(XdXd)*XduuXd*luinv(XdXd)        // White type robust estimator (BRU21_642 (17.56.b))
 end
 
+mata b_fe
+mata v_fe_white
+
