@@ -389,7 +389,7 @@ replace ind=ind[_n-1]+1 if schgroup==schgroup[_n-1]
 drop if ind>34
 tsset ind schgroup
 
-do FE_white
+do "https://raw.githubusercontent.com/jayjeo/public/master/GH210712_REGexercise/FE.do"
 
 
 
