@@ -86,5 +86,6 @@ mata
 	v_fe_stock3=(T-1)*invsym(T-2)*v_fe_white3-1*invsym(T-1)*B_fe
 end
 
+mata b_fe
 mata diagonal(v_fe_stock3)
 //mata sqrt(diagonal(v_fe_stock))
