@@ -377,7 +377,7 @@ xtivreg pscore wa free sex totexpk (cs=sm), fe vce(robust)
 
 
 ******** FE (If data was a balanced panel)
-// Heteroskedasticity-Robust Estimation for Balanced and Unbalanced Case (BRU21_643 (17.58), (17.60))
+// Heteroskedasticity-Robust Estimation for Balanced Case (BRU21_643 (17.58))
 // Make arbitrary data set. Generate individual(ind) variable. 
 *!start
 clear all
@@ -467,6 +467,85 @@ mata sqrt(diagonal(v_fe_white2))
 reg pscored csd wad freed sexd totexpkd, ro nocons
 
 
+
+
+******** FE (If data was an unbalanced panel)
+// Heteroskedasticity-Robust Estimation for Unbalanced Case (BRU21_643 (17.60))
+// Make arbitrary data set. Generate individual(ind) variable. 
+*!start
+clear all
+use default
+
+sort schgroup
+gen ind=1
+replace ind=ind[_n-1]+1 if schgroup==schgroup[_n-1]
+gen n=_n
+
+putmata schgroup ind n
+mata 
+	info=panelsetup(schgroup,1)
+	Ti=info[.,2]-info[.,1]+J(rows(info),1,1)
+	ijn=schgroup,ind,n
+end
+
+putmata pscore wa free sex totexpk cs sm schgroup, replace
+
+foreach var in pscore wa free sex totexpk cs sm  {
+	egen `var'mm = mean(`var'), by(schgroup)
+	replace `var'd=`var'-`var'mm
+
+	putmata `var'mm
+	mata `var'd=`var'-`var'mm
+}
+
+mata
+	Y=pscore
+	n=rows(Y)
+		
+	Yd=pscored
+	Xd=csd, wad, freed, sexd, totexpkd
+	k=cols(Xd)
+end
+
+mata
+	info=panelsetup(schgroup,1)
+	nc=rows(info)
+
+	XdXd=J(k,k,0)
+	XdYd=J(k,1,0)
+		for(i=1; i<=nc; i++){
+			xdi=panelsubmatrix(Xd,i,info)
+			ydi=panelsubmatrix(Yd,i,info)
+
+			XdXd=XdXd+xdi'*xdi
+			XdYd=XdYd+xdi'*ydi
+		}
+
+	b_fe=luinv(XdXd)*XdYd
+
+	e_fe=Yd-Xd*b_fe
+
+	omega=J(k,k,0)
+		for(i=1; i<=nc; i++){
+			edi=panelsubmatrix(e_fe,i,info)
+			ededi=edi:*edi
+			sigma2i=1*invsym(rows(ededi)-1)*colsum(ededi)
+
+			xdi=panelsubmatrix(Xd,i,info)
+
+			Tii=Ti[i]
+			for(j=1; j<=Tii; j++){
+				st_numscalar("i",i)
+				st_numscalar("j",j)
+				sel=select(ijn, ijn[.,1]:==i)
+				sel=select(sel, sel[.,2]:==j) 
+				ij=sel[.,3]
+				Xdij=Xd[ij,.]
+			}
+
+		}	
+		Xdij	
+end
 
 ******** M-estimation (Numerical optimization using nl)
 // This is mathematically identical to OLS. 
