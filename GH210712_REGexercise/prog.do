@@ -289,12 +289,13 @@ mata
 	}
 
 	dfc=1/(n-nc-k)
+	dfcw=n/(n-nc-k)
 	dfc1=(n-1)/(n-nc-k)*nc/(nc-1)       
 	dfc2=(n-1)/(n-1-k)*nc/(nc-1)
 	dfc3=(n-1)/(n-k)*nc/(nc-1)
 
 	v_fe=dfc*eded*luinv(XdXd)						     // homoskedasity estimator (BRUn_616 (17.36))
-	v_fe_white=dfc*luinv(XdXd)*XduuXd*luinv(XdXd)        // White type robust estimator (BRU21_642 (17.56.b))
+	v_fe_white=dfcw*luinv(XdXd)*XduuXd*luinv(XdXd)        // White type robust estimator (BRU21_642 (17.56.b))
 	v_fe_cl1=dfc1*luinv(SXX_fe)*SXuuX_fe*luinv(SXX_fe)   // FE cluster type robust estimator (BRUn_617 (17.40))
 	v_fe_cl2=dfc2*luinv(SXX_fe)*SXuuX_fe*luinv(SXX_fe)   // xtreg fe robust result (Don't know what this is)
 	v_fe_cl3=dfc3*luinv(SXX_fe)*SXuuX_fe*luinv(SXX_fe)   // Cluster robust estimator (non-FE version)
@@ -388,6 +389,9 @@ replace ind=ind[_n-1]+1 if schgroup==schgroup[_n-1]
 
 drop if ind>34
 tsset ind schgroup
+
+
+
 
 // do the same FE program as before
 do "https://raw.githubusercontent.com/jayjeo/public/master/GH210712_REGexercise/FE.do"

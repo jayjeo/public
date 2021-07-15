@@ -72,9 +72,9 @@ mata
 		SXuuX_fe=SXuuX_fe+xdi'*(udi*udi')*xdi
 	}
 
-	dfc=1/(n-nc-k)
+	dfcw=n/(n-nc-k)
 	
-	v_fe_white=dfc*luinv(XdXd)*XduuXd*luinv(XdXd)        // White type robust estimator (BRU21_642 (17.56.b))
+	v_fe_white=dfcw*luinv(XdXd)*XduuXd*luinv(XdXd)        // White type robust estimator (BRU21_642 (17.56.b))
 end
 
 mata b_fe
