@@ -524,8 +524,9 @@ mata
 	b_fe=luinv(XdXd)*XdYd
 
 	e_fe=Yd-Xd*b_fe
+	e2=e_fe:*e_fe
 
-	omega=J(k,k,0)
+	omega=J(1,1,0)
 		for(i=1; i<=nc; i++){
 			edi=panelsubmatrix(e_fe,i,info)
 			ededi=edi:*edi
@@ -533,19 +534,25 @@ mata
 
 			xdi=panelsubmatrix(Xd,i,info)
 
-			Tii=Ti[i]
-			for(j=1; j<=Tii; j++){
-				st_numscalar("i",i)
-				st_numscalar("j",j)
+			for(j=1; j<=Ti[i]; j++){
 				sel=select(ijn, ijn[.,1]:==i)
 				sel=select(sel, sel[.,2]:==j) 
 				ij=sel[.,3]
 				Xdij=Xd[ij,.]
-			}
+				e2ij=e2[ij,.]
 
+				omega=omega+Xdij*Xdij'*(Ti[i]*e2ij-sigma2i)*invsym(Ti[i]-2)
+			}
 		}	
-		Xdij	
+	v_fe_unbal=luinv(Xd'*Xd)*luinv(Xd'*Xd)*omega
 end
+
+mata v_fe_unbal
+mata sqrt(diagonal(v_fe_unbal))
+xtset schgroup
+xtreg pscore wa free sex totexpk cs, fe robust
+
+
 
 ******** M-estimation (Numerical optimization using nl)
 // This is mathematically identical to OLS. 
