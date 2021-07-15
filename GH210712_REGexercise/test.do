@@ -87,4 +87,5 @@ mata
 	v_fe_unbal=luinv(Xd'*Xd)*omega*luinv(Xd'*Xd)
 end
 
-mata sqrt(diagonal(v_fe_unbal))
+mata diagonal(v_fe_unbal)
+//mata sqrt(diagonal(v_fe_unbal))
