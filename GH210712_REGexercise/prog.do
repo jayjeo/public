@@ -324,6 +324,16 @@ sort schgroup
 gen ind=1
 replace ind=ind[_n-1]+1 if schgroup==schgroup[_n-1]
 
+mata 
+	info=panelsetup(schgroup,1)
+	nc=rows(info)
+	infon=info[.,2]-info[.,1]+J(rows(info),1,1)
+	min(infon)
+end
+
+drop if ind>34
+tsset ind schgroup
+
 
 
 ******** FE (Numerical optimization using nl)
