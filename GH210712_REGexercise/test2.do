@@ -77,13 +77,13 @@ mata
 
 	dfcw=n/(n-nc-k)
 	dfcw2=n/(n-k)
-	dfcw3=n/(n-nc)
+	dfcw3=(n-k-1)/(n-nc-k)
 	v_fe_white=dfcw*luinv(XdXd)*XdD0Xd*luinv(XdXd)        // White type robust estimator (BRU21_642 (17.56.b))
 	v_fe_white2=dfcw2*luinv(XdXd)*XdD0Xd*luinv(XdXd)       // Without considering nc. This is not the correct dfc. 
-	v_fe_white3=luinv(XdXd)*XdD0Xd*luinv(XdXd)       
+	v_fe_white3=dfcw3*luinv(XdXd)*XdD0Xd*luinv(XdXd)       
 	B_fe=luinv(XdXd)*XdS2Xd*luinv(XdXd)
-	v_fe_stock=(T-1)/(T-2)*v_fe_white-1/(T-1)*B_fe         // Stock and Watson estimator (BRU21_643 (17.58))
-	v_fe_stock3=(T-1)/(T-2)*v_fe_white3-1/(T-1)*B_fe
+	v_fe_stock=(T-1)*invsym(T-2)*v_fe_white-1*invsym(T-1)*B_fe         // Stock and Watson estimator (BRU21_643 (17.58))
+	v_fe_stock3=(T-1)*invsym(T-2)*v_fe_white3-1*invsym(T-1)*B_fe
 end
 
 mata sqrt(diagonal(v_fe_stock))

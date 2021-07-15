@@ -83,6 +83,7 @@ mata
 				omega=omega+Xdij'*Xdij*((Ti[i]*e2ij-sigma2i)*invsym(Ti[i]-2))
 			}
 		}	
+    dfcw=(n)/(n-2)
 	v_fe_unbal=luinv(Xd'*Xd)*omega*luinv(Xd'*Xd)
 end
 
