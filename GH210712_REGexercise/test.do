@@ -91,3 +91,6 @@ mata b_fe
 mata diagonal(v_fe_unbal)
 //mata sqrt(diagonal(v_fe_unbal))
 
+
+
+
