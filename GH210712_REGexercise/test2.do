@@ -36,7 +36,7 @@ mata
 	n=rows(Y)
 		
 	Yd=pscored
-	Xd=csd, wad, freed, sexd, totexpkd
+	Xd=csd, wad, freed, sexd
 	k=cols(Xd)
 end
 
@@ -87,5 +87,5 @@ mata
 end
 
 mata b_fe
-mata diagonal(v_fe_stock3)
+mata diagonal(v_fe_stock)
 //mata sqrt(diagonal(v_fe_stock))

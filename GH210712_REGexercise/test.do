@@ -42,7 +42,7 @@ mata
 	n=rows(Y)
 		
 	Yd=pscored
-	Xd=csd, wad, freed, sexd, totexpkd
+	Xd=csd, wad, freed, sexd
 	k=cols(Xd)
 end
 

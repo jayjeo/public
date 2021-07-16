@@ -556,8 +556,7 @@ end
 
 mata v_fe_unbal
 mata sqrt(diagonal(v_fe_unbal))
-xtset schgroup
-xtreg pscore wa free sex totexpk cs, fe robust
+// In balanced panels, this estimator simplifies to the Stock-Watson estimator with the number of control variables going to zero. 
 
 
 
