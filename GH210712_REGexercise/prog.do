@@ -755,22 +755,18 @@ clear all
 use default
 mata: mata matuse default
 
-*ssc install vc_pack // only works above Stata15
-npregress kernel pscore wa free sex totexpk
-
-egen X=egroup(wa free sex totexpk)
-sort X
-xtile Xq = X, n(80)  //This is arbitrary, and will effect the result much. 
-egen p=mean(sm), by(Xq)
-
+//npregress kernel sm i.wa i.free i.sex totexpk, kernel(gaussian) // only works above Stata14
+//predict p
+//save npreg, replace 
+use "https://raw.githubusercontent.com/jayjeo/public/master/GH210712_REGexercise/npreg.dta", clear
 histogram p
-/* 
-replace p=0.00000000001 if p==0
-replace p=0.99999999999 if p==1
-*/
-gen L=ln(p/(1-p))
 
-reg L wa free sex totexpk
+preserve
+	drop if p<=0 | p>=1
+	gen L=ln(p/(1-p))
+	reg L wa free sex totexpk
+	logit sm wa free sex totexpk
+restore
 
 logit sm wa free sex totexpk
 
