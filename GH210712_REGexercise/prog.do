@@ -755,6 +755,9 @@ clear all
 use default
 mata: mata matuse default
 
+*ssc install vc_pack // only works above Stata15
+npregress kernel pscore wa free sex totexpk
+
 egen X=egroup(wa free sex totexpk)
 sort X
 xtile Xq = X, n(80)  //This is arbitrary, and will effect the result much. 
@@ -771,4 +774,12 @@ reg L wa free sex totexpk
 
 logit sm wa free sex totexpk
 
+
+
+******** Kernel regression
+// use sm as dependent variable for practice purpose. 
+*!start
+clear all
+use default
+mata: mata matuse default
 
