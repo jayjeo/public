@@ -89,3 +89,8 @@ end
 mata b_fe
 mata diagonal(v_fe_stock)
 //mata sqrt(diagonal(v_fe_stock))
+// test
+
+
+
+
