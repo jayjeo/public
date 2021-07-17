@@ -774,10 +774,10 @@ logit sm wa free sex totexpk
 
 
 ******** Kernel regression
-// use sm as dependent variable for practice purpose. 
 *!start
 clear all
 use default
+drop if _n > 1000  // Spends too long if used all of 5722 observations. 
 
 putmata pscore cs, replace 
 mata 
@@ -826,7 +826,9 @@ mata
 end
 
 mata bLL
-
+getmata (mean deriv)=bLL
+twoway dot mean cs
+twoway dot deriv cs
 
  // only works above Stata14
 /*
@@ -836,3 +838,77 @@ save npreg2, replace
 */
 use "https://raw.githubusercontent.com/jayjeo/public/master/GH210712_REGexercise/npreg2.dta", clear  // If your Stata is below version 15. 
 twoway dot mean cs
+twoway dot deriv cs
+
+
+
+******** Kernel regression (multiple regressors)
+*!start
+clear all
+use default
+drop if _n > 1000  // Spends too long if used all of 5722 observations. 
+
+putmata pscore cs wa free sex totexpk, replace 
+mata 
+	Y=pscore
+	X=cs,wa,sex
+	n=rows(X)
+	k=cols(X)
+end
+
+mata
+	real matrix bLL(real matrix Y, real matrix X, real matrix x, real scalar h)
+	{
+		real matrix bLL
+		real matrix K
+		real matrix Z
+		real matrix kk
+		real matrix zz
+		real scalar i
+
+		
+		kk=normalden((X[1,1]-x[1])/h)*normalden((X[1,2]-x[2])/h)*normalden((X[1,3]-x[3])/h)
+		for(i=2; i<=rows(X); i++){ 
+			kk=kk\normalden((X[i,1]-x[1])/h)*normalden((X[i,2]-x[2])/h)*normalden((X[i,3]-x[3])/h)
+		}
+		K=diag(kk)
+
+		zz=1\(X[1,1]-x[1])\(X[1,2]-x[2])\(X[1,3]-x[3])
+		for(i=2; i<=rows(X); i++){ 
+			zz=zz\1\(X[i,1]-x[1])\(X[i,2]-x[2])\(X[i,3]-x[3])
+		}
+		Z=zz
+
+		bLL=luinv(Z'*K*Z)*Z'*K*Y
+		return(bLL)
+	}
+
+end
+
+mata h=0.3
+
+mata 
+	bLL=bLL(Y,X,X[1,.],h)'
+	for(i=2; i<=rows(X); i++){ 
+		bLL=bLL\bLL(Y,X,X[i,.],h)'
+	}
+end
+
+mata bLL
+
+mata x=X[1,.]
+mata X[1,.]
+mata x[1]
+
+// only works above Stata14
+/*
+npregress kernel pscore cs i.wa i.sex, kernel(gaussian) ///
+			bwidth(Mean:cs=0.3 Effect:cs=0.3 Mean:wa=0.3 Effect:wa=0.3 Mean:sex=0.3 Effect:sex=0.3) ///
+			predict(cs_m wa_m sex_m d) 
+save npreg3, replace 
+*/
+
+use "https://raw.githubusercontent.com/jayjeo/public/master/GH210712_REGexercise/npreg3.dta", clear  // If your Stata is below version 15. 
+twoway dot mean cs
+twoway dot deriv cs
+
