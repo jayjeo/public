@@ -826,19 +826,22 @@ mata
 end
 
 mata bLL
-getmata (mean deriv)=bLL
-twoway dot mean cs
-twoway dot deriv cs
+getmata (mean cs_d)=bLL
+
+egen cs_m=mean(mean), by(cs)
+sort cs
+twoway (dot pscore cs) (line cs_m cs)
 
  // only works above Stata14
 /*
-npregress kernel pscore cs, kernel(gaussian) predict(mean deriv) bwidth(0.3 0.3, copy)
-npgraph
+npregress kernel pscore cs, kernel(gaussian) predict(mean cs_d) bwidth(0.3 0.3, copy)
 save npreg2, replace 
+
+npgraph
 */
 use "https://raw.githubusercontent.com/jayjeo/public/master/GH210712_REGexercise/npreg2.dta", clear  // If your Stata is below version 15. 
-twoway dot mean cs
-twoway dot deriv cs
+
+
 
 
 
@@ -894,7 +897,6 @@ mata
 		bLL=luinv(Z'*K*Z)*Z'*K*Y
 		return(bLL)
 	}
-
 end
 
 mata h=0.3
@@ -908,16 +910,17 @@ end
 
 mata bLL
 
+getmata (mean cs_d wa_d sex_d)=bLL
+egen cs_m=mean(mean), by(cs)
+sort cs
+twoway (dot pscore cs) (line cs_m cs)
 
 // only works above Stata14, Discrete kernel: liracine 
 /*
-npregress kernel pscore cs i.wa i.sex, kernel(gaussian) ///
+npregress kernel pscore cs i.wa i.sex, kernel(gaussian) dkernel(liracine) ///
 			bwidth(Mean:cs=0.3 Effect:cs=0.3 Mean:wa=0.3 Effect:wa=0.3 Mean:sex=0.3 Effect:sex=0.3) ///
-			predict(cs_m wa_m sex_m d) 
-save npreg3, replace   
+			predict(mean cs_d wa_d sex_d) 
+save npreg3, replace 
 */
-
 use "https://raw.githubusercontent.com/jayjeo/public/master/GH210712_REGexercise/npreg3.dta", clear  // If your Stata is below version 15. 
-twoway dot mean cs
-twoway dot deriv cs
 
