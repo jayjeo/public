@@ -856,7 +856,7 @@ mata
 	k=cols(X)
 end
 
-//define Li-Racine kernel function
+//define Li-Racine kernel function (EV210717)
 mata
 	function liracine(real scalar xij, real scalar xj, real scalar h)
 	{
