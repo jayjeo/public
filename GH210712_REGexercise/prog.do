@@ -758,7 +758,8 @@ mata: mata matuse default
 //npregress kernel sm i.wa i.free i.sex totexpk, kernel(gaussian) // only works above Stata14
 //predict p
 //save npreg, replace 
-use "https://raw.githubusercontent.com/jayjeo/public/master/GH210712_REGexercise/npreg.dta", clear
+use "https://raw.githubusercontent.com/jayjeo/public/master/GH210712_REGexercise/npreg.dta", clear  // If your Stata is below version 15. 
+
 histogram p
 
 preserve
@@ -779,3 +780,40 @@ clear all
 use default
 mata: mata matuse default
 
+mata normalden(10)
+
+mata 
+	Y=pscore
+	X=cs
+	n=rows(X)
+	k=cols(X)
+end
+
+mata
+	real matrix bLL(real scalar x, real scalar u)
+	{
+		real scalar K
+
+
+
+		return(K)
+	}
+
+end
+
+mata 
+	bLL=J(0,2,0)
+	for(i=1; i<=rows(X); i++){ 
+		bLL=bLL\bLL(X[i])
+	}
+end
+
+
+ // only works above Stata14
+/*
+npregress kernel pscore cs, kernel(gaussian) predict(mean deriv) 
+npgraph
+save npreg2, replace 
+*/
+use "https://raw.githubusercontent.com/jayjeo/public/master/GH210712_REGexercise/npreg2.dta", clear  // If your Stata is below version 15. 
+twoway dot mean cs
