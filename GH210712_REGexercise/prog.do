@@ -858,11 +858,13 @@ end
 
 //define Li-Racine kernel function
 mata
-	real scalar liracine(real scalar xij, real scalar xj, real scalar h)
+	function liracine(real scalar xij, real scalar xj, real scalar h)
 	{
 		real scalar K
-		if xij=xj K=1
+		if (xij==xj) K=1
 		else K=h
+
+		return(K)
 	}
 end
 
@@ -877,9 +879,9 @@ mata
 		real scalar i
 
 		
-		kk=normalden((X[1,1]-x[1])/h)*normalden((X[1,2]-x[2])/h)*normalden((X[1,3]-x[3])/h)
+		kk=normalden((X[1,1]-x[1])/h)*liracine(X[1,2],x[2],h)*liracine(X[1,3],x[3],h)
 		for(i=2; i<=rows(X); i++){ 
-			kk=kk\normalden((X[i,1]-x[1])/h)*normalden((X[i,2]-x[2])/h)*normalden((X[i,3]-x[3])/h)
+			kk=kk\normalden((X[i,1]-x[1])/h)*liracine(X[i,2],x[2],h)*liracine(X[i,3],x[3],h)
 		}
 		K=diag(kk)
 
