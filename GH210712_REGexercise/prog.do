@@ -778,10 +778,8 @@ logit sm wa free sex totexpk
 *!start
 clear all
 use default
-mata: mata matuse default
 
-mata normalden(10)
-
+putmata pscore cs, replace 
 mata 
 	Y=pscore
 	X=cs
@@ -790,28 +788,49 @@ mata
 end
 
 mata
-	real matrix bLL(real scalar x, real scalar u)
+	real matrix bLL(real matrix Y, real matrix X, real scalar x, real scalar h)
 	{
-		real scalar K
+		real matrix bLL
+		real matrix K
+		real matrix Z
+		real matrix kk
+		real matrix zz
+		real scalar i
 
+		
+		kk=normalden((X[1]-x)/h)
+		for(i=2; i<=rows(X); i++){ 
+			kk=kk\normalden((X[i]-x)/h)
+		}
+		K=diag(kk)
 
+		zz=(X[1]-x)
+		for(i=2; i<=rows(X); i++){ 
+			zz=zz\(X[i]-x)
+		}
+		Z=J(rows(X),1,1),zz
 
-		return(K)
+		bLL=luinv(Z'*K*Z)*Z'*K*Y
+		return(bLL)
 	}
 
 end
+
+mata h=0.3
 
 mata 
-	bLL=J(0,2,0)
-	for(i=1; i<=rows(X); i++){ 
-		bLL=bLL\bLL(X[i])
+	bLL=bLL(Y,X,X[1],h)'
+	for(i=2; i<=rows(X); i++){ 
+		bLL=bLL\bLL(Y,X,X[i],h)'
 	}
 end
+
+mata bLL
 
 
  // only works above Stata14
 /*
-npregress kernel pscore cs, kernel(gaussian) predict(mean deriv) 
+npregress kernel pscore cs, kernel(gaussian) predict(mean deriv) bwidth(0.3 0.3, copy)
 npgraph
 save npreg2, replace 
 */
