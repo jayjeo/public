@@ -804,11 +804,11 @@ mata
 		}
 		K=diag(kk)
 
-		zz=(X[1]-x)
+		zz=(1,(X[1]-x))
 		for(i=2; i<=rows(X); i++){ 
-			zz=zz\(X[i]-x)
+			zz=zz\(1,(X[i]-x))
 		}
-		Z=J(rows(X),1,1),zz
+		Z=zz
 
 		bLL=luinv(Z'*K*Z)*Z'*K*Y
 		return(bLL)
@@ -848,12 +848,22 @@ clear all
 use default
 drop if _n > 1000  // Spends too long if used all of 5722 observations. 
 
-putmata pscore cs wa free sex totexpk, replace 
+putmata pscore cs wa sex, replace 
 mata 
 	Y=pscore
 	X=cs,wa,sex
 	n=rows(X)
 	k=cols(X)
+end
+
+//define Li-Racine kernel function
+mata
+	real scalar liracine(real scalar xij, real scalar xj, real scalar h)
+	{
+		real scalar K
+		if xij=xj K=1
+		else K=h
+	}
 end
 
 mata
@@ -873,9 +883,9 @@ mata
 		}
 		K=diag(kk)
 
-		zz=1\(X[1,1]-x[1])\(X[1,2]-x[2])\(X[1,3]-x[3])
+		zz=1,(X[1,1]-x[1]),(X[1,2]-x[2]),(X[1,3]-x[3])
 		for(i=2; i<=rows(X); i++){ 
-			zz=zz\1\(X[i,1]-x[1])\(X[i,2]-x[2])\(X[i,3]-x[3])
+			zz=zz\(1,(X[i,1]-x[1]),(X[i,2]-x[2]),(X[i,3]-x[3]))
 		}
 		Z=zz
 
@@ -896,16 +906,13 @@ end
 
 mata bLL
 
-mata x=X[1,.]
-mata X[1,.]
-mata x[1]
 
-// only works above Stata14
+// only works above Stata14, Discrete kernel: liracine 
 /*
 npregress kernel pscore cs i.wa i.sex, kernel(gaussian) ///
 			bwidth(Mean:cs=0.3 Effect:cs=0.3 Mean:wa=0.3 Effect:wa=0.3 Mean:sex=0.3 Effect:sex=0.3) ///
 			predict(cs_m wa_m sex_m d) 
-save npreg3, replace 
+save npreg3, replace   
 */
 
 use "https://raw.githubusercontent.com/jayjeo/public/master/GH210712_REGexercise/npreg3.dta", clear  // If your Stata is below version 15. 
