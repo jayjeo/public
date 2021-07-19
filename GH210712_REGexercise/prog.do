@@ -777,7 +777,7 @@ logit sm wa free sex totexpk
 *!start
 clear all
 use default
-drop if _n > 1000  // Spends too long if used all of 5722 observations. 
+*drop if _n > 1000  // Spends too long if used all of 5722 observations. 
 
 putmata pscore cs, replace 
 mata 
@@ -810,7 +810,8 @@ mata
 		}
 		Z=zz
 
-		bLL=luinv(Z'*K*Z)*Z'*K*Y
+		bLL=luinv(quadcross(Z,kk,Z))*quadcross(Z,kk,Y)
+		//bLL=luinv(Z'*K*Z)*Z'*K*Y   // same as above. 
 		return(bLL)
 	}
 
