@@ -1,6 +1,5 @@
-cd "C:\Users\acube\Dropbox\Study\GitHub\public\Replication\Rep_files\njmin"
-global pathr "C:\Users\acube\Dropbox\Study\GitHub\public\Replication\Rep_files\njmin"
-
+global pathr "C:\Users\acube\Dropbox\Study\GitHub\public\Replication\GH210720_Card and Krueger (1994)\Rep_files\njmin"
+cd "$pathr"
 
 /******* MHE Replication:
 MHE = Joshua D. Angrist, Jorn-Steffen Pischke - Mostly Harmless Econometrics_ An Empiricist's Companion (2008)
@@ -70,7 +69,7 @@ rename (NMGRS NMGRS2) (NMGRS1 NMGRS2)
 keep STATUS2 SHEET EMPFT1 EMPFT2 EMPPT1 EMPPT2 NMGRS1 NMGRS2 ///
         STATE SOUTHJ CENTRALJ NORTHJ PA1 PA2 SHORE
 
-local w=0.4  \\ Can't figure not how FTE(Full Time Equivalent) employment is calculated. 
+local w=0.4  // Can't figure not how FTE(Full Time Equivalent) employment is calculated. 
 gen FTE1=EMPFT1+`w'*EMPPT1+NMGRS1
 gen FTE2=EMPFT2+`w'*EMPPT2+NMGRS2
 
@@ -85,5 +84,5 @@ recode month (1=0) (2=1)
 *keep if CENTRALJ==1 |SOUTHJ==1 | PA1==1 | PA2==1
 *drop if PA1==1
 *keep if CENTRALJ==1|STATE==0
-reg FTE STATE##month 
+reg FTE STATE#month 
 
