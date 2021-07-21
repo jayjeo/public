@@ -102,6 +102,40 @@ mata: mata matsave default *,replace
 // use these files as default. From below, overwrite data if necessary
 
 
+******** Weighting
+*!start
+clear all
+use default
+mata: mata matuse default
+set seed 10101
+
+gen wgt=abs(rnormal(1,1))
+putmata wgt
+mata 
+	W=diag(wgt)
+	w=diag(sqrt(wgt))  // not used 
+	IW=luinv(W)  // not used 
+end 
+
+reg pscore cs wa free sex totexpk [aweight=wgt]
+
+mata	
+	b_ols=invsym(quadcross(X,wgt,X))*quadcross(X,wgt,Y)
+	b_ols 
+	b_ols=invsym(X'*W*X)*(X'*W*Y)
+	b_ols 
+end
+
+mata
+	e_ols=Y-X*b_ols
+	e_ols_2=e_ols:*e_ols
+	D0=diag(e_ols_2)
+	v_ols_ro=n*invsym(n-k)*luinv(X'*W*X)*X'*W*D0*W*X*luinv(X'*W*X)  
+end
+
+mata sqrt(diagonal(v_ols_ro))
+reg pscore cs wa free sex totexpk [aweight=wgt], robust 
+
 
 ******** Robust variance
 *!start
