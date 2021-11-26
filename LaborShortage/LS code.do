@@ -2,7 +2,13 @@
 cls
 clear all
 set scheme s1color, perm 
-global path="D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\211126"   // need to set your own desired path. 
+/*********************************************
+*********************************************/
+* NEED TO SET YOUR OWN DESIRED PATH
+global path="D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\211126"   
+/*********************************************
+*********************************************/
+
 
 
 /*********************************************
@@ -33,6 +39,7 @@ graph export monthlye9.eps, replace
 
 *********************
 *!start
+cd "${path}
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/e9f4h2.csv", clear 
 gen date=ym(year,month)
 tsset date
@@ -48,6 +55,7 @@ graph export e9f4h2.eps, replace
 
 *********************
 *!start
+cd "${path}
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/did_graph.csv", varnames(1) clear 
 gen ym=t+695
 tsset ym
@@ -57,7 +65,6 @@ replace u=u*100
 replace v=v*100
 
 
-***************
 qui su emp
 generate upper = r(max)
 qui su emp
@@ -70,7 +77,6 @@ twoway (bar `barcall')(tsline emp, lcolor(gs0))(tsline production, lcolor(blue) 
 graph export empgraph.eps, replace
 
 
-***************
 qui su u
 generate upper2 = r(max)
 qui su v
@@ -83,48 +89,15 @@ twoway (bar `barcall')(tsline u, lcolor(gs0))(tsline v, lcolor(gs0) clpattern(da
 graph export uvgraph.eps, replace
 
 
+
+
 /*********************************************
 Regression Models
 *********************************************/
 
-
-********** Manufacturing deflator smooth
 *!start
-import delimited "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata\manufacturing deflator.csv", varnames(1) clear 
-save "D:\Dropbox\temp\panelm_temp_deflator", replace
-cd "D:\Dropbox\temp"
-use panelm_temp_deflator, clear
-
-tsset t, monthly
-tsfilter hp deflator_hp = deflator, trend(smooth_deflator) smooth(50)
-
-keep smooth_deflator t wondollar
-keep if 97<=t&t<=140 // 2018년1월~2021년9월
-replace t=t-96
-save "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata\smooth_deflator", replace
-
-********** 
-
-********** hourly wage seasonal adjust 
-*!start
-cd "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata"
-import delimited "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata\orig.csv", varnames(1) clear  // indmc==0 은 제조업 전체
-merge m:1 t using smooth_deflator, nogenerate
-replace ym=t+695
-xtset indmc ym
-format ym %tm
-rename (nume numd) (numE numD)
-drop if indmc==12
-drop if indmc==0
-gen w=wage_tot/hour/smooth_deflator*100/wondollar // 단위: 원. 시간당 임금. 실질2015=100 기준. 원달러환율 적용. 단위: 달러
-*rename w w_temp
-*tsfilter hp w_temp_hp = w_temp, trend(w) smooth(50)
-keep indmc ym w
-save "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata\tempv_wage", replace 
-
-*!start
-cd "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata"
-import delimited "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata\orig.csv", varnames(1) clear 
+cd "${path}
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
 replace ym=t+695
 xtset indmc ym
 format ym %tm
@@ -157,41 +130,6 @@ db sax12
 db sax12im
 twoway (tsline v2)(tsline v2_d11)
 
-*!start
-use panelm, clear
-reg smooth_v2  smooth_prod
-predict v2_pr
-gen v2e=smooth_v2-v2_pr
-
-local var="smooth_v2"
-twoway (tsline `var' if indmc==21, lcolor(blue)) ///
-(tsline `var' if indmc==27, lcolor(blue)) ///
-(tsline `var' if indmc==11, lcolor(blue)) ///
-(tsline `var' if indmc==26, lcolor(blue)) ///
-(tsline `var' if indmc==14, lcolor(blue)) ///
-(tsline `var' if indmc==19, lcolor(gs0)) ///
-(tsline `var' if indmc==28, lcolor(gs0)) ///
-(tsline `var' if indmc==15, lcolor(gs0)) ///
-(tsline `var' if indmc==20, lcolor(gs0)) ///
-(tsline `var' if indmc==30, lcolor(gs0)) ///
-(tsline `var' if indmc==29, lcolor(gs0)) ///
-(tsline `var' if indmc==31, lcolor(gs0)) ///
-(tsline `var' if indmc==10, lcolor(gs0)) ///
-(tsline `var' if indmc==24, lcolor(gs0)) ///
-(tsline `var' if indmc==18, lcolor(gs0)) ///
-(tsline `var' if indmc==23, lcolor(red)) ///
-(tsline `var' if indmc==13, lcolor(red)) ///
-(tsline `var' if indmc==25, lcolor(red)) ///
-(tsline `var' if indmc==17, lcolor(red)) ///
-(tsline `var' if indmc==22, lcolor(red)) ///
-(tsline `var' if indmc==33, lcolor(red) lwidth(thick)) ///
-(tsline `var' if indmc==16, lcolor(red) lwidth(thick)) ///
-, xline(720) xline(728) ytitle("Vacancy (%)") xtitle("") ///
-caption("Red: Highest E9share, Blue: Lowest E9share.") legend(off)
-graph export ..\latex\final_v.eps, replace
-/*
-(tsline `var' if indmc==32, lcolor(red) lwidth(thick)) ///
-*/
 
 *!start
 cd "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata"
