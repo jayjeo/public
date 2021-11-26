@@ -53,7 +53,6 @@ gen ym=t+695
 tsset ym
 format ym %tm
 replace emp=emp/1000
-replace empcompare=empcompare/1000
 replace u=u*100
 replace v=v*100
 
@@ -68,7 +67,7 @@ twoway (bar `barcall')(tsline emp, lcolor(gs0))(tsline production, lcolor(blue) 
     text(3645 716 "P1 (D=0)") text(3645 723 "P2") text(3645 736 "P3 (D=1)")) ///
        , xtitle("") ytitle("A thousand person") xline(720) /// 
     legend(label(2 "Total workers (Left)") label(3 "Production (Right)") order(2 3))
-graph export ..\latex\empgraph.eps, replace
+graph export empgraph.eps, replace
 
 
 ***************
@@ -81,7 +80,7 @@ twoway (bar `barcall')(tsline u, lcolor(gs0))(tsline v, lcolor(gs0) clpattern(da
     text(0.6 716 "P1 (D=0)") text(0.6 723 "P2") text(0.6 736 "P3 (D=1)")) ///
     , xtitle("") ytitle("%") xline(720) /// 
     legend(label(2 "Unemployment rate") label(3 "Vacancy") label(4 "Production (Right)") order(2 3 4))
-graph export ..\latex\uvgraph.eps, replace
+graph export uvgraph.eps, replace
 
 
 /*********************************************
