@@ -181,53 +181,19 @@ gen t=_n+659
 tsset t
 format t %tm
 
-foreach var in ut empt vacancyt matchedt {
+foreach var in ut empt vacancyt matchedt exitt{
     rename `var' `var'temp
-    tsfilter hp `var'_hp = `var'temp, trend(`var') smooth(200) 
+    tsfilter hp `var'_hp = `var'temp, trend(`var') smooth(50) 
 }
-
-
-keep uc empc vacc ipjikc us emps vacs ipjiks t
-
-gen lc=empc/(1-uc)
-gen ls=emps/(1-us)
-gen vc=vacc/lc
-gen vs=vacs/ls
-gen thetac=vc/uc
-gen thetas=vs/us
-gen invthetac=1/thetac
-gen invthetas=1/thetas
-scalar a=15
-scalar s=5
-scalar k=.3066547
-scalar g=3
-
-gen sc=(ipjikc*a*vc/lc)/(a*uc*vc-ipjikc*uc/lc)
-gen ss=(ipjiks*a*vs/ls)/(a*us*vs-ipjiks*us/ls)
-gen ac=(s*ipjikc*uc/lc)/(s*uc*vc-ipjikc*vc/lc)
-gen as=(s*ipjiks*us/ls)/(s*us*vs-ipjikc*vs/ls)
-gen tc=ipjikc/lc*(uc+vc)/(uc*vc)
-gen ts=ipjiks/ls*(us+vs)/(us*vs)
-gen tc_test=(uc+vc)/(uc*vc)
-gen ts_test=(us+vs)/(us*vs)
-gen tc_test2=ipjikc/lc
-gen ts_test2=ipjiks/ls
-gen tc_alter=ipjikc/lc/(uc^k*vc*(1-k))
-gen ts_alter=ipjiks/ls/(us^k*vs*(1-k))
-gen sc_alter=(ipjikc/lc/(uc^k*(a*vc)^(1-k)))^(1/k)
-gen ss_alter=(ipjiks/ls/(us^k*(a*vs)^(1-k)))^(1/k)
-gen ac_alter=(ipjikc/lc/(vc^(1-k)*(s*uc)^(k)))^(1/(1-k))
-gen as_alter=(ipjiks/ls/(vs^(1-k)*(s*us)^(k)))^(1/(1-k))
-gen avonlyc=(ipjikc*uc)/(lc*vc*(g*uc-ipjikc/lc))
-gen avonlys=(ipjiks*us)/(ls*vs*(g*us-ipjiks/ls))
-gen avonlyc_alter=((ipjikc)/(lc*uc^k*vc^(1-k)))^(1/(1-k))
-gen avonlys_alter=((ipjiks)/(ls*us^k*vs^(1-k)))^(1/(1-k))
-gen duc=F.d.uc
-gen dus=F.d.us
-/*
 drop if _n<49
-gen lnF=ln(ipjikc/uc/lc)
-gen lntheta=ln(thetac)
+keep t ut empt vacancyt matchedt exitt 
+
+gen lt=empt/(1-ut)
+gen vt=vacancyt/lt
+gen thetat=vt/ut
+
+gen lnF=ln(matchedt/ut/lt)
+gen lntheta=ln(thetat)
 reg lnF lntheta
 twoway (scatter lnF lntheta)(lfit lnF lntheta)
 scalar k=.3066547
