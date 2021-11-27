@@ -102,57 +102,42 @@ replace ym=t+695
 xtset indmc ym   // indmc = sub-sector of manufacturing industry. ; ym = monthly time.
 format ym %tm
 rename (nume numd exit) (numE numD EXIT)  // numE = number of vacant spots ; numD = number of workers ; EXIT = number of separated workers
-gen v2=numE/numD*100   // v2 = vacancy rate
-gen Mr=matched/numD*100  // matched = number of matched person. ; Mr = matching percentage per total workers.
+gen v=numE/numD*100   // v = vacancy rate
+gen MATCHr=matched/numD*100  // matched = number of matched person. ; MATCHr = matching percentage per total workers.
 gen EXITr=EXIT/numD*100  // EXITr = separation percentage per total workers.
 drop if indmc==0         // information for total manufacturing sectors. 
 
-foreach var in v2 Mr EXITr prod numD {
+foreach var in v MATCHr EXITr prod numD {
 tsfilter hp `var'_hp = `var', trend(smooth_`var') smooth(200)  // hp smoothing
 }
 
 drop if inlist(indmc,12)  // tobacco industry. Extremely few workers, and production data is not available.
-drop hour wage_tot
 save panelm, replace 
 
 
 *!start
 cd "${path}
 use panelm, clear
+keep ym indmc numD e9 v prod
+reshape wide numD e9 v prod, i(indmc) j(ym)
 
-keep ym indmc numD e9 v2 prod
-reshape wide numD e9 v2 prod, i(indmc) j(ym)
-gen e9chg739719=(e9739-e9719)/numD719*100
-gen e9chg739726=(e9739-e9726)/numD719*100
-gen e9chg723719=(e9723-e9719)/numD719*100
-
+** 719=2019m12; 722=2020m3; 724=2020m5; 739=2021m8
+gen e9chg=(e9739-e9719)/numD719*100
+gen vchg=(v739-v719)/numD719*100
 gen e9share=e9719/numD719*100
-gen prodchg723719=(prod723-prod719)
-gen prodchg724720=(prod724-prod720)
-gen prodchg738727=(prod738-prod727)
-gen prod2chg724722=(prod724-prod722)
+gen numDchg=(numD724-numD722)/numD719*100
+gen prodchg=(prod724-prod722)
 
-foreach i in v2 numD prod{
-    gen `i'chg724722=(`i'724-`i'722)/`i'722*100
-}
-foreach i in v2 numD {
-    gen `i'chg723719=(`i'723-`i'719)/`i'719*100
-}
-foreach i in v2 numD {
-    gen `i'chg724720=(`i'724-`i'720)/`i'720*100
-}
-foreach i in v2 numD {
-    gen `i'chg738727=(`i'738-`i'727)/`i'727*100
-}
-keep indmc prod723 prod719 numD719 numD720 e9chg739719 e9chg739726 e9chg723719 e9share v2chg723719 numDchg723719 numDchg738727 numDchg724722 prod2chg724722 prodchg724722 prodchg723719 prodchg738727 numDchg724720 prodchg724720
+keep indmc vchg numD719 e9chg e9share numDchg prodchg
 save chg, replace 
 
-*twoway (scatter v2chg e9share, lcolor(gs0))(lfit v2chg e9share, lcolor(gs0)) 
-*twoway (scatter v2chg720 prodchg720, lcolor(gs0))(lfit v2chg720 prodchg720, lcolor(gs0)) 
+twoway (scatter vchg e9chg, lcolor(gs0))(lfit vchg e9chg, lcolor(gs0)) 
+twoway (scatter vchg e9share, lcolor(gs0))(lfit vchg e9share, lcolor(gs0)) 
+twoway (scatter e9share e9chg, lcolor(gs0))(lfit e9share e9chg, lcolor(gs0)) 
 
 
 *!start
-cd "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata"
+cd "${path}
 use panelm, clear
 merge m:1 indmc using chg, nogenerate
 
@@ -162,22 +147,21 @@ drop if d==.
 
 gen e9shared=e9share*d
 gen e9chg739719d=e9chg739719*d
-
 gen prodchg724722d=prodchg724722*d
 gen numDchg724722d=numDchg724722*d
 
-label var v2 "Vacancy" 
+label var v "Vacancy" 
 label var d "T" 
-label var e9shared "E9SHARE $\times$ T" 
-label var e9chg739719d "E9CHGP1P4 $\times$ T" 
+label var e9shared "E9SHARE $\times$ D" 
+label var e9chg739719d "E9CHG $\times$ D" 
 label var prod "Production"
-label var prodchg724722d "PRODCHG $\times$ T" 
-label var numDchg724722d "WORKERCHG $\times$ T" 
+label var prodchg724722d "PRODCHG $\times$ D" 
+label var numDchg724722d "WORKERCHG $\times$ D" 
 
 eststo clear 
-eststo: xtivreg v2 (e9chg739719d=e9shared) i.ym prod, fe vce(cluster indmc) first
-eststo: xtivreg v2 (e9chg739719d=e9shared) i.ym prodchg724722d prod, fe vce(cluster indmc) first
-eststo: xtivreg v2 (e9chg739719d=e9shared) i.ym numDchg724722d prod, fe vce(cluster indmc) first
+eststo: xtivreg v (e9chg739719d=e9shared) i.ym prod, fe vce(cluster indmc) first
+eststo: xtivreg v (e9chg739719d=e9shared) i.ym prodchg724722d prod, fe vce(cluster indmc) first
+eststo: xtivreg v (e9chg739719d=e9shared) i.ym numDchg724722d prod, fe vce(cluster indmc) first
 
 esttab * using "..\latex\tablenov1.tex", ///
     title(\label{tablenov1}) ///
@@ -190,38 +174,18 @@ esttab * using "..\latex\tablenov1.tex", ///
 /*********************************************
 Matching efficiency
 *********************************************/
-use tempv_wage, clear 
-gen t=ym 
-replace t=t-695
-save tempv_wage2, replace 
-
-********** vacancy seasonal adjust 
 *!start
-cd "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata"
-import delimited "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata\matchedindmc.csv", varnames(1) clear 
-reshape long indmc, i(t) j(ind)
-rename indmc matched
-rename ind indmc 
-drop if indmc==12
-save matchedindmc, replace 
+cd "${path}
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/u.csv", varnames(1) clear 
+drop if indmc==12   // tobacco industry. Extremely few workers, and production data is not available.
+save u, replace 
 
-*!start
-cd "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata"
-import delimited "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata\EXITindmc.csv", varnames(1) clear 
-reshape long indmc, i(t) j(ind)
-rename indmc EXIT
-rename ind indmc 
-drop if indmc==12
-save EXITindmc, replace 
-
-
-import delimited "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata\orig.csv", varnames(1) clear 
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
 rename (nume numd) (numE numD)
-drop if indmc==0
-drop if indmc==12
-merge 1:1 t indmc using matchedindmc, nogenerate
-merge 1:1 t indmc using EXITindmc, nogenerate
-merge 1:1 t indmc using tempv_wage2, nogenerate
+drop if indmc==0    // information for total manufacturing sectors. 
+drop if indmc==12   // tobacco industry. Extremely few workers, and production data is not available.
+merge m:1 t indmc using u, nogenerate
+
 
 drop t
 xtset indmc ym
