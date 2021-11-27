@@ -175,14 +175,13 @@ esttab * using "..\latex\tablenov1.tex", ///
 Calibration of Matching efficiency and Termination rate (total manufacturing sector)
 *********************************************/
 *!start
-cd "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata"
+cd "${path}
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/totalmanufacturing.csv", varnames(1) clear 
 gen t=_n+659
 tsset t
 format t %tm
 
-
-foreach var in uc empc vacc ipjikc us emps vacs ipjiks {
+foreach var in ut empt vacancyt matchedt {
     rename `var' `var'temp
     tsfilter hp `var'_hp = `var'temp, trend(`var') smooth(200) 
 }
@@ -232,6 +231,7 @@ gen lntheta=ln(thetac)
 reg lnF lntheta
 twoway (scatter lnF lntheta)(lfit lnF lntheta)
 scalar k=.3066547
+*/
 
 /*********************************************
 Matching efficiency
