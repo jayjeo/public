@@ -123,12 +123,13 @@ reshape wide numD e9 v prod, i(indmc) j(ym)
 
 ** 719=2019m12; 722=2020m3; 724=2020m5; 739=2021m8
 gen e9chg=(e9739-e9719)/numD719*100
+gen e9chg739726=(e9739-e9726)/numD719*100
 gen vchg=(v739-v719)/numD719*100
 gen e9share=e9719/numD719*100
 gen numDchg=(numD724-numD722)/numD719*100
 gen prodchg=(prod724-prod722)
 
-keep indmc vchg numD719 e9chg e9share numDchg prodchg
+keep indmc vchg numD719 e9chg e9share numDchg prodchg e9chg739726
 save chg, replace 
 
 twoway (scatter vchg e9chg, lcolor(gs0))(lfit vchg e9chg, lcolor(gs0)) 
@@ -167,7 +168,7 @@ esttab * using "..\latex\tablenov1.tex", ///
     title(\label{tablenov1}) ///
     b(%9.3f) se(%9.3f) ///
     lab se r2 pr2 noconstant replace ///
-    addnotes("$\text{S}_i$ included but not reported.")	
+    addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
 
 
 
@@ -196,8 +197,13 @@ gen lnF=ln(matchedt/ut/lt)
 gen lntheta=ln(thetat)
 reg lnF lntheta
 twoway (scatter lnF lntheta)(lfit lnF lntheta)
-scalar k=.3066547
-*/
+scalar k=_b[lntheta]
+di k   // k=.3066547
+
+gen at=matchedt/(ut*lt*(vt/ut)^k)    // calibration result for matching efficiency (total manufacturing sector)
+gen lambdat=exitt/empt               // calibration result for termination rate (total manufacturing sector)
+
+
 
 /*********************************************
 Matching efficiency
@@ -212,68 +218,70 @@ save u, replace
 cd "${path}
 use panelm, clear
 merge m:1 indmc using chg, nogenerate
-merge m:1 indmc using u, nogenerate
+merge m:1 t using u, nogenerate
 xtset indmc ym
 format ym %tm
 
+replace v=numE/numD
 gen theta=v/u               // theta= market tightness
-gen lambda=EXIT/numD       // lambda= termination rate
+gen lambda=EXIT/numD       // lambda= termination rate; EXIT= separation number; numD= total number of workers.
 gen l=numD/(1-u)          // l= active population per each sub-industry
 
 scalar k=.3066547
-gen adaniel=matched/(u*lc*(v/u)^k)
-gen adanieldiscrete=matched/u/lc*(1+theta)/theta
+gen a=matched/(u*l*(v/u)^k)      // a= matching efficiency
 
-gen lc2=F.D.lc
-gen bd=lc2/lc-1
-
-gen la=lambda/adaniel
-
-gen d=0 if inlist(ym,718,719,720)
-replace d=1 if inlist(ym,737,738,739)
+gen d=0 if inlist(ym,713,714,715,716,717,718,719)
+replace d=1 if inlist(ym,733,734,735,736,737,738,739)
 drop if d==.
-gen e9shared=e9share*d
-gen e9chg739726d=e9chg739726*d
-gen prodchg724720d=prodchg724720*d
-gen e9chg739719d=e9chg739719*d
 
+gen e9shared=e9share*d
+gen e9chgd=e9chg*d
+gen prodchgd=prodchg*d
+gen numDchgd=numDchg*d
+
+label var v "Vacancy" 
 label var d "T" 
-label var e9chg739726d "E9CHGP3P4 $\times$ T" 
-label var prodchg724720d "PRODCHGP1P2 $\times$ T" 
-label var prod "Production" 
-label var adaniel "Match Eff" 
+label var e9shared "E9SHARE $\times$ D" 
+label var e9chgd "E9CHG $\times$ D" 
+label var prod "Production"
+label var prodchgd "PRODCHG $\times$ D" 
+label var numDchgd "WORKERCHG $\times$ D" 
+label var a "Match Eff" 
 label var lambda "Termination" 
-label var la "\frac{M}{T}" 
+
+eststo clear 
+eststo: xtivreg a (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
+eststo: xtivreg lambda (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
+eststo: xtivreg a (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg lambda (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg a (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg lambda (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
+
+esttab * using "..\latex\tablenov2.tex", ///
+    title(\label{tablenov2}) ///
+    b(%9.3f) se(%9.3f) ///
+    lab se r2 pr2 noconstant replace ///
+    addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
+
+gen e9chg739726d=e9chg739726*d
 
 eststo clear
-eststo: xtivreg adaniel (e9chg739719d=e9shared) i.ym prod, fe first vce(robust)
-estadd local regmodel "FE, TSLS"
-eststo: xtivreg lambda (e9chg739719d=e9shared) i.ym prod, fe first vce(robust)
-estadd local regmodel "FE, TSLS"
-eststo: xtivreg la (e9chg739719d=e9shared) i.ym prod, fe first vce(robust)
-estadd local regmodel "FE, TSLS"
-eststo: xtivreg adaniel (e9chg739719d=e9shared) prodchg724720d i.ym prod, fe first vce(robust)
-estadd local regmodel "FE, TSLS"
-eststo: xtivreg lambda (e9chg739719d=e9shared) prodchg724720d i.ym prod, fe first vce(robust)
-estadd local regmodel "FE, TSLS"
-eststo: xtivreg la (e9chg739719d=e9shared) prodchg724720d i.ym prod, fe first vce(robust)
-estadd local regmodel "FE, TSLS"
-esttab * using "..\latex\tablepre100.tex", ///
-    title(\label{tablepre100}) ///
-    b(%9.3f) se(%9.3f) ///
-    lab se r2 pr2 noconstant replace scalars("regmodel") ///
-    addnotes("$\text{S}_i$ included but not reported.")	
+eststo: xtivreg a (e9chg739726d=e9shared) i.ym prod, fe first vce(robust)
+eststo: xtivreg lambda (e9chg739726d=e9shared) i.ym prod, fe first vce(robust)
+eststo: xtivreg a (e9chg739726d=e9shared) prodchg724720d i.ym prod, fe first vce(robust)
+eststo: xtivreg lambda (e9chg739726d=e9shared) prodchg724720d i.ym prod, fe first vce(robust)
+eststo: xtivreg la (e9chg739726d=e9shared) prodchg724720d i.ym prod, fe first vce(robust)
 
+keep indmc	prod	ym	a	e9shared	e9chg739726d
 
 
 *!start
-use panele, clear
-merge m:1 indmc using chg_matched, nogenerate
+cd "${path}
+use panelm, clear
+merge m:1 indmc using chg, nogenerate
 keep if ym==696
 keep indmc e9share
 sort e9share
-gen rank=_n/23
-keep indmc rank
 save rank, replace 
 
 
