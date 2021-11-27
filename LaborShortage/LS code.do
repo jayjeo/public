@@ -99,13 +99,13 @@ Regression Models
 cd "${path}
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
 replace ym=t+695
-xtset indmc ym
+xtset indmc ym   // indmc = sub-sector of manufacturing industry. ; ym = monthly time.
 format ym %tm
-rename (nume numd exit) (numE numD EXIT)  // numE = number of vacant spots ; numD = number of workers ; EXIT = number of separation
+rename (nume numd exit) (numE numD EXIT)  // numE = number of vacant spots ; numD = number of workers ; EXIT = number of separated workers
 gen v2=numE/numD*100   // v2 = vacancy rate
 gen Mr=matched/numD*100  // matched = number of matched person. ; Mr = matching percentage per total workers.
 gen EXITr=EXIT/numD*100  // EXITr = separation percentage per total workers.
-drop if indmc==0
+drop if indmc==0         // information for total manufacturing sectors. 
 
 foreach var in v2 Mr EXITr prod numD {
 tsfilter hp `var'_hp = `var', trend(smooth_`var') smooth(200)  // hp smoothing
@@ -117,7 +117,7 @@ save panelm, replace
 
 
 *!start
-cd "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata"
+cd "${path}
 use panelm, clear
 
 keep ym indmc numD e9 v2 prod
