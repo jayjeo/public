@@ -104,9 +104,10 @@ xtset indmc ym   // indmc = sub-sector of manufacturing industry. ; ym = monthly
 format ym %tm
 rename (nume numd exit) (numE numD EXIT)  // numE = number of vacant spots ; numD = number of workers ; EXIT = number of separated workers
 gen v=numE/numD*100   // v = vacancy rate
+gen u=unemp/(unemp+numD)*100
 gen MATCHr=matched/numD*100  // matched = number of matched person. ; MATCHr = matching percentage per total workers.
 gen EXITr=EXIT/numD*100  // EXITr = separation percentage per total workers.
-drop if indmc==0         // information for total manufacturing sectors. 
+*drop if indmc==0         // information for total manufacturing sectors. 
 
 foreach var in v MATCHr EXITr prod numD {
 tsfilter hp `var'_hp = `var', trend(smooth_`var') smooth(200)  // hp smoothing
@@ -120,6 +121,7 @@ save panelm, replace
 cd "${path}
 use panelm, clear
 keep ym indmc numD e9 v prod
+drop if _n==_N
 reshape wide numD e9 v prod, i(indmc) j(ym)
 
 ** 719=2019m12; 722=2020m3; 724=2020m5; 739=2021m8
@@ -143,6 +145,7 @@ cd "${path}
 use panelm, clear
 merge m:1 indmc using chg, nogenerate
 
+drop if indmc==0    // information for total manufacturing sectors. 
 gen d=0 if inlist(ym,713,714,715,716,717,718,719)
 replace d=1 if inlist(ym,733,734,735,736,737,738,739)
 drop if d==.
@@ -174,81 +177,108 @@ esttab * using "..\latex\tablenov1.tex", ///
 
 
 /*********************************************
-Calibration of Matching efficiency and Termination rate (total manufacturing sector)
+Calibration of Matching efficiency and Termination rate 
 *********************************************/
 *!start
 cd "${path}
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
 replace ym=t+695
-xtset indmc ym   // indmc = sub-sector of manufacturing industry. ; ym = monthly time.
 format ym %tm
+gen v=nume/numd
+gen u=unemp/(unemp+numd)
+gen theta=v/u
+gen l=numd/(1-u)
+gen lnF=ln(matched/u/l)
+gen lntheta=ln(theta)
+drop if _n==_N
+save tempo, replace 
+
+capture program drop repeat
+program define repeat
+	args indnum
+        preserve
+            keep if indmc== `indnum' 
+            tsset ym, monthly
+            reg lnF lntheta
+            gen k=_b[lntheta]
+            keep indmc k
+            keep if _n==1
+            save k`indnum', replace
+        restore
+end 
+
+use tempo, clear 
+foreach num of numlist 0 10(1)33 {
+    repeat `num'
+}
+use k0, clear
+foreach num of numlist 10(1)33 {
+    append using k`num'
+}
+save k, replace 
+
+use tempo, clear
+merge m:1 indmc using k, nogenerate
+ 
+gen a=matched/(u*l*(v/u)^k)    // calibration result for matching efficiency 
+gen lambda=exit/numd*(1-u)               // calibration result for termination rate 
+save tempo2, replace
 
 
 *!start
 cd "${path}
-import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/totalmanufacturing.csv", varnames(1) clear 
-gen t=_n+659
-tsset t
-format t %tm
-
-foreach var in ut empt vacancyt matchedt exitt{
-    rename `var' `var'temp
-    tsfilter hp `var'_hp = `var'temp, trend(`var') smooth(50) 
-}
-drop if _n<49
-keep t ut empt vacancyt matchedt exitt 
-
-gen lt=empt/(1-ut)
-gen vt=vacancyt/lt
-gen thetat=vt/ut
-
-gen lnF=ln(matchedt/ut/lt)
-gen lntheta=ln(thetat)
-reg lnF lntheta
-twoway (scatter lnF lntheta)(lfit lnF lntheta)
-scalar k=_b[lntheta]
-di k   // k=.3066547
-
-gen at=matchedt/(ut*lt*(vt/ut)^k)    // calibration result for matching efficiency (total manufacturing sector)
-gen lambdat=exitt/empt               // calibration result for termination rate (total manufacturing sector)
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/unemployment compare.csv", varnames(1) clear 
+rename u ut
+save ut, replace 
 
 
-
-/*********************************************
-Matching efficiency
-*********************************************/
 *!start
 cd "${path}
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/u.csv", varnames(1) clear 
-save u, replace 
+rename u ut
+save ut, replace 
+
+use tempo2, clear
+merge m:1 t using ut, nogenerate
+
+preserve
+    keep if indmc==0 
+    tsset ym, monthly
+    replace theta=v/ut
+    replace l=numd/(1-ut)
+    replace lnF=ln(matched/ut/l)
+    replace lntheta=ln(theta)
+    reg lnF lntheta
+    scalar k2=_b[lntheta]
+    di k2    // .33286641
+restore
+
+scalar k2=.33286641
+gen a_alter=matched/(ut*l*(v/ut)^k2)    // calibration result for matching efficiency 
+gen lambda_alter=exit/numd*(1-ut)              // calibration result for termination rate 
+
+save panelm5, replace
 
 
 *!start
 cd "${path}
-use panelm, clear
+use panelm5, clear
+drop if indmc==12
 merge m:1 indmc using chg, nogenerate
-merge m:1 t using u, nogenerate
 xtset indmc ym
 format ym %tm
 
-replace v=numE/numD
-gen theta=v/u               // theta= market tightness
-gen lambda=EXIT/numD       // lambda= termination rate; EXIT= separation number; numD= total number of workers.
-gen l=numD/(1-u)          // l= active population per each sub-industry
-
-scalar k=.3066547
-gen a=matched/(u*l*(v/u)^k)      // a= matching efficiency
-gen adiscrete=matched/u/l*(1+theta)/theta  // // adiscrete= matching efficiency (discrete version)
-
-foreach var in a lambda {
-    tsfilter hp `var'_hp = `var', trend(`var'_smooth) smooth(10) 
+foreach var in a a_alter lambda lambda_alter u v theta {
+    tsfilter hp `var'_hp2 = `var', trend(`var'_smooth) smooth(10) 
 }
-save panelm2, replace
+save panelm7, replace
 
 
 *!start
 cd "${path}
-use panelm2, clear
+use panelm7, clear
+xtset indmc ym 
+drop if indmc==0    // information for total manufacturing sectors. 
 gen d=0 if inlist(ym,713,714,715,716,717,718,719)
 replace d=1 if inlist(ym,733,734,735,736,737,738,739)
 drop if d==.
@@ -270,11 +300,11 @@ label var lambda "Termination"
 
 eststo clear 
 eststo: xtivreg a (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
-eststo: xtivreg lambda (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
+eststo: xtivreg a_alter (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
 eststo: xtivreg a (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
-eststo: xtivreg lambda (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg a_alter (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
 eststo: xtivreg a (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
-eststo: xtivreg lambda (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg a_alter (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
 
 esttab * using "tablenov2.tex", ///
     title(\label{tablenov2}) ///
@@ -282,10 +312,25 @@ esttab * using "tablenov2.tex", ///
     lab se r2 pr2 noconstant replace ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
 
+eststo clear 
+eststo: xtivreg lambda (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
+eststo: xtivreg lambda_alter (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
+eststo: xtivreg lambda (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg lambda_alter (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg lambda (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg lambda_alter (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
+
+
+esttab * using "tablenov3.tex", ///
+    title(\label{tablenov3}) ///
+    b(%9.3f) se(%9.3f) ///
+    lab se r2 pr2 noconstant replace ///
+    addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
+
 
 *!start
 cd "${path}
-use panelm2, clear
+use panelm7, clear
 merge m:1 indmc using chg, nogenerate
 keep if ym==696
 keep indmc e9share
@@ -295,7 +340,7 @@ save rank, replace
 
 *!start
 cd "${path}
-use panelm2, clear
+use panelm7, clear
 
 local var="a_smooth"
 twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
@@ -306,6 +351,7 @@ twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
 (tsline `var' if indmc==32, lcolor(red) lwidth(medthick)) ///
 (tsline `var' if indmc==33, lcolor(red) lwidth(medium)) ///
 (tsline `var' if indmc==22, lcolor(red)) ///
+(tsline `var' if indmc==0, lcolor(gs0) lwidth(thick) clpattern(longdash)) ///
 , xline(720) xline(728) ytitle("Matching efficiency") xtitle("") ///
 caption("Red: Highest E9share, Blue: Lowest E9share.") legend(off)
 graph export final_adaniel.eps, replace
@@ -319,6 +365,36 @@ twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
 (tsline `var' if indmc==32, lcolor(red) lwidth(medthick)) ///
 (tsline `var' if indmc==33, lcolor(red) lwidth(medium)) ///
 (tsline `var' if indmc==22, lcolor(red)) ///
+(tsline `var' if indmc==0, lcolor(gs0) lwidth(thick) clpattern(longdash)) ///
 , xline(720) xline(728) ytitle("Termination rate") xtitle("") ///
 caption("Red: Highest E9share, Blue: Lowest E9share.") legend(off)
 graph export final_lambda.eps, replace
+
+local var="u_smooth"
+twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
+(tsline `var' if indmc==27, lcolor(blue) lwidth(medthick)) ///
+(tsline `var' if indmc==11, lcolor(blue) lwidth(medium)) ///
+(tsline `var' if indmc==26, lcolor(blue)) ///
+(tsline `var' if indmc==16, lcolor(red) lwidth(thick)) ///
+(tsline `var' if indmc==32, lcolor(red) lwidth(medthick)) ///
+(tsline `var' if indmc==33, lcolor(red) lwidth(medium)) ///
+(tsline `var' if indmc==22, lcolor(red)) ///
+(tsline `var' if indmc==0, lcolor(gs0) lwidth(thick) clpattern(longdash)) ///
+(tsline ut if indmc==0, lcolor(red) lwidth(thick) clpattern(longdash)) ///
+, xline(720) xline(728) ytitle("Termination rate") xtitle("") ///
+caption("Red: Highest E9share, Blue: Lowest E9share.") legend(off)
+graph export final_u.eps, replace
+
+local var="v_smooth"
+twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
+(tsline `var' if indmc==27, lcolor(blue) lwidth(medthick)) ///
+(tsline `var' if indmc==11, lcolor(blue) lwidth(medium)) ///
+(tsline `var' if indmc==26, lcolor(blue)) ///
+(tsline `var' if indmc==16, lcolor(red) lwidth(thick)) ///
+(tsline `var' if indmc==32, lcolor(red) lwidth(medthick)) ///
+(tsline `var' if indmc==33, lcolor(red) lwidth(medium)) ///
+(tsline `var' if indmc==22, lcolor(red)) ///
+(tsline `var' if indmc==0, lcolor(gs0) lwidth(thick) clpattern(longdash)) ///
+, xline(720) xline(728) ytitle("Termination rate") xtitle("") ///
+caption("Red: Highest E9share, Blue: Lowest E9share.") legend(off)
+graph export final_v.eps, replace
