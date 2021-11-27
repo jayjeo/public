@@ -177,28 +177,22 @@ Matching efficiency
 *!start
 cd "${path}
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/u.csv", varnames(1) clear 
-drop if indmc==12   // tobacco industry. Extremely few workers, and production data is not available.
 save u, replace 
 
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
 rename (nume numd) (numE numD)
 drop if indmc==0    // information for total manufacturing sectors. 
 drop if indmc==12   // tobacco industry. Extremely few workers, and production data is not available.
-merge m:1 t indmc using u, nogenerate
-
+merge m:1 t using u, nogenerate
 
 drop t
 xtset indmc ym
 format ym %tm
-/*
-foreach var in u numD numE matched l EXIT {
-    rename `var' `var'temp
-    tsfilter hp `var'_hp = `var'temp, trend(`var') smooth(100) 
-}
-*/
 save panele, replace 
 
+
 *!start
+cd "${path}
 use panele, clear
 gen v=numE/numD
 gen lambda=EXIT/numD
