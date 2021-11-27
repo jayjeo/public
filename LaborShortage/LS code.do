@@ -101,34 +101,19 @@ import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborSh
 replace ym=t+695
 xtset indmc ym
 format ym %tm
-rename (nume numd exit) (numE numD EXIT)
-gen v2=numE/numD*100
-gen IPr=ipjik/numD*100
-gen EXITr=EXIT/numD*100
-merge 1:1 ym indmc using tempv_wage, nogenerate
+rename (nume numd exit) (numE numD EXIT)  // numE = number of vacant spots ; numD = number of workers ; EXIT = number of separation
+gen v2=numE/numD*100   // v2 = vacancy rate
+gen Mr=matched/numD*100  // matched = number of matched person. ; Mr = matching percentage per total workers.
+gen EXITr=EXIT/numD*100  // EXITr = separation percentage per total workers.
 drop if indmc==0
 
-foreach var in v2 IPr EXITr prod numD {
-tsfilter hp `var'_hp = `var', trend(smooth_`var') smooth(200)  // hp 평활법
+foreach var in v2 Mr EXITr prod numD {
+tsfilter hp `var'_hp = `var', trend(smooth_`var') smooth(200)  // hp smoothing
 }
 
-drop if inlist(indmc,12)
-*drop if inlist(indmc,12,33,32,16)
+drop if inlist(indmc,12)  // tobacco industry. Extremely few workers, and production data is not available.
 drop hour wage_tot
 save panelm, replace 
-
-
-*!start
-use panelm, clear
-save "D:\Dropbox\temp\panelm", replace
-cd "D:\Dropbox\temp"
-use panelm, clear
-adopath + C:\x12a\
-keep if indmc==10
-
-db sax12
-db sax12im
-twoway (tsline v2)(tsline v2_d11)
 
 
 *!start
@@ -213,12 +198,12 @@ save tempv_wage2, replace
 ********** vacancy seasonal adjust 
 *!start
 cd "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata"
-import delimited "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata\ipjikindmc.csv", varnames(1) clear 
+import delimited "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata\matchedindmc.csv", varnames(1) clear 
 reshape long indmc, i(t) j(ind)
-rename indmc ipjik
+rename indmc matched
 rename ind indmc 
 drop if indmc==12
-save ipjikindmc, replace 
+save matchedindmc, replace 
 
 *!start
 cd "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata"
@@ -234,7 +219,7 @@ import delimited "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직�
 rename (nume numd) (numE numD)
 drop if indmc==0
 drop if indmc==12
-merge 1:1 t indmc using ipjikindmc, nogenerate
+merge 1:1 t indmc using matchedindmc, nogenerate
 merge 1:1 t indmc using EXITindmc, nogenerate
 merge 1:1 t indmc using tempv_wage2, nogenerate
 
@@ -242,7 +227,7 @@ drop t
 xtset indmc ym
 format ym %tm
 /*
-foreach var in u numD numE ipjik l EXIT {
+foreach var in u numD numE matched l EXIT {
     rename `var' `var'temp
     tsfilter hp `var'_hp = `var'temp, trend(`var') smooth(100) 
 }
@@ -256,7 +241,7 @@ gen lambda=EXIT/numD
 
 scalar k=0.3066547
 gen lc=numD/(1-u)
-gen adaniel=ipjik/(u*lc*(v/u)^k)
+gen adaniel=matched/(u*lc*(v/u)^k)
 
 keep ym indmc numD e9 prod adaniel lambda   
 reshape wide numD e9 prod adaniel lambda, i(indmc) j(ym)
@@ -273,7 +258,7 @@ gen e9share=e9719/numD719*100
 gen prodchg723719=(prod723-prod719)
 gen prodchg724720=(prod724-prod720)
 keep indmc numD719 prodchg723719 prodchg724720 lambdachg739719 lambdachg739726 lambdachg723719 adanielchg739719 adanielchg739726 adanielchg723719 e9chg739719 e9chg739726 e9chg723719 e9share 
-save chg_ipjik, replace 
+save chg_matched, replace 
 
 *drop if indmc==15
 twoway (scatter adanielchg739719 e9share)(lfit adanielchg739719 e9share)
@@ -281,7 +266,7 @@ twoway (scatter adanielchg739719 e9share)(lfit adanielchg739719 e9share)
 
 *!start
 use panele, clear
-merge m:1 indmc using chg_ipjik, nogenerate
+merge m:1 indmc using chg_matched, nogenerate
 
 gen v=numE/numD
 gen theta=v/u
@@ -292,8 +277,8 @@ xtset indmc ym
 format ym %tm
 
 scalar k=.3066547
-gen adaniel=ipjik/(u*lc*(v/u)^k)
-gen adanieldiscrete=ipjik/u/lc*(1+theta)/theta
+gen adaniel=matched/(u*lc*(v/u)^k)
+gen adanieldiscrete=matched/u/lc*(1+theta)/theta
 
 gen lc2=F.D.lc
 gen bd=lc2/lc-1
@@ -339,7 +324,7 @@ esttab * using "..\latex\tablepre100.tex", ///
 
 *!start
 use panele, clear
-merge m:1 indmc using chg_ipjik, nogenerate
+merge m:1 indmc using chg_matched, nogenerate
 keep if ym==696
 keep indmc e9share
 sort e9share
@@ -350,7 +335,7 @@ save rank, replace
 
 *!start
 use panele, clear
-merge m:1 indmc using chg_ipjik, nogenerate
+merge m:1 indmc using chg_matched, nogenerate
 merge m:1 indmc using rank, nogenerate
 
 gen v=numE/numD
@@ -362,8 +347,8 @@ xtset indmc ym
 format ym %tm
 
 scalar k=.3066547
-gen adaniel=ipjik/(u*lc*(v/u)^k)
-gen adanieldiscrete=ipjik/u/lc*(1+theta)/theta
+gen adaniel=matched/(u*lc*(v/u)^k)
+gen adanieldiscrete=matched/u/lc*(1+theta)/theta
 
 gen lc2=F.D.lc
 gen bd=lc2/lc-1
@@ -430,7 +415,7 @@ xi: xtreg lambda e9shared2-e9shared8 i.ym i.d9|prod, fe
 *!start
 cd "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata"
 use panele, clear
-merge m:1 indmc using chg_ipjik, nogenerate
+merge m:1 indmc using chg_matched, nogenerate
 drop if ym<715
 gen v=numE/numD
 gen theta=v/u
@@ -445,8 +430,8 @@ drop if indmc==0
 drop if inlist(indmc,12,32,33,16)
 
 scalar k=.3066547
-gen adaniel=ipjik/(u*lc*(v/u)^k)
-gen adanieldiscrete=ipjik/u/lc*(1+theta)/theta
+gen adaniel=matched/(u*lc*(v/u)^k)
+gen adanieldiscrete=matched/u/lc*(1+theta)/theta
 
 foreach var in v u adaniel lambda prod e9 numD w {
     gen ln`var'=ln(`var')
@@ -487,13 +472,13 @@ tsset t
 format t %tm
 
 
-foreach var in uc empc vacc ipjikc us emps vacs ipjiks {
+foreach var in uc empc vacc matchedc us emps vacs matcheds {
     rename `var' `var'temp
     tsfilter hp `var'_hp = `var'temp, trend(`var') smooth(200) 
 }
 
 
-keep uc empc vacc ipjikc us emps vacs ipjiks t
+keep uc empc vacc matchedc us emps vacs matcheds t
 
 gen lc=empc/(1-uc)
 gen ls=emps/(1-us)
@@ -508,40 +493,40 @@ scalar s=5
 scalar k=.3066547
 scalar g=3
 
-gen sc=(ipjikc*a*vc/lc)/(a*uc*vc-ipjikc*uc/lc)
-gen ss=(ipjiks*a*vs/ls)/(a*us*vs-ipjiks*us/ls)
-gen ac=(s*ipjikc*uc/lc)/(s*uc*vc-ipjikc*vc/lc)
-gen as=(s*ipjiks*us/ls)/(s*us*vs-ipjikc*vs/ls)
-gen tc=ipjikc/lc*(uc+vc)/(uc*vc)
-gen ts=ipjiks/ls*(us+vs)/(us*vs)
+gen sc=(matchedc*a*vc/lc)/(a*uc*vc-matchedc*uc/lc)
+gen ss=(matcheds*a*vs/ls)/(a*us*vs-matcheds*us/ls)
+gen ac=(s*matchedc*uc/lc)/(s*uc*vc-matchedc*vc/lc)
+gen as=(s*matcheds*us/ls)/(s*us*vs-matchedc*vs/ls)
+gen tc=matchedc/lc*(uc+vc)/(uc*vc)
+gen ts=matcheds/ls*(us+vs)/(us*vs)
 gen tc_test=(uc+vc)/(uc*vc)
 gen ts_test=(us+vs)/(us*vs)
-gen tc_test2=ipjikc/lc
-gen ts_test2=ipjiks/ls
-gen tc_alter=ipjikc/lc/(uc^k*vc*(1-k))
-gen ts_alter=ipjiks/ls/(us^k*vs*(1-k))
-gen sc_alter=(ipjikc/lc/(uc^k*(a*vc)^(1-k)))^(1/k)
-gen ss_alter=(ipjiks/ls/(us^k*(a*vs)^(1-k)))^(1/k)
-gen ac_alter=(ipjikc/lc/(vc^(1-k)*(s*uc)^(k)))^(1/(1-k))
-gen as_alter=(ipjiks/ls/(vs^(1-k)*(s*us)^(k)))^(1/(1-k))
-gen avonlyc=(ipjikc*uc)/(lc*vc*(g*uc-ipjikc/lc))
-gen avonlys=(ipjiks*us)/(ls*vs*(g*us-ipjiks/ls))
-gen avonlyc_alter=((ipjikc)/(lc*uc^k*vc^(1-k)))^(1/(1-k))
-gen avonlys_alter=((ipjiks)/(ls*us^k*vs^(1-k)))^(1/(1-k))
+gen tc_test2=matchedc/lc
+gen ts_test2=matcheds/ls
+gen tc_alter=matchedc/lc/(uc^k*vc*(1-k))
+gen ts_alter=matcheds/ls/(us^k*vs*(1-k))
+gen sc_alter=(matchedc/lc/(uc^k*(a*vc)^(1-k)))^(1/k)
+gen ss_alter=(matcheds/ls/(us^k*(a*vs)^(1-k)))^(1/k)
+gen ac_alter=(matchedc/lc/(vc^(1-k)*(s*uc)^(k)))^(1/(1-k))
+gen as_alter=(matcheds/ls/(vs^(1-k)*(s*us)^(k)))^(1/(1-k))
+gen avonlyc=(matchedc*uc)/(lc*vc*(g*uc-matchedc/lc))
+gen avonlys=(matcheds*us)/(ls*vs*(g*us-matcheds/ls))
+gen avonlyc_alter=((matchedc)/(lc*uc^k*vc^(1-k)))^(1/(1-k))
+gen avonlys_alter=((matcheds)/(ls*us^k*vs^(1-k)))^(1/(1-k))
 gen duc=F.d.uc
 gen dus=F.d.us
 /*
 drop if _n<49
-gen lnF=ln(ipjikc/uc/lc)
+gen lnF=ln(matchedc/uc/lc)
 gen lntheta=ln(thetac)
 reg lnF lntheta
 twoway (scatter lnF lntheta)(lfit lnF lntheta)
 scalar k=.3066547
 */
-gen adanielc=ipjikc/(uc*lc*(vc/uc)^k)
+gen adanielc=matchedc/(uc*lc*(vc/uc)^k)
 
 
-gen lnipjc=ln(ipjikc/lc)
+gen lnipjc=ln(matchedc/lc)
 gen lnvacc=ln(vc)
 gen lnunempc=ln(uc)
 
@@ -550,7 +535,7 @@ predict lnipj_prc
 gen aac=lnipjc-lnipj_prc
 replace aac=exp(aac)
 
-gen lnipjs=ln(ipjiks/ls)
+gen lnipjs=ln(matcheds/ls)
 gen lnvacs=ln(vs)
 gen lnunemps=ln(us)
 
@@ -580,8 +565,8 @@ twoway (tsline adanielc, lcolor(red))(tsline thetac, yaxis(2) lwidth(thick) lcol
 
 gen unempc=vc*lc
 gen unemps=vs*ls
-gen lnjfc=ln(ipjikc/unempc)
-gen lnjfs=ln(ipjiks/unemps)
+gen lnjfc=ln(matchedc/unempc)
+gen lnjfs=ln(matcheds/unemps)
 gen lnthetac=(1-k)*ln(thetac)
 gen lnavonlyc_alter=ln(avonlyc_alter)
 reg lnjfc lnthetac lnavonlyc_alter
@@ -626,11 +611,11 @@ tsset t
 format t %tm
 
 
-foreach var in uc empc vacc ipjikc us emps vacs ipjiks exitc {
+foreach var in uc empc vacc matchedc us emps vacs matcheds exitc {
     rename `var' `var'temp
     tsfilter hp `var'_hp = `var'temp, trend(`var') smooth(20) 
 }
-keep uc empc vacc ipjikc t exitc
+keep uc empc vacc matchedc t exitc
 
 gen lc=empc/(1-uc)
 gen vc=vacc/lc
@@ -640,7 +625,7 @@ save temp, replace
 
 
 use temp, clear // Daniel 방법
-gen lnf=ln(ipjikc/uc/lc)
+gen lnf=ln(matchedc/uc/lc)
 gen lntheta=ln(thetac)
 reg lnf lntheta
 predict lnf_pr
@@ -654,7 +639,7 @@ gen Flc=F.lc
 drop if _n==_N
 gen bd=Flc/lc-1+0.03
 
-gen A=(ipjikc/uc/lc)/(thetac^.2546027)  // .2546027
+gen A=(matchedc/uc/lc)/(thetac^.2546027)  // .2546027
 
 *twoway (tsline A, lwidth(thick))(tsline A_pr)
 twoway (tsline distance, lwidth(thick) yaxis(1))(tsline Athetaqinv, lcolor(blue) yaxis(2))(tsline lambda, lcolor(red) yaxis(3))(tsline bd, lcolor(gs0) yaxis(4))
@@ -672,7 +657,7 @@ twoway (tsline distance, lwidth(thick))(tsline distance_pr)(tsline thetac, yaxis
 
 
 use temp, clear // Daniel 방법을 Discrete m(u,v)로 변형 버전. 
-gen lnf=ln(ipjik/u/l)
+gen lnf=ln(matched/u/l)
 gen lntheta=ln(theta)
 gen lntheta2=ln(1+theta)
 nl(lnf={lna}+lntheta-lntheta2)
@@ -680,7 +665,7 @@ predict lnf_pr
 gen lne=lnf-lnf_pr
 gen adanieldiscrete=exp(1.312319+lne)
 
-gen A=ipjikc/uc/lc*(1+thetac)/thetac
+gen A=matchedc/uc/lc*(1+thetac)/thetac
 twoway (tsline A, lwidth(thick))(tsline adanieldiscrete)
 
 
