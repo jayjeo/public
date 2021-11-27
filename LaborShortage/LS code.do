@@ -172,6 +172,68 @@ esttab * using "..\latex\tablenov1.tex", ///
 
 
 /*********************************************
+Calibration of Matching efficiency and Termination rate (total manufacturing sector)
+*********************************************/
+*!start
+cd "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata"
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/totalmanufacturing.csv", varnames(1) clear 
+gen t=_n+659
+tsset t
+format t %tm
+
+
+foreach var in uc empc vacc ipjikc us emps vacs ipjiks {
+    rename `var' `var'temp
+    tsfilter hp `var'_hp = `var'temp, trend(`var') smooth(200) 
+}
+
+
+keep uc empc vacc ipjikc us emps vacs ipjiks t
+
+gen lc=empc/(1-uc)
+gen ls=emps/(1-us)
+gen vc=vacc/lc
+gen vs=vacs/ls
+gen thetac=vc/uc
+gen thetas=vs/us
+gen invthetac=1/thetac
+gen invthetas=1/thetas
+scalar a=15
+scalar s=5
+scalar k=.3066547
+scalar g=3
+
+gen sc=(ipjikc*a*vc/lc)/(a*uc*vc-ipjikc*uc/lc)
+gen ss=(ipjiks*a*vs/ls)/(a*us*vs-ipjiks*us/ls)
+gen ac=(s*ipjikc*uc/lc)/(s*uc*vc-ipjikc*vc/lc)
+gen as=(s*ipjiks*us/ls)/(s*us*vs-ipjikc*vs/ls)
+gen tc=ipjikc/lc*(uc+vc)/(uc*vc)
+gen ts=ipjiks/ls*(us+vs)/(us*vs)
+gen tc_test=(uc+vc)/(uc*vc)
+gen ts_test=(us+vs)/(us*vs)
+gen tc_test2=ipjikc/lc
+gen ts_test2=ipjiks/ls
+gen tc_alter=ipjikc/lc/(uc^k*vc*(1-k))
+gen ts_alter=ipjiks/ls/(us^k*vs*(1-k))
+gen sc_alter=(ipjikc/lc/(uc^k*(a*vc)^(1-k)))^(1/k)
+gen ss_alter=(ipjiks/ls/(us^k*(a*vs)^(1-k)))^(1/k)
+gen ac_alter=(ipjikc/lc/(vc^(1-k)*(s*uc)^(k)))^(1/(1-k))
+gen as_alter=(ipjiks/ls/(vs^(1-k)*(s*us)^(k)))^(1/(1-k))
+gen avonlyc=(ipjikc*uc)/(lc*vc*(g*uc-ipjikc/lc))
+gen avonlys=(ipjiks*us)/(ls*vs*(g*us-ipjiks/ls))
+gen avonlyc_alter=((ipjikc)/(lc*uc^k*vc^(1-k)))^(1/(1-k))
+gen avonlys_alter=((ipjiks)/(ls*us^k*vs^(1-k)))^(1/(1-k))
+gen duc=F.d.uc
+gen dus=F.d.us
+/*
+drop if _n<49
+gen lnF=ln(ipjikc/uc/lc)
+gen lntheta=ln(thetac)
+reg lnF lntheta
+twoway (scatter lnF lntheta)(lfit lnF lntheta)
+scalar k=.3066547
+
+/*********************************************
 Matching efficiency
 *********************************************/
 *!start
@@ -179,60 +241,18 @@ cd "${path}
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/u.csv", varnames(1) clear 
 save u, replace 
 
-import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
-rename (nume numd) (numE numD)
-drop if indmc==0    // information for total manufacturing sectors. 
-drop if indmc==12   // tobacco industry. Extremely few workers, and production data is not available.
-merge m:1 t using u, nogenerate
-
-drop t
-xtset indmc ym
-format ym %tm
-save panele, replace 
-
 
 *!start
 cd "${path}
-use panele, clear
-gen v=numE/numD
-gen lambda=EXIT/numD
-
-scalar k=0.3066547
-gen lc=numD/(1-u)
-gen adaniel=matched/(u*lc*(v/u)^k)
-
-keep ym indmc numD e9 prod adaniel lambda   
-reshape wide numD e9 prod adaniel lambda, i(indmc) j(ym)
-gen lambdachg739719=(lambda739-lambda719)
-gen lambdachg739726=(lambda739-lambda726)
-gen lambdachg723719=(lambda723-lambda719)
-gen adanielchg739719=(adaniel739-adaniel719)
-gen adanielchg739726=(adaniel739-adaniel726)
-gen adanielchg723719=(adaniel723-adaniel719)
-gen e9chg739719=(e9739-e9719)/numD719*100
-gen e9chg739726=(e9739-e9726)/numD719*100
-gen e9chg723719=(e9723-e9719)/numD719*100
-gen e9share=e9719/numD719*100
-gen prodchg723719=(prod723-prod719)
-gen prodchg724720=(prod724-prod720)
-keep indmc numD719 prodchg723719 prodchg724720 lambdachg739719 lambdachg739726 lambdachg723719 adanielchg739719 adanielchg739726 adanielchg723719 e9chg739719 e9chg739726 e9chg723719 e9share 
-save chg_matched, replace 
-
-*drop if indmc==15
-twoway (scatter adanielchg739719 e9share)(lfit adanielchg739719 e9share)
-
-
-*!start
-use panele, clear
-merge m:1 indmc using chg_matched, nogenerate
-
-gen v=numE/numD
-gen theta=v/u
-gen lambda=EXIT/numD
-gen lc=numD/(1-u)
-gen unemp=u*lc
+use panelm, clear
+merge m:1 indmc using chg, nogenerate
+merge m:1 indmc using u, nogenerate
 xtset indmc ym
 format ym %tm
+
+gen theta=v/u               // theta= market tightness
+gen lambda=EXIT/numD       // lambda= termination rate
+gen l=numD/(1-u)          // l= active population per each sub-industry
 
 scalar k=.3066547
 gen adaniel=matched/(u*lc*(v/u)^k)
@@ -370,56 +390,6 @@ xi: xtreg lambda e9shared2-e9shared8 i.ym i.d9|prod, fe
 
 
 
-*!start
-cd "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\직종별사업체노동력조사 2021_지역\rawdata"
-use panele, clear
-merge m:1 indmc using chg_matched, nogenerate
-drop if ym<715
-gen v=numE/numD
-gen theta=v/u
-gen lambda=EXIT/numD
-gen lc=numD/(1-u)
-gen unemp=u*lc
-gen e9numD=e9/numD719
-gen numDnumD=numD/numD719
-xtset indmc ym, monthly
-format ym %tm
-drop if indmc==0
-drop if inlist(indmc,12,32,33,16)
-
-scalar k=.3066547
-gen adaniel=matched/(u*lc*(v/u)^k)
-gen adanieldiscrete=matched/u/lc*(1+theta)/theta
-
-foreach var in v u adaniel lambda prod e9 numD w {
-    gen ln`var'=ln(`var')
-    gen D`var'=D.`var'
-    gen Dln`var'=D.ln`var'
-    gen DD`var'=D.D`var'
-    gen DDln`var'=D.Dln`var'
-}
-
-/*
-local var="Dlnw"
-ac `var' if indmc==10, name(aceps, replace) lags(19)
-pac `var' if indmc==10, name(paceps, replace) lags(19)
-graph combine aceps paceps
-*/
-
-//net install st0455.pkg
-
-pvar      Dlne9 Dlnlambda Dlnadaniel Dlnv, lags(12) fod  td vce(cluster indmc) exog(Dlnprod DlnnumD)
-pvarsoc  Dlne9 Dlnlambda Dlnadaniel Dlnv, maxlag(12)
-pvargranger
-pvarstable, graph
-pvarirf, impulse(Dlne9) response(Dlne9 Dlnlambda Dlnadaniel Dlnv) porder(Dlne9 Dlnlambda Dlnadaniel Dlnv)  byoption(yrescale) 
-
-/*
-pvar    Dlnprod DlnnumDnumD  Dlnlambda Dlnadaniel Dlnu Dlnv, lags(8) fod exog(Dlne9numD)
-pvargranger
-pvarstable, graph
-pvarirf, impulse(Dlnprod) response(Dlnprod Dlnadaniel Dlnlambda Dlnv Dlnu) porder(Dlnprod DlnnumDnumD  Dlnlambda Dlnadaniel Dlnu Dlnv) cumulative byoption(yrescale)
-*/
 
 
 *!start
@@ -583,7 +553,7 @@ save temp, replace
 
 
 use temp, clear // Daniel 방법
-gen lnf=ln(matchedc/uc/lc)
+gen lnf=ln(ipjikc/uc/lc)
 gen lntheta=ln(thetac)
 reg lnf lntheta
 predict lnf_pr
