@@ -151,24 +151,24 @@ replace d=1 if inlist(ym,733,734,735,736,737,738,739)
 drop if d==.
 
 gen e9shared=e9share*d
-gen e9chg739719d=e9chg739719*d
-gen prodchg724722d=prodchg724722*d
-gen numDchg724722d=numDchg724722*d
+gen e9chgd=e9chg*d
+gen prodchgd=prodchg*d
+gen numDchgd=numDchg*d
 
 label var v "Vacancy" 
 label var d "T" 
 label var e9shared "E9SHARE $\times$ D" 
-label var e9chg739719d "E9CHG $\times$ D" 
+label var e9chgd "E9CHG $\times$ D" 
 label var prod "Production"
-label var prodchg724722d "PRODCHG $\times$ D" 
-label var numDchg724722d "WORKERCHG $\times$ D" 
+label var prodchgd "PRODCHG $\times$ D" 
+label var numDchgd "WORKERCHG $\times$ D" 
 
 eststo clear 
-eststo: xtivreg v (e9chg739719d=e9shared) i.ym prod, fe vce(cluster indmc) first
-eststo: xtivreg v (e9chg739719d=e9shared) i.ym prodchg724722d prod, fe vce(cluster indmc) first
-eststo: xtivreg v (e9chg739719d=e9shared) i.ym numDchg724722d prod, fe vce(cluster indmc) first
+eststo: xtivreg v (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
+eststo: xtivreg v (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg v (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
 
-esttab * using "..\latex\tablenov1.tex", ///
+esttab * using "tablenov1.tex", ///
     title(\label{tablenov1}) ///
     b(%9.3f) se(%9.3f) ///
     lab se r2 pr2 noconstant replace ///
@@ -181,11 +181,18 @@ Calibration of Matching efficiency and Termination rate
 *********************************************/
 *!start
 cd "${path}
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/u.csv", varnames(1) clear 
+rename u ut
+save ut, replace 
+
+*!start
+cd "${path}
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
+merge m:1 t using ut, nogenerate
 replace ym=t+695
 format ym %tm
 gen v=nume/numd
-gen u=unemp/(unemp+numd)
+gen u=unemp/(unemp+numd)*uibadjust
 gen theta=v/u
 gen l=numd/(1-u)
 gen lnF=ln(matched/u/l)
@@ -228,19 +235,34 @@ save tempo2, replace
 *!start
 cd "${path}
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/unemploymentcompare.csv", varnames(1) clear 
-rename u ut
-save ut, replace 
+gen t=_n+659
+format t %tm
+tsset t 
+
+gen usocial=unemp/numd*100
+replace nonuc=nonuc*2.48327/2.095636
+
+foreach var in uc nonuc usocial {
+rename `var' `var'temp
+tsfilter hp `var'_hp = `var'temp, trend(`var') smooth(1)  // hp smoothing
+}
+
+sax12 uc, satype(single) inpref(uc.spc) outpref(uc) transfunc(log) regpre( const ) ammaxlag(2 1) ammaxdiff(1 1) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+sax12 nonuc, satype(single) inpref(nonuc.spc) outpref(nonuc) transfunc(log) regpre( const ) ammaxlag(2 1) ammaxdiff(1 1) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+sax12 usocial, satype(single) inpref(usocial.spc) outpref(usocial) transfunc(log) regpre( const ) ammaxlag(2 1) ammaxdiff(1 1) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+sax12im "${path}\uc.out", ext(d11)
+sax12im "${path}\nonuc.out", ext(d11)
+sax12im "${path}\usocial.out", ext(d11)
+
+twoway (tsline uc_d11, lcolor(gs0) lwidth(thick))(tsline nonuc_d11, lcolor(gs0))(tsline usocial_d11, lcolor(red)) ///
+    , xtitle("") ytitle("%") xline(720) /// 
+    legend(label(1 "Unemployment rate") label(2 "Non-employment rate") label(3 "Unemployment insurance rate") order(1 2 3))
+graph export unempcompare.eps, replace
 
 
-*!start
-cd "${path}
-import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/u.csv", varnames(1) clear 
-rename u ut
-save ut, replace 
+
 
 use tempo2, clear
-merge m:1 t using ut, nogenerate
-
 preserve
     keep if indmc==0 
     tsset ym, monthly
@@ -254,10 +276,11 @@ preserve
 restore
 
 scalar k2=.33286641
-gen a_alter=matched/(ut*l*(v/ut)^k2)    // calibration result for matching efficiency 
-gen lambda_alter=exit/numd*(1-ut)              // calibration result for termination rate 
+gen a_alter=matched/(ut*l*(v/ut)^k2)    // alternative calibration result for matching efficiency 
+gen lambda_alter=exit/numd*(1-ut)        // alternative calibration result for termination rate 
 
 save panelm5, replace
+
 
 
 *!start
@@ -296,20 +319,24 @@ label var prod "Production"
 label var prodchgd "PRODCHG $\times$ D" 
 label var numDchgd "WORKERCHG $\times$ D" 
 label var a "Match Eff" 
+label var a_alter "Match Eff" 
 label var lambda "Termination" 
 
 eststo clear 
 eststo: xtivreg a (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
-eststo: xtivreg a_alter (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
 eststo: xtivreg a (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
-eststo: xtivreg a_alter (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
 eststo: xtivreg a (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg a_alter (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
+eststo: xtivreg a_alter (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
 eststo: xtivreg a_alter (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
 
 esttab * using "tablenov2.tex", ///
     title(\label{tablenov2}) ///
     b(%9.3f) se(%9.3f) ///
     lab se r2 pr2 noconstant replace ///
+    	mgroups("$u_i$ for each subsector" "$u_i=u$ for all $i$", pattern(1 0 0 1 0 0) ///
+		prefix(\multicolumn{@span}{c}{) suffix(}) ///
+		span erepeat(\cmidrule(lr){@span})) ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
 
 eststo clear 
@@ -325,6 +352,9 @@ esttab * using "tablenov3.tex", ///
     title(\label{tablenov3}) ///
     b(%9.3f) se(%9.3f) ///
     lab se r2 pr2 noconstant replace ///
+    	mgroups("$u_i$ for each subsector" "$u_i=u$ for all $i$", pattern(1 0 0 1 0 0) ///
+		prefix(\multicolumn{@span}{c}{) suffix(}) ///
+		span erepeat(\cmidrule(lr){@span})) ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
 
 
@@ -398,3 +428,4 @@ twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
 , xline(720) xline(728) ytitle("Termination rate") xtitle("") ///
 caption("Red: Highest E9share, Blue: Lowest E9share.") legend(off)
 graph export final_v.eps, replace
+
