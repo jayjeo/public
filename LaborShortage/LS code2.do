@@ -193,44 +193,26 @@ replace ym=t+695
 format ym %tm
 xtset indmc ym
 gen v=nume/numd
-gen u=unemp/(unemp+numd)*uibadjust
+gen u=unemp/(unemp+numd)
+/*
 tsfilter hp u_hp = u, trend(smooth_u) smooth(50)  // hp smoothing
 drop u
 rename smooth_u u 
+*/
 gen theta=v/u
 gen l=numd/(1-u)
 gen lnF=ln(matched/u/l)
 gen lntheta=ln(theta)
 drop if _n==_N
-save tempo, replace 
 
-capture program drop repeat
-program define repeat
-	args indnum
-        preserve
-            keep if indmc== `indnum' 
-            tsset ym, monthly
-            reg lnF lntheta
-            gen k=_b[lntheta]
-            keep indmc k
-            keep if _n==1
-            save k`indnum', replace
-        restore
-end 
+preserve 
+    keep if indmc==0
+    reg lnF lntheta
+    scalar k=_b[lntheta]
+    di k
+restore 
 
-use tempo, clear 
-foreach num of numlist 0 10(1)33 {
-    repeat `num'
-}
-use k0, clear
-foreach num of numlist 10(1)33 {
-    append using k`num'
-}
-save k, replace 
-
-use tempo, clear
-*merge m:1 indmc using k, nogenerate
-scalar k=.30640399
+scalar k=.25065103
 gen a=matched/(u*l*(v/u)^k)    // calibration result for matching efficiency 
 gen lambda=exit/numd*(1-u)               // calibration result for termination rate 
 save tempo2, replace
@@ -270,6 +252,9 @@ use tempo2, clear
 preserve
     keep if indmc==0 
     tsset ym, monthly
+    tsfilter hp ut_hp = ut, trend(smooth_ut) smooth(50)  // hp smoothing
+    drop ut
+    rename smooth_ut ut 
     replace theta=v/ut
     replace l=numd/(1-ut)
     replace lnF=ln(matched/ut/l)
@@ -295,7 +280,7 @@ merge m:1 indmc using chg, nogenerate
 xtset indmc ym
 format ym %tm
 
-foreach var in a a_alter lambda lambda_alter u v theta {
+foreach var in a a_alter lambda lambda_alter v theta {
     tsfilter hp `var'_hp2 = `var', trend(`var'_smooth) smooth(10) 
 }
 save panelm7, replace

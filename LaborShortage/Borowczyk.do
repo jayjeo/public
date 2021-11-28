@@ -12,7 +12,13 @@ global path="D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\211126"
 
 *!start
 cd "${path}
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/u.csv", varnames(1) clear 
+rename u ut
+save ut, replace 
+*!start
+cd "${path}
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
+merge m:1 t using ut, nogenerate
 replace ym=t+695
 format ym %tm
 gen date = dofm(ym)
@@ -20,7 +26,7 @@ format date %d
 *drop if t<25
 gen month=month(date)
 gen v=nume/numd
-gen u=unemp/(unemp+numd)
+gen u=unemp/(unemp+numd)*uibadjust
 gen theta=v/u
 gen l=numd/(1-u)
 gen jfr=ln(matched/u/l)
@@ -30,16 +36,6 @@ drop if jfr==.
 gen kk=0
 keep t indmc jfr theta month k
 save borow, replace 
-
-
-    use borow, clear 
-    keep if indmc==0
-    *drop indmc 
-    tsset t, monthly
-    tab month, gen(m_)
-
-ivregress 2sls d.jfr d.m_* (d.theta = l(2/5).theta), noc vce(robust)
-
 
 
 /*
@@ -181,8 +177,8 @@ end
 *!start 
 // Table 3
 qui	{
-local pmin = 6
-local pmax = 8
+local pmin = 1
+local pmax = 5
 
 matrix results = J(5 + 2*(`pmax'+2),1,.)
 local rnames "p q sd(mu) mu sd(eta) eta"
@@ -191,9 +187,9 @@ forv p = 1/`pmax'	{
 	local rnames "`rnames' sd(rho`p') rho`p'"
 	
 	if `p'>=`pmin'	{
-		forv q = 1/3	{
+		forv q = 1/5	{
 			noi di _con "(`p' , `q') -- "
-			estim_grid1, indmc(12) p(`p') q(`q') pmax(`pmax') addlagsth(0) lagsjfr(1) bk(0) eta0(0.7)
+			estim_grid1, indmc(10) p(`p') q(`q') pmax(`pmax') addlagsth(0) lagsjfr(1) bk(0) eta0(0.7)
 			matrix results = (results , m)
 						}	
 					}
@@ -208,17 +204,7 @@ mat results = results'
 }
 
 matrix list results, format(%9.3g)
-
-
-
-
-
-
-
-
-
-
-
+estim_grid1, indmc(10) p(2) q(7) pmax(2) addlagsth(0) lagsjfr(1) bk(0) eta0(0.7) graph
 
 
 
@@ -247,11 +233,9 @@ mata rest6=2*normal(-abs(z))
 // p-value for rho5
 mata z=abs(results[.,16]:/results[.,15])
 mata rest7=2*normal(-abs(z))
-// p-value for rho6
-mata z=abs(results[.,18]:/results[.,17])
-mata rest8=2*normal(-abs(z))
 
-mata rest=rest,rest1,rest2,rest3,rest4,rest5,rest6,rest7,rest8
+
+mata rest=rest,rest1,rest2,rest3,rest4,rest5,rest6,rest7
 mata rest 
 
 
@@ -392,7 +376,7 @@ end
 
 foreach num of numlist 10(1)33{
 *estim_grid, indmc(`num') p(10) q(10) pmax(10) addlagsth(0) lagsjfr(0) bk(0) eta0(0.5)
-estim_grid, indmc(`num') p(9) q(3) pmax(9) addlagsth(0) lagsjfr(1) bk(0) eta0(0.5)
+estim_grid, indmc(`num') p(5) q(5) pmax(5) addlagsth(0) lagsjfr(1) bk(0) eta0(0.5)
 }
 
 use borow, clear 
