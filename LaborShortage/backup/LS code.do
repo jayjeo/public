@@ -90,30 +90,7 @@ twoway (bar `barcall')(tsline u, lcolor(gs0))(tsline v, lcolor(gs0) clpattern(da
 graph export uvgraph.eps, replace
 
 
-*********************
-*!start
-cd "${path}
-import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/uib.csv", varnames(1) clear 
-replace t=t+592
-format t %tm
-tsset t 
-gen uib_adj=uib
-replace uib_adj=uib*0.7 if t>=720
-*0.674947869
-twoway (tsline ut, lcolor(gs0))(tsline uib, lcolor(red) clpattern(longdash))(tsline uib_adj, lcolor(red)) ///
-    , xtitle("") ytitle("%") xline(720) /// 
-    ysize(3.5) xsize(8) ///
-    legend(label(1 "Unemployment rate") label(2 "Unemployment Insurance Benefit") label(3 "Unemployment Insurance Benefit (adjusted)") order(1 2 3))
-graph export uib.eps, replace
 
-
-*********************
-*!start
-cd "${path}
-import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/uib.csv", varnames(1) clear 
-replace t=t+592
-format t %tm
-tsset t 
 
 /*********************************************
 Regression Models
@@ -217,47 +194,97 @@ format ym %tm
 xtset indmc ym
 gen v=nume/numd
 gen u=unemp/(unemp+numd)*uibadjust
-
+tsfilter hp u_hp = u, trend(smooth_u) smooth(50)  // hp smoothing
+drop u
+rename smooth_u u 
 gen theta=v/u
 gen l=numd/(1-u)
 gen lnF=ln(matched/u/l)
 gen lntheta=ln(theta)
 drop if _n==_N
+save tempo, replace 
 
-preserve 
-    keep if indmc==0
-    reg lnF lntheta
-    scalar k=_b[lntheta]
-    di k
-restore 
+capture program drop repeat
+program define repeat
+	args indnum
+        preserve
+            keep if indmc== `indnum' 
+            tsset ym, monthly
+            reg lnF lntheta
+            gen k=_b[lntheta]
+            keep indmc k
+            keep if _n==1
+            save k`indnum', replace
+        restore
+end 
 
-scalar k=.36121565
+use tempo, clear 
+foreach num of numlist 0 10(1)33 {
+    repeat `num'
+}
+use k0, clear
+foreach num of numlist 10(1)33 {
+    append using k`num'
+}
+save k, replace 
+
+use tempo, clear
+*merge m:1 indmc using k, nogenerate
+scalar k=.30640399
 gen a=matched/(u*l*(v/u)^k)    // calibration result for matching efficiency 
 gen lambda=exit/numd*(1-u)               // calibration result for termination rate 
 save tempo2, replace
+
+
+*!start
+cd "${path}
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/unemploymentcompare.csv", varnames(1) clear 
+gen t=_n+659
+format t %tm
+tsset t 
+
+gen usocial=unemp/numd*100
+replace nonuc=nonuc*2.48327/2.095636
+
+foreach var in uc nonuc usocial {
+rename `var' `var'temp
+tsfilter hp `var'_hp = `var'temp, trend(`var') smooth(1)  // hp smoothing
+}
+
+sax12 uc, satype(single) inpref(uc.spc) outpref(uc) transfunc(log) regpre( const ) ammaxlag(2 1) ammaxdiff(1 1) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+sax12 nonuc, satype(single) inpref(nonuc.spc) outpref(nonuc) transfunc(log) regpre( const ) ammaxlag(2 1) ammaxdiff(1 1) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+sax12 usocial, satype(single) inpref(usocial.spc) outpref(usocial) transfunc(log) regpre( const ) ammaxlag(2 1) ammaxdiff(1 1) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+sax12im "${path}\uc.out", ext(d11)
+sax12im "${path}\nonuc.out", ext(d11)
+sax12im "${path}\usocial.out", ext(d11)
+
+twoway (tsline uc_d11, lcolor(gs0) lwidth(thick))(tsline nonuc_d11, lcolor(gs0))(tsline usocial_d11, lcolor(red)) ///
+    , xtitle("") ytitle("%") xline(720) /// 
+    legend(label(1 "Unemployment rate") label(2 "Non-employment rate") label(3 "Unemployment insurance rate") order(1 2 3))
+graph export unempcompare.eps, replace
+
+
 
 
 use tempo2, clear
 preserve
     keep if indmc==0 
     tsset ym, monthly
-    tsfilter hp ut_hp = ut, trend(smooth_ut) smooth(50)  // hp smoothing
-    drop ut
-    rename smooth_ut ut 
     replace theta=v/ut
     replace l=numd/(1-ut)
     replace lnF=ln(matched/ut/l)
     replace lntheta=ln(theta)
     reg lnF lntheta
     scalar k2=_b[lntheta]
-    di k2    // .30116953
+    di k2    // .33286641
 restore
 
-scalar k2=.30116953
+scalar k2=.33286641
 gen a_alter=matched/(ut*l*(v/ut)^k2)    // alternative calibration result for matching efficiency 
 gen lambda_alter=exit/numd*(1-ut)        // alternative calibration result for termination rate 
 
 save panelm5, replace
+
 
 
 *!start
@@ -268,7 +295,7 @@ merge m:1 indmc using chg, nogenerate
 xtset indmc ym
 format ym %tm
 
-foreach var in a a_alter lambda lambda_alter v theta {
+foreach var in a a_alter lambda lambda_alter u v theta {
     tsfilter hp `var'_hp2 = `var', trend(`var'_smooth) smooth(10) 
 }
 save panelm7, replace
@@ -335,18 +362,6 @@ esttab * using "tablenov3.tex", ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
 
 
-eststo clear 
-eststo: xtivreg u (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
-eststo: xtivreg u (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
-eststo: xtivreg u (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
-
-esttab * using "tablenov4.tex", ///
-    title(\label{tablenov4}) ///
-    b(%9.3f) se(%9.3f) ///
-    lab se r2 pr2 noconstant replace ///
-    addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
-
-
 *!start
 cd "${path}
 use panelm7, clear
@@ -389,7 +404,7 @@ twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
 caption("Red: Highest E9share, Blue: Lowest E9share.") legend(off)
 graph export final_lambda.eps, replace
 
-local var="u"
+local var="u_smooth"
 twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
 (tsline `var' if indmc==27, lcolor(blue) lwidth(medthick)) ///
 (tsline `var' if indmc==11, lcolor(blue) lwidth(medium)) ///
@@ -399,6 +414,7 @@ twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
 (tsline `var' if indmc==33, lcolor(red) lwidth(medium)) ///
 (tsline `var' if indmc==22, lcolor(red)) ///
 (tsline `var' if indmc==0, lcolor(gs0) lwidth(thick) clpattern(longdash)) ///
+(tsline ut if indmc==0, lcolor(red) lwidth(thick) clpattern(longdash)) ///
 , xline(720) xline(728) ytitle("Termination rate") xtitle("") ///
 caption("Red: Highest E9share, Blue: Lowest E9share.") legend(off)
 graph export final_u.eps, replace
