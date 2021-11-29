@@ -193,12 +193,8 @@ replace ym=t+695
 format ym %tm
 xtset indmc ym
 gen v=nume/numd
-gen u=unemp/(unemp+numd)
-/*
-tsfilter hp u_hp = u, trend(smooth_u) smooth(50)  // hp smoothing
-drop u
-rename smooth_u u 
-*/
+gen u=unemp/(unemp+numd)*uibadjust
+
 gen theta=v/u
 gen l=numd/(1-u)
 gen lnF=ln(matched/u/l)
@@ -212,7 +208,7 @@ preserve
     di k
 restore 
 
-scalar k=.25065103
+scalar k=.3612157
 gen a=matched/(u*l*(v/u)^k)    // calibration result for matching efficiency 
 gen lambda=exit/numd*(1-u)               // calibration result for termination rate 
 save tempo2, replace
@@ -261,10 +257,10 @@ preserve
     replace lntheta=ln(theta)
     reg lnF lntheta
     scalar k2=_b[lntheta]
-    di k2    // .33286641
+    di k2    // .30116953
 restore
 
-scalar k2=.33286641
+scalar k2=.30116953
 gen a_alter=matched/(ut*l*(v/ut)^k2)    // alternative calibration result for matching efficiency 
 gen lambda_alter=exit/numd*(1-ut)        // alternative calibration result for termination rate 
 
