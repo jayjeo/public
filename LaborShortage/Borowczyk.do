@@ -10,6 +10,7 @@ global path="D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\211126"
 /*********************************************
 *********************************************/
 
+
 *!start
 cd "${path}
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/u.csv", varnames(1) clear 
@@ -37,19 +38,6 @@ gen kk=0
 keep t indmc jfr theta month k
 save borow, replace 
 
-
-/*
-capture program drop select 
-program define select
-    args `indmc'
-    use borow, clear 
-    keep if indmc=`indmc'
-    drop indmc 
-    tsset t, monthly
-    tab month, gen(m_)
-    drop m_1
-end
-*/
 
 cap program drop estim_grid1
 program define estim_grid1
@@ -178,7 +166,7 @@ end
 // Table 3
 qui	{
 local pmin = 1
-local pmax = 5
+local pmax = 6
 
 matrix results = J(5 + 2*(`pmax'+2),1,.)
 local rnames "p q sd(mu) mu sd(eta) eta"
@@ -187,9 +175,9 @@ forv p = 1/`pmax'	{
 	local rnames "`rnames' sd(rho`p') rho`p'"
 	
 	if `p'>=`pmin'	{
-		forv q = 1/5	{
+		forv q = 1/6	{
 			noi di _con "(`p' , `q') -- "
-			estim_grid1, indmc(10) p(`p') q(`q') pmax(`pmax') addlagsth(0) lagsjfr(1) bk(0) eta0(0.7)
+			estim_grid1, indmc(0) p(`p') q(`q') pmax(`pmax') addlagsth(0) lagsjfr(1) bk(0) eta0(0.7)
 			matrix results = (results , m)
 						}	
 					}
@@ -204,10 +192,6 @@ mat results = results'
 }
 
 matrix list results, format(%9.3g)
-estim_grid1, indmc(10) p(2) q(7) pmax(2) addlagsth(0) lagsjfr(1) bk(0) eta0(0.7) graph
-
-
-
 
 matain results
 // p and q
@@ -233,12 +217,15 @@ mata rest6=2*normal(-abs(z))
 // p-value for rho5
 mata z=abs(results[.,16]:/results[.,15])
 mata rest7=2*normal(-abs(z))
+// p-value for rho6
+mata z=abs(results[.,18]:/results[.,17])
+mata rest8=2*normal(-abs(z))
 
-
-mata rest=rest,rest1,rest2,rest3,rest4,rest5,rest6,rest7
+mata rest=rest,rest1,rest2,rest3,rest4,rest5,rest6,rest7,rest8
 mata rest 
 
 
+estim_grid1, indmc(0) p(2) q(12) pmax(2) addlagsth(0) lagsjfr(1) bk(0) eta0(0.7) graph
 
 
 
