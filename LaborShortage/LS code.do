@@ -131,6 +131,24 @@ twoway (tsline smooth_u, lcolor(gs0))(tsline smooth_v, lcolor(red))
 
 
 
+gen theta=v/u
+gen l=numd/(1-u)
+gen lnF=ln(matched/u/l)
+gen lntheta=ln(theta)
+drop if _n==_N
+
+preserve 
+    keep if indmc==0
+    reg lnF lntheta
+    scalar k=_b[lntheta]
+    di k  // k=.3413222
+restore 
+
+scalar k=.3413222
+gen a=matched/(u*l*(v/u)^k)    // calibration result for matching efficiency 
+gen lambda=exit/numd*(1-u)               // calibration result for termination rate 
+
+
 /*********************************************
 Regression Models
 *********************************************/
