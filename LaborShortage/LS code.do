@@ -98,13 +98,13 @@ replace t=t+592
 format t %tm
 tsset t 
 gen uib_adj=uib
-replace uib_adj=uib*0.7 if t>=720
 gen tt=t
+replace uib_adj=uib*0.7 if t>=720  
 *0.674947869
-twoway (tsline ut, lcolor(gs0))(tsline uib, lcolor(red) clpattern(longdash))(tsline uib_adj, lcolor(red)) ///
+twoway (tsline ut, lcolor(gs0))(tsline uib_adj, lcolor(red))(tsline uib, lcolor(blue) clpattern(longdash)) ///
     , xtitle("") ytitle("%") xline(720) /// 
     ysize(3.5) xsize(8) ///
-    legend(label(1 "Unemployment rate") label(2 "Unemployment Insurance Benefit") label(3 "Unemployment Insurance Benefit (adjusted)") order(1 2 3))
+    legend(label(1 "Unemployment rate") label(2 "Unemployment Insurance Benefit (adjusted)") label(3 "Unemployment Insurance Benefit") order(1 2 3))
 graph export uib.eps, replace
 
 
@@ -120,33 +120,43 @@ replace u=u/100
 replace v=v/100
 twoway (tsline u, lcolor(gs0))(tsline v, lcolor(red))
 sax12 u, satype(single) inpref(u.spc) outpref(u) transfunc(log) regpre( const seasonal ) ammaxlag(1 1) ammaxdiff(1 1) ammaxlead(0) x11mode(mult) x11seas(S3x9)
-sax12 v, satype(single) inpref(u.spc) outpref(v) transfunc(log) regpre( const seasonal ) ammaxlag(1 1) ammaxdiff(1 1) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+sax12 v, satype(single) inpref(v.spc) outpref(v) transfunc(log) regpre( const seasonal ) ammaxlag(1 1) ammaxdiff(1 1) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+sax12 numd, satype(single) inpref(numd.spc) outpref(numd) transfunc(log) regpre( const seasonal ) ammaxlag(1 1) ammaxdiff(1 1) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+sax12 matched, satype(single) inpref(matched.spc) outpref(matched) transfunc(log) regpre( const seasonal ) ammaxlag(1 1) ammaxdiff(1 1) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+sax12 exit, satype(single) inpref(exit.spc) outpref(exit) transfunc(log) regpre( const seasonal ) ammaxlag(1 1) ammaxdiff(1 1) ammaxlead(0) x11mode(mult) x11seas(S3x9)
 sax12im "${path}\u.out", ext(d11)
 sax12im "${path}\v.out", ext(d11)
+sax12im "${path}\numd.out", ext(d11)
+sax12im "${path}\matched.out", ext(d11)
+sax12im "${path}\exit.out", ext(d11)
 twoway (tsline u_d11, lcolor(gs0))(tsline v_d11, lcolor(red))
 tsfilter hp u_d11_hp = u_d11, trend(smooth_u) smooth(30)
 tsfilter hp v_d11_hp = v_d11, trend(smooth_v) smooth(30)
+tsfilter hp numd_d11_hp = numd_d11, trend(smooth_numd) smooth(30)
+tsfilter hp matched_d11_hp = matched_d11, trend(smooth_matched) smooth(30)
+tsfilter hp exit_d11_hp = exit_d11, trend(smooth_exit) smooth(30)
 twoway (tsline smooth_u, lcolor(gs0))(tsline smooth_v, lcolor(red))
 // put this result to beveridgegraph.csv and plot it using Matlab (beveridgegraph.m). 
 
 
-
+drop u v numd matched exit
+rename (smooth_u smooth_v smooth_numd smooth_matched smooth_exit)(u v numd matched exit)
 gen theta=v/u
 gen l=numd/(1-u)
-gen lnF=ln(matched/u/l)
-gen lntheta=ln(theta)
-drop if _n==_N
-
-preserve 
-    keep if indmc==0
-    reg lnF lntheta
-    scalar k=_b[lntheta]
-    di k  // k=.3413222
-restore 
 
 scalar k=.3413222
 gen a=matched/(u*l*(v/u)^k)    // calibration result for matching efficiency 
 gen lambda=exit/numd*(1-u)               // calibration result for termination rate 
+
+label var v "Vacancy rate" 
+label var u "Unemployment rate" 
+label var a "Matching efficiency" 
+label var lambda "Termination rate" 
+
+gen tt=t
+twoway (tsline u, lcolor(gs0) yaxis(1))(tsline v, lcolor(gs0) clpattern(longdash) yaxis(1))(tsline a, lcolor(red) yaxis(2))(tsline lambda, lcolor(red) clpattern(longdash) yaxis(3)) ///
+    , xtitle("") xline(720) ysize(3.5) xsize(8) xlabel(612(12)730)
+graph export uvlong.eps, replace
 
 
 /*********************************************
