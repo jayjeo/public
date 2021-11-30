@@ -99,6 +99,7 @@ format t %tm
 tsset t 
 gen uib_adj=uib
 replace uib_adj=uib*0.7 if t>=720
+gen tt=t
 *0.674947869
 twoway (tsline ut, lcolor(gs0))(tsline uib, lcolor(red) clpattern(longdash))(tsline uib_adj, lcolor(red)) ///
     , xtitle("") ytitle("%") xline(720) /// 
