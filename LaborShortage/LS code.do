@@ -171,15 +171,7 @@ xtset indmc ym   // indmc = sub-sector of manufacturing industry. ; ym = monthly
 format ym %tm
 rename (nume numd exit) (numE numD EXIT)  // numE = number of vacant spots ; numD = number of workers ; EXIT = number of separated workers
 gen v=numE/numD*100   // v = vacancy rate
-gen u=unemp/(unemp+numD)*100
-gen MATCHr=matched/numD*100  // matched = number of matched person. ; MATCHr = matching percentage per total workers.
-gen EXITr=EXIT/numD*100  // EXITr = separation percentage per total workers.
 *drop if indmc==0         // information for total manufacturing sectors. 
-
-foreach var in v MATCHr EXITr prod numD {
-tsfilter hp `var'_hp = `var', trend(smooth_`var') smooth(200)  // hp smoothing
-}
-
 drop if inlist(indmc,12)  // tobacco industry. Extremely few workers, and production data is not available.
 save panelm, replace 
 
