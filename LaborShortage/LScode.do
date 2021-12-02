@@ -209,10 +209,13 @@ gen d=0 if inlist(ym,713,714,715,716,717,718,719)
 replace d=1 if inlist(ym,733,734,735,736,737,738,739)
 drop if d==.
 
+corr e9share e9chg
 gen e9shared=e9share*d
 gen e9chgd=e9chg*d
 gen prodchgd=prodchg*d
 gen numDchgd=numDchg*d
+
+corr e9shared e9chgd
 
 label var v "Vacancy" 
 label var d "T" 
@@ -414,6 +417,37 @@ keep if ym==696
 keep indmc e9share
 sort e9share
 save rank, replace 
+
+qui label define indmc_lab ///
+10 "Food Products" ///
+11 "Beverages" ///
+12 "Tobacco Products" ///
+13 "Textiles, Except Apparel" ///
+14 "Wearing apparel, Clothing Accessories and Fur Articles" ///
+15 "Tanning and Dressing of Leather, Luggage and Footwear" ///
+16 "Wood Products of Wood and Cork; Except Furniture" ///
+17 "Pulp, Paper and Paper Products" ///
+18 "Printing and Reproduction of Recorded Media" ///
+19 "Coke, hard-coal and lignite fuel briquettes and Refined Petroleum Products" ///
+20 "Chemicals and chemical products except pharmaceuticals, medicinal chemicals" ///
+21 "Pharmaceuticals, Medicinal Chemicals and Botanical Products" ///
+22 "Rubber and Plastic Products" ///
+23 "Other Non-metallic Mineral Products" ///
+24 "Basic Metal Products" ///
+25 "Fabricated Metal Products, Except Machinery and Furniture" ///
+26 "Electronic Components, Computer, Radio, Television and Communication Equipment and Apparatuses" ///
+27 "Medical, Precision and Optical Instruments, Watches and Clocks" ///
+28 "Electrical equipment" ///
+29 "Other Machinery and Equipment" ///
+30 "Motor Vehicles, Trailers and Semitrailers" ///
+31 "Other Transport Equipment" ///
+32 "Furniture" ///
+33 "Other Manufacturing"
+
+qui label values indmc indmc_lab
+
+// net install dataout.pkg
+dataout, save(myfile) tex replace
 
 
 *!start
