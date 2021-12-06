@@ -23,7 +23,7 @@ tsset date
 format date %tm
 
 copy "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/X12A.EXE" "${path}/X12A.exe"
-net install st0255.pkg
+net install st0255, from(http://www.stata-journal.com/software/sj12-2)
 adopath + "${path}"
 
 tsfilter hp e9inflow_hp = e9inflow, trend(smooth_e9inflow) smooth(1)
