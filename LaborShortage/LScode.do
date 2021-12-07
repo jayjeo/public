@@ -42,16 +42,17 @@ graph export monthlye9.eps, replace
 cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/immigrantsproportion.csv", clear
 
+gen prop2000=new2000f/new2000t*100
+gen prop2020=new2020f/new2020t*100
+
 drop if countries=="Switzerland" | countries=="Estonia"
-replace countries="Czech" if countries=="Czech Republic"
-replace countries="Slovak" if countries=="Slovak Republic"
 replace countries="Korea" if countries=="South Korea"
 
-twoway (scatter r2017 r2000, mlabel(countries) mlabangle(+0) mcolor(gs0) ) ///
+twoway (scatter prop2020 prop2000, mlabel(countries) mlabangle(+0) mcolor(gs0) ) ///
 		(function y=x, range(0 12) legend(label(1 Proportion of Immigrants) label(2 "y=x"))) ///
 		, ytitle("Year 2018 (%)") xtitle("Year 2000 (%)") ///
 		ysize(3.5) xsize(8) xlabel(0(3)12) ylabel(0(3)12) scheme(s1mono) ///
-        caption("Source: OECD Statistics")
+        caption("Source: OECD Statistics" // "Greece used data from 2017 instead of 2020")
 graph export immigrantsproportion.eps, replace
 
 *********************
