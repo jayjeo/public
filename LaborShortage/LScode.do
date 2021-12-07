@@ -40,11 +40,7 @@ graph export monthlye9.eps, replace
 
 
 cd "${path}"
-import delimited "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\Research Idea\200310\Book1.csv"
-save fig1, replace
-
-clear
-use fig1
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/immigrantsproportion.csv"
 
 drop if countries=="Switzerland" | countries=="Estonia"
 replace countries="Czech" if countries=="Czech Republic"
