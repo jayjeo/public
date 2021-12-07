@@ -16,7 +16,7 @@ Graphs
 *********************************************/
 
 *!start
-cd "${path}
+cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/monthlye9.csv", clear 
 gen date=ym(year,month)
 tsset date
@@ -37,6 +37,27 @@ ysize(3.5) xsize(8) ///
 legend(label(1 "E9 inflow") label(2 "E9 stock")) ///
 caption("Source: Employment Permit System (EPS)")
 graph export monthlye9.eps, replace
+
+
+cd "${path}"
+import delimited "D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\Research Idea\200310\Book1.csv"
+save fig1, replace
+
+clear
+use fig1
+
+drop if countries=="Switzerland" | countries=="Estonia"
+replace countries="Czech" if countries=="Czech Republic"
+replace countries="Slovak" if countries=="Slovak Republic"
+replace countries="Korea" if countries=="South Korea"
+
+replace r2000=r2000
+replace r2017=r2017
+
+twoway (scatter r2017 r2000, mlabel(countries) mlabangle(+0)) ///
+		(function y=x, range(0 12) legend(label(1 Proportion of Immigrants) label(2 "y=x"))) ///
+		, ytitle("Year 2018 (%)") xtitle("Year 2000 (%)") ///
+		ysize(3.5) xsize(8) 
 
 *********************
 *!start
