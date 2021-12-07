@@ -40,20 +40,19 @@ graph export monthlye9.eps, replace
 
 
 cd "${path}"
-import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/immigrantsproportion.csv"
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/immigrantsproportion.csv", clear
 
 drop if countries=="Switzerland" | countries=="Estonia"
 replace countries="Czech" if countries=="Czech Republic"
 replace countries="Slovak" if countries=="Slovak Republic"
 replace countries="Korea" if countries=="South Korea"
 
-replace r2000=r2000
-replace r2017=r2017
-
-twoway (scatter r2017 r2000, mlabel(countries) mlabangle(+0)) ///
+twoway (scatter r2017 r2000, mlabel(countries) mlabangle(+0) mcolor(gs0) ) ///
 		(function y=x, range(0 12) legend(label(1 Proportion of Immigrants) label(2 "y=x"))) ///
 		, ytitle("Year 2018 (%)") xtitle("Year 2000 (%)") ///
-		ysize(3.5) xsize(8) 
+		ysize(3.5) xsize(8) xlabel(0(3)12) ylabel(0(3)12) scheme(s1mono) ///
+        caption("Source: OECD Statistics")
+graph export immigrantsproportion.eps, replace
 
 *********************
 *!start
