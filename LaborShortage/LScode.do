@@ -55,7 +55,7 @@ twoway (scatter prop2020 prop2000, mlabel(countries) mlabangle(+15) mcolor(gs0) 
 		, ytitle("Year 2020 (%)") xtitle("Year 2000 (%)") ///
 		ysize(3.5) xsize(8) xlabel(0(3)12) ylabel(0(3)15) scheme(s1mono) ///
         legend(off) ///
-        caption("Source: OECD Statistics" "Greece used data from 2017 instead of 2020")
+        caption("Source: OECD Statistics" "Greece used data from 2017 instead of 2020" "Switzerland: 19\% in 2000 and 24\% in 2020")
 graph export immigrantsproportion.eps, replace
 
 *********************
