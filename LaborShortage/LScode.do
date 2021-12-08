@@ -380,6 +380,7 @@ label var numDchgd "WORKERCHG $\times$ D"
 label var a "Match Eff" 
 label var a_alter "Match Eff" 
 label var lambda "Termination" 
+label var lambda_alter "Termination" 
 
 eststo clear 
 eststo: xtivreg a (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
