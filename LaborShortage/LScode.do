@@ -46,13 +46,15 @@ gen prop2000=new2000f/new2000t*100
 gen prop2020=new2020f/new2020t*100
 
 drop if countries=="Switzerland" | countries=="Estonia"
-replace countries="South Korea" if countries=="Korea"
+replace countries="South Korea" if countries=="Korea" 
 replace countries="Slovak" if countries=="Slovak Republic"
 
-twoway (scatter prop2020 prop2000, mlabel(countries) mlabangle(+15) mcolor(gs0) ) ///
+twoway (scatter prop2020 prop2000, mlabel(countries) mlabangle(+15) mcolor(gs0) ///
+        text(5 6 "45 degree line")) ///
 		(function y=x, range(0 12) legend(label(1 Proportion of Immigrants) label(2 "y=x"))) ///
 		, ytitle("Year 2020 (%)") xtitle("Year 2000 (%)") ///
 		ysize(3.5) xsize(8) xlabel(0(3)12) ylabel(0(3)15) scheme(s1mono) ///
+        legend(off) ///
         caption("Source: OECD Statistics" "Greece used data from 2017 instead of 2020")
 graph export immigrantsproportion.eps, replace
 
