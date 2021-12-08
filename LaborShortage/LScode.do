@@ -39,6 +39,7 @@ caption("Source: Employment Permit System (EPS)")
 graph export monthlye9.eps, replace
 
 
+*!start
 cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/immigrantsproportion.csv", clear
 
