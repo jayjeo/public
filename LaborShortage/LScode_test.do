@@ -6,7 +6,7 @@ set scheme s1color, perm
 /*********************************************
 *********************************************/
 * NEED TO SET YOUR PREFERRED PATH
-global path="C:\Users\acube\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\211126"   
+global path="D:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\211126"   
 /*********************************************
 *********************************************/
 
@@ -259,6 +259,47 @@ esttab * using "tablenov1.tex", ///
 
 
 
+
+*!start
+cd "${path}
+use panelm, clear
+merge m:1 indmc using chg, nogenerate
+
+drop if indmc==0    // information for total manufacturing sectors. 
+gen d=0 if ym <= 720    // Period 1
+replace d=1 if ym > 720   // Period 2 and 3
+
+gen e9shared=e9share*d
+gen e9chgd=e9chg*d
+gen prodchgd=prodchg*d
+gen numDchgd=numDchg*d
+gen e9proportion=e9/numD*100
+corr e9proportion prod 
+
+label var v "Vacancy" 
+label var d "T" 
+label var e9shared "E9SHARE $\times$ D" 
+label var e9chgd "E9CHG $\times$ D" 
+label var prod "Production"
+label var prodchgd "PRODCHG $\times$ D" 
+label var numDchgd "WORKERCHG $\times$ D" 
+
+eststo clear 
+eststo: xtreg v e9shared i.ym prod, fe vce(cluster indmc)
+eststo: xtreg v e9shared i.ym prod, fe vce(cluster indmc)
+
+eststo: xtivreg v (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
+eststo: xtivreg v (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg v (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
+
+esttab * using "tablenov1.tex", ///
+    title(\label{tablenov1}) ///
+    b(%9.3f) se(%9.3f) ///
+    lab se r2 pr2 noconstant replace ///
+    addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
+
+
+
 /*********************************************
 Calibration of Matching efficiency and Termination rate 
 *********************************************/
@@ -362,14 +403,16 @@ cd "${path}
 use panelm7, clear
 xtset indmc ym 
 drop if indmc==0    // information for total manufacturing sectors. 
-gen d=0 if inlist(ym,713,714,715,716,717,718,719)
-replace d=1 if inlist(ym,733,734,735,736,737,738,739)
-drop if d==.
+gen d=0 if ym <= 720    // Period 1
+replace d=1 if ym < 720   // Period 2 and 3
 
 gen e9shared=e9share*d
 gen e9chgd=e9chg*d
 gen prodchgd=prodchg*d
 gen numDchgd=numDchg*d
+gen vd=v*d
+gen lambdad=lambda*d
+gen ad=a*d
 
 label var v "Vacancy" 
 label var d "T" 
@@ -384,12 +427,12 @@ label var lambda "Termination"
 label var lambda_alter "Termination" 
 
 eststo clear 
-eststo: xtivreg a (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
-eststo: xtivreg a (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
-eststo: xtivreg a (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
-eststo: xtivreg a_alter (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
-eststo: xtivreg a_alter (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
-eststo: xtivreg a_alter (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg v (ad=e9shared) i.ym prod, fe vce(cluster indmc) first
+eststo: xtivreg v (ad=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg v (ad=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg a_alter (vd=e9shared) i.ym prod, fe vce(cluster indmc) first
+eststo: xtivreg a_alter (vd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg a_alter (vd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
 
 esttab * using "tablenov2.tex", ///
     title(\label{tablenov2}) ///
@@ -401,13 +444,19 @@ esttab * using "tablenov2.tex", ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
 
 eststo clear 
-eststo: xtivreg lambda (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
-eststo: xtivreg lambda (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
-eststo: xtivreg lambda (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
-eststo: xtivreg lambda_alter (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
-eststo: xtivreg lambda_alter (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
-eststo: xtivreg lambda_alter (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg v (lambdad=e9shared) i.ym prod, fe vce(cluster indmc) first
+eststo: xtivreg v (lambdad=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg v (lambdad=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg lambda_alter (vd=e9shared) i.ym prod, fe vce(cluster indmc) first
+eststo: xtivreg lambda_alter (vd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg lambda_alter (vd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
 
+keep if indmc==0
+gen e9numd=e9/numd
+var lambda a v e9numd, exog(prod)
+irf graph lambda a v e9numd
+estimates save fui
+irf graph (fui lambda a v e9numd) 
 
 esttab * using "tablenov3.tex", ///
     title(\label{tablenov3}) ///

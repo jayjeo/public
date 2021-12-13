@@ -346,8 +346,24 @@ save panelm5, replace
 *!start
 cd "${path}
 use panelm5, clear
+keep ym indmc lambda a e9
+reshape wide lambda a e9, i(indmc) j(ym)
+
+** 719=2019m12; 722=2020m3; 724=2020m5; 739=2021m8
+gen lambdachg=lambda739-lambda719
+gen achg=a739-a719
+
+keep indmc lambdachg achg e9*
+save lambdachg, replace 
+
+
+*!start
+cd "${path}
+use panelm5, clear
 drop if indmc==12
 merge m:1 indmc using chg, nogenerate
+merge m:1 indmc using lambdachg, nogenerate
+
 xtset indmc ym
 format ym %tm
 
@@ -362,14 +378,22 @@ cd "${path}
 use panelm7, clear
 xtset indmc ym 
 drop if indmc==0    // information for total manufacturing sectors. 
-gen d=0 if inlist(ym,713,714,715,716,717,718,719)
-replace d=1 if inlist(ym,733,734,735,736,737,738,739)
+*gen d=0 if inlist(ym,713,714,715,716,717,718,719)
+*replace d=1 if inlist(ym,733,734,735,736,737,738,739)
+gen d=0 if ym<720
+replace d=1 if ym>730
 drop if d==.
+
+gen e9chgt=(e9`ym'-e9719)/numD719*100
 
 gen e9shared=e9share*d
 gen e9chgd=e9chg*d
+gen e9chgtd=e9chgt*d
+
 gen prodchgd=prodchg*d
 gen numDchgd=numDchg*d
+gen lambdachgd=lambdachg*d
+gen achgd=achg*d
 
 label var v "Vacancy" 
 label var d "T" 
@@ -384,7 +408,9 @@ label var lambda "Termination"
 label var lambda_alter "Termination" 
 
 eststo clear 
-eststo: xtivreg a (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
+eststo: xtreg a e9chgtd i.ym prod, fe vce(cluster indmc)
+eststo: xtivreg v (achgd=e9chgtd) i.ym prod, fe vce(cluster indmc) first
+
 eststo: xtivreg a (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
 eststo: xtivreg a (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
 eststo: xtivreg a_alter (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
@@ -401,7 +427,9 @@ esttab * using "tablenov2.tex", ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
 
 eststo clear 
-eststo: xtivreg lambda (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
+eststo: xtreg lambda e9chgtd i.ym prod, fe vce(cluster indmc)
+eststo: xtivreg v (lambdachgd=e9chgtd) i.ym prod, fe vce(cluster indmc) first
+
 eststo: xtivreg lambda (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
 eststo: xtivreg lambda (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
 eststo: xtivreg lambda_alter (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
