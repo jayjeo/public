@@ -764,6 +764,8 @@ gen d=0 if ym<=719
 replace d=1 if ym>719
 drop if d==.
 
+gen wage=wage_tot*100/cpi/hour  // cpi adjusted hourly wage (unit=KRW)
+
 gen lnv=ln(v)
 gen lne9=ln(e9)
 gen lnnumD=ln(numd)
@@ -772,11 +774,12 @@ gen lnlambda=ln(lambda)
 gen lnprod=ln(prod)
 gen lnhour=ln(hour)
 gen lnu=ln(u)
+gen lnwage=ln(wage)
 
-xtreg lnv lne9 lnnumD lna lnlambda lnprod i.ym if ym>719, fe vce(cluster indmc)
+xtreg lnv lne9 lnnumD lna lnlambda lnprod lnwage i.ym if ym>719, fe vce(cluster indmc)
 
 eststo clear
-eststo: xtreg lnv lne9 lnnumD lna lnlambda lnprod lnhour if ym>719, fe vce(cluster indmc)
+eststo: xtreg lnv lne9 lnnumD lna lnlambda lnprod lnhour lnwage if ym>719, fe vce(cluster indmc)
 esttab * using "tableadd1.tex", ///
     title(\label{tableadd1}) ///
     b(%9.3f) se(%9.3f) ///
