@@ -778,13 +778,22 @@ gen lnwage=ln(wage)
 
 xtreg lnv lne9 lnnumD lna lnlambda lnprod lnwage i.ym if ym>719, fe vce(cluster indmc)
 
+label var lnv "lnv" 
+label var lne9 "lnE9" 
+label var lnnumD "lnTotalworker" 
+label var lna "lnMatchEff" 
+label var lnlambda "lnTermination" 
+label var lnprod "lnProduction" 
+label var lnhour "lnWorkhour" 
+label var lnwage "lnHourlywage" 
+label var lnu "lnunemployment" 
+
 eststo clear
-eststo: xtreg lnv lne9 lnnumD lna lnlambda lnprod lnhour lnwage if ym>719, fe vce(cluster indmc)
+eststo: xtreg lnv lne9 lnnumD lna lnlambda lnprod lnhour lnwage lnu if ym>719, fe vce(cluster indmc)
 esttab * using "tableadd1.tex", ///
     title(\label{tableadd1}) ///
     b(%9.3f) se(%9.3f) ///
     lab se r2 pr2 noconstant replace
-
 
 
 xi: xtreg lnv i.ym|lne9 i.ym|lna i.ym|lnlambda i.ym|lnprod i.ym|lnhour i.ym|lnnumD i.ym|lnu, fe vce(cluster indmc)
