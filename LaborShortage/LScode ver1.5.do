@@ -745,8 +745,8 @@ eststo: xtreg hour e9cmp i.ym prod, fe vce(cluster indmc)
 
 *!start
 cd "${path}
-import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
-merge m:1 t using ut, nogenerate
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/cpi.csv", varnames(1) clear 
+save cpi, replace
 
 *!start
 cd "${path}
@@ -755,6 +755,7 @@ use panelm, clear
 merge m:1 indmc using chg, nogenerate
 merge 1:1 indmc ym using ud11, nogenerate
 merge 1:1 indmc ym using panelm7, nogenerate
+merge m:1 ym using cpi, nogenerate
 
 drop if indmc==0    // information for total manufacturing sectors. 
 drop if indmc==12    // tobacco industry. Extremely few workers, and production data is not available.
