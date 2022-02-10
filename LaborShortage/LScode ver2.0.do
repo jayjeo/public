@@ -59,9 +59,10 @@ twoway (scatter prop2020 prop2000, mlabel(countries) mlabangle(+15) mcolor(gs0) 
         caption("Source: OECD Statistics" "Greece used data from 2017 instead of 2020" "Switzerland: 19% in 2000 and 24% in 2020")
 graph export immigrantsproportion.eps, replace
 
+
 *********************
 *!start
-cd "${path}
+cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/e9f4h2.csv", clear 
 gen date=ym(year,month)
 tsset date
@@ -113,7 +114,7 @@ graph export uvgraph.eps, replace
 
 *********************
 *!start
-cd "${path}
+cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/uib.csv", varnames(1) clear 
 replace t=t+592
 format t %tm
@@ -131,7 +132,7 @@ graph export uib.eps, replace
 
 *********************
 *!start
-cd "${path}
+cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/uvlong.csv", varnames(1) clear 
 gen t=_n
 replace t=t+611
@@ -185,7 +186,7 @@ Regression Models
 *********************************************/
 
 *!start
-cd "${path}
+cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
 replace ym=t+695
 xtset indmc ym   // indmc = sub-sector of manufacturing industry. ; ym = monthly time.
@@ -198,7 +199,7 @@ save panelm, replace
 
 
 *!start
-cd "${path}
+cd "${path}"
 use panelm, clear
 keep ym indmc numD e9 v prod
 drop if _n==_N
@@ -221,7 +222,7 @@ twoway (scatter e9share e9chg, lcolor(gs0))(lfit e9share e9chg, lcolor(gs0))
 
 
 *!start
-cd "${path}
+cd "${path}"
 use panelm, clear
 merge m:1 indmc using chg, nogenerate
 
@@ -263,13 +264,13 @@ esttab * using "tablenov1.tex", ///
 Calibration of Matching efficiency and Termination rate 
 *********************************************/
 *!start
-cd "${path}
+cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/u.csv", varnames(1) clear 
 rename u ut
 save ut, replace 
 
 *!start
-cd "${path}
+cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
 merge m:1 t using ut, nogenerate
 replace ym=t+695
@@ -344,7 +345,7 @@ save panelm5, replace
 
 
 *!start
-cd "${path}
+cd "${path}"
 use panelm5, clear
 drop if indmc==12
 merge m:1 indmc using chg, nogenerate
@@ -359,14 +360,14 @@ save panelm7, replace
 
 
 *!start
-cd "${path}
+cd "${path}"
 use panelm7, clear
 xtset indmc ym 
 keep a lambda ym indmc
 keep if indmc==0
 
 *!start
-cd "${path}
+cd "${path}"
 use panelm7, clear
 xtset indmc ym 
 drop if indmc==0    // information for total manufacturing sectors. 
@@ -440,7 +441,7 @@ esttab * using "tablenov4.tex", ///
 
 
 *!start
-cd "${path}
+cd "${path}"
 use panelm7, clear
 merge m:1 indmc using chg, nogenerate
 keep if ym==696
@@ -481,7 +482,7 @@ dataout, save(myfile) tex replace
 
 
 *!start
-cd "${path}
+cd "${path}"
 use panelm7, clear
 
 local var="v"
@@ -575,14 +576,14 @@ Alternative identification
 
 
 *!start
-cd "${path}
+cd "${path}"
 use panelm7, clear
 xtset indmc ym 
 keep if indmc==0
 keep ym hour 
 
 *!start
-cd "${path}
+cd "${path}"
 use panelm7, clear
 xtset indmc ym 
 drop if indmc==0    // information for total manufacturing sectors. 
@@ -639,7 +640,7 @@ forvalues i=696(1)739{
 
 
 *!start
-cd "${path}
+cd "${path}"
 use panelm, clear
 
 merge m:1 indmc using chg, nogenerate
@@ -682,7 +683,7 @@ esttab * using "tablenov1.tex", ///
 
 
 *!start
-cd "${path}
+cd "${path}"
 use panelm, clear
 
 merge m:1 indmc using chg, nogenerate
@@ -744,12 +745,12 @@ eststo: xtreg hour e9cmp i.ym prod, fe vce(cluster indmc)
 
 
 *!start
-cd "${path}
+cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/cpi.csv", varnames(1) clear 
 save cpi, replace
 
 *!start
-cd "${path}
+cd "${path}"
 use panelm, clear
 
 merge m:1 indmc using chg, nogenerate
@@ -805,7 +806,7 @@ xi: xtreg lnv i.ym|lne9 i.ym|lna i.ym|lnlambda i.ym|lnprod, fe vce(cluster indmc
 
 
 *!start
-cd "${path}
+cd "${path}"
 use panelm, clear
 
 merge m:1 indmc using chg, nogenerate
