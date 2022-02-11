@@ -187,10 +187,18 @@ graph export uvlong.eps, replace
 /*********************************************
 Regression Models
 *********************************************/
+*!start
+cd "${path}"
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/u.csv", varnames(1) clear 
+        // E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\경제활동인구조사\rawdata\infile3 (2015~2017추가).do   =>  nonuC
+rename nonuC ut
+save ut, replace 
 
 *!start
 cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
+merge m:1 t using ut, nogenerate
+
 xtset indmc ym   // indmc = sub-sector of manufacturing industry. ; ym = monthly time.
 format ym %tm
 gen ymraw=ym
@@ -222,12 +230,39 @@ twoway (scatter vchg e9chg, lcolor(gs0))(lfit vchg e9chg, lcolor(gs0))
 twoway (scatter vchg e9share, lcolor(gs0))(lfit vchg e9share, lcolor(gs0)) 
 twoway (scatter e9share e9chg, lcolor(gs0))(lfit e9share e9chg, lcolor(gs0)) 
 
+use panelm, clear
+merge m:1 indmc using chg, nogenerate
+save panelf2, replace 
 
 *!start
 cd "${path}"
-use panelm, clear
-merge m:1 indmc using chg, nogenerate
+use panelf2, clear
+preserve
+    keep if indmc==0 
+    tsset ym, monthly
+    tsfilter hp ut_hp = ut, trend(smooth_ut) smooth(50)  // hp smoothing
+    drop ut
+    rename smooth_ut ut 
+    replace theta=v/ut/100
+    replace l=numD/(1-ut)
+    replace lnF=ln(matched/ut/l)
+    replace lntheta=ln(theta)
+    reg lnF lntheta
+    scalar k2=_b[lntheta]
+    di k2    // .30116953
+restore
 
+scalar k2=.30116953
+gen a_alter=matched/(ut*l*(v/ut)^k2)     // alternative calibration result for matching efficiency 
+gen lambda_alter=exit/numd*(1-ut)        // alternative calibration result for termination rate 
+
+save panelm5, replace
+
+
+
+*!start
+cd "${path}"
+use panelf2, clear
 drop if indmc==0    // information for total manufacturing sectors. 
 gen d=0 if inlist(ym,713,714,715,716,717,718,719)
 replace d=1 if inlist(ym,734,735,736,737,738,739,740)
