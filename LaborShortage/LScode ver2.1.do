@@ -193,10 +193,12 @@ cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
 xtset indmc ym   // indmc = sub-sector of manufacturing industry. ; ym = monthly time.
 format ym %tm
+gen ymraw=ym
 rename (nume numd exit) (numE numD EXIT)  // numE = number of vacant spots ; numD = number of workers ; EXIT = number of separated workers
 gen v=numE/numD*100   // v = vacancy rate
 *drop if indmc==0         // information for total manufacturing sectors. 
 drop if inlist(indmc,12)  // tobacco industry. Extremely few workers, and production data is not available.
+keep if 648<=ym&ym<=740   // largest available data span.
 save panelm, replace 
 
 
@@ -204,18 +206,16 @@ save panelm, replace
 cd "${path}"
 use panelm, clear
 keep ym indmc numD e9 v prod
-drop if _n==_N
 reshape wide numD e9 v prod, i(indmc) j(ym)
 
 ** 719=2019m12; 722=2020m3; 724=2020m5; 739=2021m8
 gen e9chg=(e9739-e9719)/numD719*100
-gen e9chg739726=(e9739-e9726)/numD719*100
 gen vchg=(v739-v719)/numD719*100
 gen e9share=e9719/numD719*100
 gen numDchg=(numD724-numD722)/numD719*100
 gen prodchg=(prod724-prod722)
 
-keep indmc vchg numD719 e9chg e9share numDchg prodchg e9chg739726 
+keep indmc vchg numD719 e9chg e9share numDchg prodchg 
 save chg, replace 
 
 twoway (scatter vchg e9chg, lcolor(gs0))(lfit vchg e9chg, lcolor(gs0)) 
@@ -230,7 +230,7 @@ merge m:1 indmc using chg, nogenerate
 
 drop if indmc==0    // information for total manufacturing sectors. 
 gen d=0 if inlist(ym,713,714,715,716,717,718,719)
-replace d=1 if inlist(ym,733,734,735,736,737,738,739)
+replace d=1 if inlist(ym,734,735,736,737,738,739,740)
 drop if d==.
 
 corr e9share e9chg
