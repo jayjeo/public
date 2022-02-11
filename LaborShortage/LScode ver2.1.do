@@ -191,13 +191,13 @@ Regression Models
 cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/u.csv", varnames(1) clear 
         // E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\경제활동인구조사\rawdata\infile3 (2015~2017추가).do   =>  nonuC
-rename nonuC ut
+rename nonuc ut
 save ut, replace 
 
 *!start
 cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
-merge m:1 t using ut, nogenerate
+merge m:1 ym using ut, nogenerate
 
 xtset indmc ym   // indmc = sub-sector of manufacturing industry. ; ym = monthly time.
 format ym %tm
@@ -206,7 +206,7 @@ rename (nume numd exit) (numE numD EXIT)  // numE = number of vacant spots ; num
 gen v=numE/numD*100   // v = vacancy rate
 *drop if indmc==0         // information for total manufacturing sectors. 
 drop if inlist(indmc,12)  // tobacco industry. Extremely few workers, and production data is not available.
-keep if 648<=ym&ym<=740   // largest available data span.
+keep if 660<=ym&ym<=740   // largest available data span.
 save panelm, replace 
 
 
@@ -234,6 +234,8 @@ use panelm, clear
 merge m:1 indmc using chg, nogenerate
 save panelf2, replace 
 
+    keep if indmc==0 
+
 *!start
 cd "${path}"
 use panelf2, clear
@@ -243,7 +245,7 @@ preserve
     tsfilter hp ut_hp = ut, trend(smooth_ut) smooth(50)  // hp smoothing
     drop ut
     rename smooth_ut ut 
-    replace theta=v/ut/100
+    replace theta=v/ut
     replace l=numD/(1-ut)
     replace lnF=ln(matched/ut/l)
     replace lntheta=ln(theta)
