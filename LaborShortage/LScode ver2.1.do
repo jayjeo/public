@@ -233,13 +233,13 @@ gen d=0 if inlist(ym,713,714,715,716,717,718,719)
 replace d=1 if inlist(ym,734,735,736,737,738,739,740)
 drop if d==.
 
-corr e9share e9chg
+*corr e9share e9chg
 gen e9shared=e9share*d
 gen e9chgd=e9chg*d
 gen prodchgd=prodchg*d
 gen numDchgd=numDchg*d
 
-corr e9shared e9chgd
+*corr e9shared e9chgd
 
 label var v "Vacancy" 
 label var d "T" 
@@ -268,7 +268,8 @@ Calibration of Matching efficiency and Termination rate
 *!start
 cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/u.csv", varnames(1) clear 
-rename u ut
+        // E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\경제활동인구조사\rawdata\infile3 (2015~2017추가).do   =>  nonuC
+rename nonuC ut
 save ut, replace 
 
 *!start
