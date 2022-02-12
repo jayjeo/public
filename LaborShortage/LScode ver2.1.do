@@ -286,7 +286,7 @@ label var wage "Wage"
 foreach var in v a_alter lambda_alter hour wage{
     gen `var'_temp=`var'
     drop `var'
-    tsfilter hp `var'_hp2 = `var'_temp, trend(`var') smooth(2) 
+    tsfilter hp `var'_hp2 = `var'_temp, trend(`var') smooth(2)
 }
 
 save panelf3, replace
