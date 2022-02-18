@@ -6,9 +6,20 @@ set scheme s1color, perm
 /*********************************************
 *********************************************/
 * NEED TO SET YOUR PREFERRED PATH
-global path="C:\Users\acube\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\211126"   
+global path="E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\211126"   
 /*********************************************
 *********************************************/
+
+*-----------------------------------------------------------------------------
+* This coding uses some ado files below:
+net install Jay_ado.pkg, from(https://raw.githubusercontent.com/jayjeo/public/master/adofiles)
+
+/*
+To completely uninstall:
+ado uninstall Jay_ado
+-----------------------------------------------------------------------------*/
+
+
 
 
 /*********************************************
@@ -59,9 +70,10 @@ twoway (scatter prop2020 prop2000, mlabel(countries) mlabangle(+15) mcolor(gs0) 
         caption("Source: OECD Statistics" "Greece used data from 2017 instead of 2020" "Switzerland: 19% in 2000 and 24% in 2020")
 graph export immigrantsproportion.eps, replace
 
+
 *********************
 *!start
-cd "${path}
+cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/e9f4h2.csv", clear 
 gen date=ym(year,month)
 tsset date
@@ -113,7 +125,7 @@ graph export uvgraph.eps, replace
 
 *********************
 *!start
-cd "${path}
+cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/uib.csv", varnames(1) clear 
 replace t=t+592
 format t %tm
@@ -131,7 +143,7 @@ graph export uib.eps, replace
 
 *********************
 *!start
-cd "${path}
+cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/uvlong.csv", varnames(1) clear 
 gen t=_n
 replace t=t+611
@@ -180,261 +192,211 @@ twoway (tsline u, lcolor(gs0) yaxis(1))(tsline v, lcolor(gs0) clpattern(longdash
 graph export uvlong.eps, replace
 
 
+
+
+
 /*********************************************
-Regression Models
+Regression Data Generation
 *********************************************/
+*!start
+cd "${path}"
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/u.csv", varnames(1) clear 
+        // E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\경제활동인구조사\rawdata\infile3 (2015~2017추가).do   =>  nonuC
+rename nonuc ut
+save ut, replace 
 
 *!start
-cd "${path}
+cd "${path}"
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/cpi.csv", varnames(1) clear 
+save cpi, replace
+
+*!start
+cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
-replace ym=t+695
+merge m:1 ym using ut, nogenerate
+merge m:1 ym using cpi, nogenerate
+gen wage=wage_tot*100/cpi/hour  // cpi adjusted hourly wage (unit=KRW)
+
 xtset indmc ym   // indmc = sub-sector of manufacturing industry. ; ym = monthly time.
 format ym %tm
+gen ymraw=ym
 rename (nume numd exit) (numE numD EXIT)  // numE = number of vacant spots ; numD = number of workers ; EXIT = number of separated workers
 gen v=numE/numD*100   // v = vacancy rate
 *drop if indmc==0         // information for total manufacturing sectors. 
 drop if inlist(indmc,12)  // tobacco industry. Extremely few workers, and production data is not available.
-save panelm, replace 
-
+keep if 660<=ym&ym<=740   // largest available data span.
+save panelm, replace
 
 *!start
-cd "${path}
+cd "${path}"
 use panelm, clear
 keep ym indmc numD e9 v prod
-drop if _n==_N
 reshape wide numD e9 v prod, i(indmc) j(ym)
 
 ** 719=2019m12; 722=2020m3; 724=2020m5; 739=2021m8
 gen e9chg=(e9739-e9719)/numD719*100
-gen e9chg739726=(e9739-e9726)/numD719*100
 gen vchg=(v739-v719)/numD719*100
 gen e9share=e9719/numD719*100
 gen numDchg=(numD724-numD722)/numD719*100
 gen prodchg=(prod724-prod722)
 
-keep indmc vchg numD719 e9chg e9share numDchg prodchg e9chg739726
+keep indmc vchg numD719 e9chg e9share numDchg prodchg 
 save chg, replace 
 
 twoway (scatter vchg e9chg, lcolor(gs0))(lfit vchg e9chg, lcolor(gs0)) 
 twoway (scatter vchg e9share, lcolor(gs0))(lfit vchg e9share, lcolor(gs0)) 
 twoway (scatter e9share e9chg, lcolor(gs0))(lfit e9share e9chg, lcolor(gs0)) 
 
-
-*!start
-cd "${path}
 use panelm, clear
 merge m:1 indmc using chg, nogenerate
-
-drop if indmc==0    // information for total manufacturing sectors. 
-gen d=0 if inlist(ym,713,714,715,716,717,718,719)
-replace d=1 if inlist(ym,733,734,735,736,737,738,739)
-drop if d==.
-
-corr e9share e9chg
-gen e9shared=e9share*d
-gen e9chgd=e9chg*d
-gen prodchgd=prodchg*d
-gen numDchgd=numDchg*d
-
-corr e9shared e9chgd
-
-label var v "Vacancy" 
-label var d "T" 
-label var e9shared "E9SHARE $\times$ D" 
-label var e9chgd "E9CHG $\times$ D" 
-label var prod "Production"
-label var prodchgd "PRODCHG $\times$ D" 
-label var numDchgd "WORKERCHG $\times$ D" 
-
-eststo clear 
-eststo: xtivreg v (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
-eststo: xtivreg v (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
-eststo: xtivreg v (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
-
-esttab * using "tablenov1.tex", ///
-    title(\label{tablenov1}) ///
-    b(%9.3f) se(%9.3f) ///
-    lab se r2 pr2 noconstant replace ///
-    addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
-
-
-
-/*********************************************
-Calibration of Matching efficiency and Termination rate 
-*********************************************/
-*!start
-cd "${path}
-import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/u.csv", varnames(1) clear 
-rename u ut
-save ut, replace 
+save panelf2, replace 
 
 *!start
-cd "${path}
-import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
-merge m:1 t using ut, nogenerate
-replace ym=t+695
-format ym %tm
-xtset indmc ym
-gen v=nume/numd
-gen u=unemp/(unemp+numd)*uibadjust
-rename u utemp
-save tempo1, replace
-
-use tempo1, clear 
-foreach num of numlist 0 10(1)33 {
-    preserve
-        keep if indmc==`num'
-        sax12 utemp, satype(single) inpref(utemp.spc) outpref(utemp) transfunc(log) regpre( const seasonal ) ammaxlag(1 1) ammaxdiff(1 1) ammaxlead(0) x11mode(mult) x11seas(S3x9)
-        sax12im "${path}\utemp.out", ext(d11)
-        rename utemp_d11 u
-        keep indmc ym u 
-        save ud11_`num', replace 
-    restore 
-}
-use ud11_0, clear
-foreach num of numlist 10(1)33 {
-append using ud11_`num'
-}
-save ud11, replace 
-
-use tempo1, clear 
-merge 1:1 indmc ym using ud11, nogenerate
-*twoway (tsline utemp if indmc==10)(tsline u if indmc==10)
-
-gen theta=v/u
-gen l=numd/(1-u)
-gen lnF=ln(matched/u/l)
-gen lntheta=ln(theta)
-drop if _n==_N
-
-preserve 
-    keep if indmc==0
-    reg lnF lntheta
-    scalar k=_b[lntheta]
-    di k  // k=.3413222
-restore 
-
-scalar k=.3413222
-gen a=matched/(u*l*(v/u)^k)    // calibration result for matching efficiency 
-gen lambda=exit/numd*(1-u)               // calibration result for termination rate 
-save tempo2, replace
-
-
-use tempo2, clear
+cd "${path}"
+use panelf2, clear
 preserve
     keep if indmc==0 
     tsset ym, monthly
-    tsfilter hp ut_hp = ut, trend(smooth_ut) smooth(50)  // hp smoothing
-    drop ut
-    rename smooth_ut ut 
-    replace theta=v/ut
-    replace l=numd/(1-ut)
-    replace lnF=ln(matched/ut/l)
-    replace lntheta=ln(theta)
-    reg lnF lntheta
+    
+    gen theta=v/ut
+    gen l=numD/(1-ut/100)
+    gen lnF=ln(matched/(ut/100)/l)
+    gen lntheta=ln(theta)
+    reg lnF lntheta if 696<=ym
     scalar k2=_b[lntheta]
-    di k2    // .30116953
+    di k2    // .32185759
+    twoway (scatter lnF lntheta if 684<=ym ) (lfit lnF lntheta if 684<=ym) (scatter lnF lntheta if 684>ym ) (lfit lnF lntheta if 684>ym)
+    twoway (tsline matched) (tsline ut, yaxis(2))
+    tsline lnF lntheta
 restore
 
-scalar k2=.30116953
-gen a_alter=matched/(ut*l*(v/ut)^k2)     // alternative calibration result for matching efficiency 
-gen lambda_alter=exit/numd*(1-ut)        // alternative calibration result for termination rate 
+scalar k2=.32185759
+gen l=numD/(1-ut/100)
+gen a_alter=matched/(ut/100*l*(v/ut)^k2)     // alternative calibration result for matching efficiency 
+gen lambda_alter=EXIT/numD*(1-ut/100)        // alternative calibration result for termination rate 
 
-save panelm5, replace
+label var v "Vacancy" 
+label var ut "Unemployment" 
+label var prod "Production"
+label var a_alter "Termination" 
+label var lambda_alter "Termination" 
+label var hour "Hours" 
+label var wage "Wage" 
 
-
-*!start
-cd "${path}
-use panelm5, clear
-drop if indmc==12
-merge m:1 indmc using chg, nogenerate
-xtset indmc ym
-format ym %tm
-
-foreach var in a a_alter lambda lambda_alter v theta {
-    tsfilter hp `var'_hp2 = `var', trend(`var'_smooth) smooth(10) 
+foreach var in v a_alter lambda_alter hour wage{
+    gen `var'_temp=`var'
+    drop `var'
+    tsfilter hp `var'_hp2 = `var'_temp, trend(`var') smooth(1)
 }
-save panelm7, replace
+
+save panelf3, replace
 
 
+/*********************************************
+DID Regressions
+*********************************************/
 *!start
-cd "${path}
-use panelm7, clear
-xtset indmc ym 
+cd "${path}"
+use panelf3, clear
 drop if indmc==0    // information for total manufacturing sectors. 
 gen d=0 if inlist(ym,713,714,715,716,717,718,719)
-replace d=1 if inlist(ym,733,734,735,736,737,738,739)
+replace d=1 if inlist(ym,734,735,736,737,738,739,740)
 drop if d==.
 
 gen e9shared=e9share*d
 gen e9chgd=e9chg*d
-gen prodchgd=prodchg*d
-gen numDchgd=numDchg*d
 
-label var v "Vacancy" 
 label var d "T" 
 label var e9shared "E9SHARE $\times$ D" 
 label var e9chgd "E9CHG $\times$ D" 
-label var prod "Production"
-label var prodchgd "PRODCHG $\times$ D" 
-label var numDchgd "WORKERCHG $\times$ D" 
-label var a "Match Eff" 
-label var a_alter "Match Eff" 
-label var lambda "Termination" 
-label var lambda_alter "Termination" 
 
 eststo clear 
-eststo: xtivreg a (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
-eststo: xtivreg a (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
-eststo: xtivreg a (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg v (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
 eststo: xtivreg a_alter (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
-eststo: xtivreg a_alter (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
-eststo: xtivreg a_alter (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
-
-esttab * using "tablenov2.tex", ///
-    title(\label{tablenov2}) ///
-    b(%9.3f) se(%9.3f) ///
-    lab se r2 pr2 noconstant replace ///
-    	mgroups("$u_i$ for each subsector" "$u_i=u$ for all $i$", pattern(1 0 0 1 0 0) ///
-		prefix(\multicolumn{@span}{c}{) suffix(}) ///
-		span erepeat(\cmidrule(lr){@span})) ///
-    addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
-
-eststo clear 
-eststo: xtivreg lambda (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
-eststo: xtivreg lambda (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
-eststo: xtivreg lambda (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
 eststo: xtivreg lambda_alter (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
-eststo: xtivreg lambda_alter (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
-eststo: xtivreg lambda_alter (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
+eststo: xtivreg hour (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
+eststo: xtivreg wage (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
 
-
-esttab * using "tablenov3.tex", ///
-    title(\label{tablenov3}) ///
-    b(%9.3f) se(%9.3f) ///
-    lab se r2 pr2 noconstant replace ///
-    	mgroups("$u_i$ for each subsector" "$u_i=u$ for all $i$", pattern(1 0 0 1 0 0) ///
-		prefix(\multicolumn{@span}{c}{) suffix(}) ///
-		span erepeat(\cmidrule(lr){@span})) ///
-    addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
-
-
-eststo clear 
-eststo: xtivreg u (e9chgd=e9shared) i.ym prod, fe vce(cluster indmc) first
-eststo: xtivreg u (e9chgd=e9shared) i.ym prodchgd prod, fe vce(cluster indmc) first
-eststo: xtivreg u (e9chgd=e9shared) i.ym numDchgd prod, fe vce(cluster indmc) first
-
-esttab * using "tablenov4.tex", ///
-    title(\label{tablenov4}) ///
+esttab * using "tablefeb1.tex", ///
+    title(\label{tablefeb1}) ///
     b(%9.3f) se(%9.3f) ///
     lab se r2 pr2 noconstant replace ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
+
+
+/*********************************************
+Continuous DID Regressions
+*********************************************/
+*!start
+cd "${path}"
+use panelf3, clear
+drop if indmc==0    // information for total manufacturing sectors. 
+
+tab ym, gen(dum)
+
+foreach i of numlist 1/81 {
+    gen e9sharedum`i'=e9share*dum`i'
+    gen e9chgdum`i'=e9chg*dum`i'
+}
+* dum61 = 2020m1
+
+order *, sequential
+
+foreach i of varlist v a_alter lambda_alter hour {
+    preserve
+        xtreg `i' e9sharedum1-e9sharedum60 e9sharedum62-e9sharedum81 i.ym prod, fe vce(cluster indmc) 
+        mat b2=e(b)'
+        mat b=-b2[1..60,1]\0\b2[61..80,1]   
+        mat v2=vecdiag(e(V))'
+        mat v=v2[1..60,1]\0\v2[61..80,1]
+        scalar invttail=invttail(e(df_r),0.025)
+        matain b
+        matain v
+        mata se=sqrt(v)
+        clear
+        getmata b  
+        getmata se
+        gen lb=b-invttail*se
+        gen ub=b+invttail*se
+        gen t=_n
+        replace t=t+659
+        tsset t, monthly
+        format t %tm
+        twoway (rarea ub lb t, bcolor(gs14))(tsline b, lcolor(gs0)), xline(720) yline(0) xtitle("") ytitle("") /// 
+        legend(label(2 "Coefficient") label(1 "95% Confidence Interval") order(2 1))
+        graph export contdid`i'.eps, replace
+    restore
+}
+
+preserve
+    keep if 696<=ym&ym<=739 // wage data not exist at ym=740
+    xtreg wage e9sharedum37-e9sharedum60 e9sharedum62-e9sharedum80 i.ym prod, fe vce(cluster indmc) 
+    mat b2=e(b)'
+    mat b=-b2[1..24,1]\0\b2[25..43,1]  // numbering explanation = monthly did.xlsx
+    mat v2=vecdiag(e(V))'
+    mat v=v2[1..24,1]\0\v2[25..43,1]
+    scalar invttail=invttail(e(df_r),0.025)
+    matain b
+    matain v
+    mata se=sqrt(v)
+    clear
+    getmata b  
+    getmata se
+    gen lb=b-invttail*se
+    gen ub=b+invttail*se
+    gen t=_n
+    replace t=t+695
+    tsset t, monthly
+    format t %tm
+    twoway (rarea ub lb t, bcolor(gs14))(tsline b, lcolor(gs0)), xline(720) yline(0) xtitle("") ytitle("") /// 
+    legend(label(2 "Coefficient") label(1 "95% Confidence Interval") order(2 1))
+    graph export contdidwage.eps, replace
+restore
 
 
 *!start
-cd "${path}
-use panelm7, clear
-merge m:1 indmc using chg, nogenerate
+cd "${path}"
+use panelf3, clear
 keep if ym==696
 keep indmc e9share
 sort e9share
@@ -472,11 +434,49 @@ qui label values indmc indmc_lab
 dataout, save(myfile) tex replace
 
 
-*!start
-cd "${path}
-use panelm7, clear
 
-local var="a_smooth"
+*!start
+cd "${path}"
+use panelf3, clear
+xtset indmc ym
+format ym %tm
+
+foreach var in a_alter lambda_alter v {
+    tsfilter hp `var'_hp2 = `var', trend(`var'_smooth) smooth(10) 
+}
+save panelf4, replace
+
+*!start
+cd "${path}"
+use panelf4, clear
+
+local var="v"
+twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
+(tsline `var' if indmc==27, lcolor(blue) lwidth(medthick)) ///
+(tsline `var' if indmc==11, lcolor(blue) lwidth(medium)) ///
+(tsline `var' if indmc==26, lcolor(blue)) ///
+(tsline `var' if indmc==16, lcolor(red) lwidth(thick)) ///
+(tsline `var' if indmc==32, lcolor(red) lwidth(medthick)) ///
+(tsline `var' if indmc==33, lcolor(red) lwidth(medium)) ///
+(tsline `var' if indmc==22, lcolor(red)) ///
+(tsline `var' if indmc==0, lcolor(gs0) lwidth(thick) clpattern(longdash)) ///
+, xline(720) xline(728) ytitle("Matching efficiency") xtitle("") ///
+caption("Red: Highest E9share, Blue: Lowest E9share.") legend(off)
+
+local var="prod"
+twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
+(tsline `var' if indmc==27, lcolor(blue) lwidth(medthick)) ///
+(tsline `var' if indmc==11, lcolor(blue) lwidth(medium)) ///
+(tsline `var' if indmc==26, lcolor(blue)) ///
+(tsline `var' if indmc==16, lcolor(red) lwidth(thick)) ///
+(tsline `var' if indmc==32, lcolor(red) lwidth(medthick)) ///
+(tsline `var' if indmc==33, lcolor(red) lwidth(medium)) ///
+(tsline `var' if indmc==22, lcolor(red)) ///
+(tsline `var' if indmc==0, lcolor(gs0) lwidth(thick) clpattern(longdash)) ///
+, xline(720) xline(728) ytitle("Matching efficiency") xtitle("") ///
+caption("Red: Highest E9share, Blue: Lowest E9share.") legend(off)
+
+local var="a_alter_smooth"
 twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
 (tsline `var' if indmc==27, lcolor(blue) lwidth(medthick)) ///
 (tsline `var' if indmc==11, lcolor(blue) lwidth(medium)) ///
@@ -490,7 +490,7 @@ twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
 caption("Red: Highest E9share, Blue: Lowest E9share.") legend(off)
 graph export final_adaniel.eps, replace
 
-local var="lambda_smooth"
+local var="lambda_alter_smooth"
 twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
 (tsline `var' if indmc==27, lcolor(blue) lwidth(medthick)) ///
 (tsline `var' if indmc==11, lcolor(blue) lwidth(medium)) ///
@@ -503,20 +503,6 @@ twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
 , xline(720) xline(728) ytitle("Termination rate") xtitle("") ///
 caption("Red: Highest E9share, Blue: Lowest E9share.") legend(off)
 graph export final_lambda.eps, replace
-
-local var="u"
-twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
-(tsline `var' if indmc==27, lcolor(blue) lwidth(medthick)) ///
-(tsline `var' if indmc==11, lcolor(blue) lwidth(medium)) ///
-(tsline `var' if indmc==26, lcolor(blue)) ///
-(tsline `var' if indmc==16, lcolor(red) lwidth(thick)) ///
-(tsline `var' if indmc==32, lcolor(red) lwidth(medthick)) ///
-(tsline `var' if indmc==33, lcolor(red) lwidth(medium)) ///
-(tsline `var' if indmc==22, lcolor(red)) ///
-(tsline `var' if indmc==0, lcolor(gs0) lwidth(thick) clpattern(longdash)) ///
-, xline(720) xline(728) ytitle("Unemployment rate") xtitle("") ///
-caption("Red: Highest E9share, Blue: Lowest E9share.") legend(off)
-graph export final_u.eps, replace
 
 local var="v_smooth"
 twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
@@ -531,4 +517,32 @@ twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
 , xline(720) xline(728) ytitle("Vacancy rate") xtitle("") ///
 caption("Red: Highest E9share, Blue: Lowest E9share.") legend(off)
 graph export final_v.eps, replace
+
+gen e9shareconcur=e9/numD*100
+local var="e9shareconcur"
+twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
+(tsline `var' if indmc==27, lcolor(blue) lwidth(medthick)) ///
+(tsline `var' if indmc==11, lcolor(blue) lwidth(medium)) ///
+(tsline `var' if indmc==26, lcolor(blue)) ///
+(tsline `var' if indmc==16, lcolor(red) lwidth(thick)) ///
+(tsline `var' if indmc==32, lcolor(red) lwidth(medthick)) ///
+(tsline `var' if indmc==33, lcolor(red) lwidth(medium)) ///
+(tsline `var' if indmc==22, lcolor(red)) ///
+(tsline `var' if indmc==0, lcolor(gs0) lwidth(thick) clpattern(longdash)) ///
+, xline(720) xline(728) ytitle("e9shareconcur") xtitle("") ///
+caption("Red: Highest E9share, Blue: Lowest E9share.") legend(off)
+
+
+local var="numD"
+twoway (tsline `var' if indmc==21, lcolor(blue) lwidth(thick)) ///
+(tsline `var' if indmc==27, lcolor(blue) lwidth(medthick)) ///
+(tsline `var' if indmc==11, lcolor(blue) lwidth(medium)) ///
+(tsline `var' if indmc==26, lcolor(blue)) ///
+(tsline `var' if indmc==16, lcolor(red) lwidth(thick)) ///
+(tsline `var' if indmc==32, lcolor(red) lwidth(medthick)) ///
+(tsline `var' if indmc==33, lcolor(red) lwidth(medium)) ///
+(tsline `var' if indmc==22, lcolor(red)) ///
+, xline(720) xline(728) ytitle("numD") xtitle("") ///
+caption("Red: Highest E9share, Blue: Lowest E9share.") legend(off)
+
 
