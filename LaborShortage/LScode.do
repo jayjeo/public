@@ -1,3 +1,5 @@
+** LScode ver3.0.do
+
 cls
 clear all
 set scheme s1color, perm 
@@ -41,14 +43,23 @@ import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborSh
 tsset ym
 format ym %tm
 gen partpercent=worknet_parttime/worknet_total*100
+gen partpercent_high=worknet_parttime_high/worknet_total_high*100  // below tertiary
+gen partpercent_occ8=worknet_parttime_occ8/worknet_total_occ8*100  // among occ=8 (manufacture occupation)
+replace partpercent=partpercent*0.883765357084955 if ym>=734
+replace partpercent_high=partpercent_high*0.883765357084955 if ym>=734
+replace partpercent_occ8=partpercent_occ8*0.883765357084955 if ym>=734
 
 merge 1:1 ym using minwage, nogenerate
 
-twoway (tsline partpercent, lwidth(thick) lcolor(gs0))(tsline minwagereal, lcolor(gs0) yaxis(2)) ///
-    , xtitle("") ytitle("") xline(720) ysize(1) xsize(3) xlabel(624(12)744) ylabel(4(4)16, axis(1)) ///
-    caption("Source: Worknet Job Search Trend (Korea Employment Information Service)") ///
-    legend(label(1 "Part-time seekers") label(2 "Minimun Wage")) 
+twoway (tsline minwagereal, lwidth(thick) lcolor(gs0) yaxis(1)) /// 
+        (tsline partpercent, lcolor(gs0) yaxis(2)) ///
+        (tsline partpercent_high, lcolor(gs0) clpattern(longdash) yaxis(2)) ///
+        (tsline partpercent_occ8, lcolor(gs0) clpattern(shortdash) yaxis(2)) ///
+    , xtitle("") ytitle("") xline(720) ysize(1) xsize(3) xlabel(624(12)744) ylabel(4(4)14, axis(2)) ///
+    caption("Source: Worknet Job Search Trend (Korea Employment Information Service)" "              Minimum Wage Trend (Minimum Wage Commission)") ///
+    legend(label(1 "Minimun Wage") label(2 "Total") label(3 "Below Tertiary") label(4 "Occupation=8") ) 
 graph export partpercent.eps, replace
+
 
 
 *!start
