@@ -1,4 +1,4 @@
-** LScode ver3.0.do
+** LScode ver3.1.do
 
 /*********************************************
 ****************Dataset links****************
@@ -44,6 +44,9 @@ global path="E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\Github mov
 *********************************************/
 
 
+/*********************************************
+Required programs
+*********************************************/
 net install Jay_ado.pkg, from(https://raw.githubusercontent.com/jayjeo/public/master/adofiles)
 copy "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/X12A.EXE" "${path}/X12A.exe"
 net install st0255, from(http://www.stata-journal.com/software/sj12-2)
