@@ -1,5 +1,37 @@
 ** LScode ver3.0.do
 
+/*********************************************
+****************Dataset links****************
+Does not need to download to run this code.
+Most of webpages do not provide English version.
+
+The Labor Force Survey at Establishments (LFSE; 사업체노동력조사)
+http://laborstat.moel.go.kr (opened to public)
+
+Employment Permit System (EPS; 고용허가제고용동향)
+https://www.open.go.kr/ (opened to Korean citizen)
+
+Monthly Survey of Mining And Manufacturing (MSMM; 광업제조업 동향조사)
+https://kosis.kr/ (opened to public)
+
+Economically Active Population Survey (EAPS; 경제활동인구조사)
+https://mdis.kostat.go.kr/ (opened to Korean citizen)
+
+Employment Information System (EIS; 고용보험통계)
+https://eis.work.go.kr/ (opened to public)
+
+Korean Labor and Income Panel Study (KLIPS; 한국노동패널)
+https://www.kli.re.kr/klips/ (opened to public; required to sign up)
+
+Worknet Job Search Trend (워크넷 구인구직)
+https://eis.work.go.kr/ (opened to public)
+
+Minimum Wage Trend (최저임금위원회 최저임금제도)
+https://www.minimumwage.go.kr/minWage/policy/decisionMain.do (opened to public)
+
+*********************************************/
+
+
 cls
 clear all
 set scheme s1color, perm 
@@ -11,19 +43,22 @@ global path="E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\Github mov
 /*********************************************
 *********************************************/
 
-*-----------------------------------------------------------------------------
-* This coding uses some ado files below:
+
 net install Jay_ado.pkg, from(https://raw.githubusercontent.com/jayjeo/public/master/adofiles)
-
-/*
-To completely uninstall:
-ado uninstall Jay_ado
------------------------------------------------------------------------------*/
-
 copy "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/X12A.EXE" "${path}/X12A.exe"
 net install st0255, from(http://www.stata-journal.com/software/sj12-2)
 adopath + "${path}"
-
+cap ado uninstall ftools
+net install ftools, from("https://raw.githubusercontent.com/sergiocorreia/ftools/master/src/")
+cap ado uninstall reghdfe
+net install reghdfe, from("https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/src/")
+cap ado uninstall ivreg2
+ssc install ivreg2, replace
+cap ado uninstall ivreghdfe
+net install ivreghdfe, from("https://raw.githubusercontent.com/sergiocorreia/ivreghdfe/master/src/")
+ssc install ranktest, replace
+*To completely uninstall the files
+*ado uninstall filename
 
 
 
@@ -57,7 +92,7 @@ twoway (tsline minwagereal, lwidth(thick) lcolor(gs0) yaxis(1)) ///
         (tsline partpercent_occ8, lcolor(gs0) clpattern(shortdash) yaxis(2)) ///
     , xtitle("") ytitle("") xline(720) ysize(1) xsize(3) xlabel(624(12)744) ylabel(4(4)14, axis(2)) ///
     caption("Source: Worknet Job Search Trend (Korea Employment Information Service)" "              Minimum Wage Trend (Minimum Wage Commission)") ///
-    legend(label(1 "Minimun Wage") label(2 "Total") label(3 "Below Tertiary") label(4 "Occupation=8") ) 
+    legend(label(1 "Minimun Wage") label(2 "Total Seekers") label(3 "Below Tertiary") label(4 "Occupation=8") ) 
 graph export partpercent.eps, replace
 
 
@@ -399,7 +434,7 @@ label var prodabroad "ProdAbroad"
 label var prodoper "ProdOperation" 
 
 eststo clear 
-eststo: xtivreg v (e9chgd=e9shared) i.ym proddome prodabroad prodoper, fe vce(cluster indmc) first
+eststo: xtivreg v (e9chgd=e9shared) i.ym proddome prodabroad prodoper, fe vce(cluster indmc)
 eststo: xtivreg wage (e9chgd=e9shared) i.ym proddome prodabroad prodoper, fe vce(cluster indmc)
 eststo: xtivreg hour (e9chgd=e9shared) i.ym proddome prodabroad prodoper, fe vce(cluster indmc)
 eststo: xtivreg uibC (e9chgd=e9shared) i.ym proddome prodabroad prodoper, fe vce(cluster indmc)
@@ -409,6 +444,12 @@ esttab * using "tablemar1.tex", ///
     b(%9.3f) se(%9.3f) ///
     lab se r2 pr2 noconstant replace ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
+
+// Find First-stage F statistics. Does not work in Stata version 16 (bug)
+ivreghdfe v proddome (e9chgd=e9shared) i.ym proddome prodabroad prodoper, absorb(indmc) cluster(indmc) first  
+ivreghdfe wage (e9chgd=e9shared) i.ym proddome prodabroad prodoper, absorb(indmc) cluster(indmc) first  
+ivreghdfe hour (e9chgd=e9shared) i.ym proddome prodabroad prodoper, absorb(indmc) cluster(indmc) first  
+ivreghdfe uibC (e9chgd=e9shared) i.ym proddome prodabroad prodoper, absorb(indmc) cluster(indmc) first  
 
 twoway (scatter e9share forper)(lfit e9share forper) ///
         , xtitle("TFW Share (%)") ytitle("E9 Share (%)") legend(off)
@@ -435,6 +476,13 @@ esttab * using "tablemar2.tex", ///
     b(%9.3f) se(%9.3f) ///
     lab se r2 pr2 noconstant replace ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
+
+// Find First-stage F statistics. Does not work in Stata version 16 (bug)
+ivreghdfe numDpartproportion proddome (e9chgd=e9shared) i.ym proddome prodabroad prodoper, absorb(indmc) cluster(indmc) first  
+ivreghdfe vfull (e9chgd=e9shared) i.ym proddome prodabroad prodoper, absorb(indmc) cluster(indmc) first  
+ivreghdfe vpart (e9chgd=e9shared) i.ym proddome prodabroad prodoper, absorb(indmc) cluster(indmc) first  
+ivreghdfe a_alter (e9chgd=e9shared) i.ym proddome prodabroad prodoper, absorb(indmc) cluster(indmc) first  
+ivreghdfe lambda_alter (e9chgd=e9shared) i.ym proddome prodabroad prodoper, absorb(indmc) cluster(indmc) first  
 
 
 /*********************************************
