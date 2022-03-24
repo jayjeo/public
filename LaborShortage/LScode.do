@@ -191,6 +191,64 @@ twoway (tsline prod, lcolor(gs0) lwidth(thick) yaxis(1))(tsline activeall_d11, l
 graph export participationandprod.eps, replace
 
 
+		
+*********************
+*!start
+cd "${path}"
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/ConclusionFigures.csv", varnames(1) clear 
+
+drop if inlist(countries,"Ireland","Luxembourg")
+replace countries="Czech" if countries=="Czech Republic"
+replace countries="Slovak" if countries=="Slovak Republic"
+//replace countries="UK" if countries=="United Kingdom"
+//replace countries="US" if countries=="United States"
+
+twoway (scatter forper2020 gdppercapita2020 if countries!="South Korea", mlabel(countries) mlabangle(+10) mcolor(gs0)) ///
+       (scatter forper2020 gdppercapita2020 if countries=="South Korea", mlabel(countries) mlabangle(+10) mcolor(red) mlabcolor(red) msize(large)) ///
+       (lfit forper2020 gdppercapita2020) ///
+		, ytitle("Foreigner proportion in 2020 (%)") xtitle("GDP per Capita in 2020 ($,2005)") ///
+		ysize(3.5) xsize(8) xlabel(17000(10000)67000) scheme(s1mono) legend(label(3 "Linear fit") order(3)) ///
+        caption("Source: International Migration Database, OECD")
+graph export forper2020.eps, replace
+
+*********************
+*!start
+cd "${path}"
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/ConclusionFigures.csv", varnames(1) clear 
+
+drop if inlist(countries,"Ireland","Luxembourg")
+replace countries="Czech" if countries=="Czech Republic"
+replace countries="Slovak" if countries=="Slovak Republic"
+replace countries="UK" if countries=="United Kingdom"
+//replace countries="US" if countries=="United States"
+
+twoway (scatter tertiary2020 gdppercapita2020 if countries!="South Korea", mlabel(countries) mlabangle(+15) mcolor(gs0)) ///
+       (scatter tertiary2020 gdppercapita2020 if countries=="South Korea", mlabel(countries) mlabangle(+15) mcolor(red) mlabcolor(red) msize(large)) ///
+       (lfit tertiary2020 gdppercapita2020) ///
+		, ytitle("Tertiary or above in 2020 (%)") xtitle("GDP per Capita in 2020 ($,2005)") ///
+		ysize(3.5) xsize(8) xlabel(17000(10000)67000) scheme(s1mono) legend(label(3 "Linear fit") order(3)) ///
+        caption("Source: Education at a Glance, OECD")
+graph export tertiary2020.eps, replace
+
+*********************
+*!start
+cd "${path}"
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/PopulationProjections(normalized).csv", varnames(1) clear 
+
+reshape long y, i(countries) j(year)
+rename y projection
+egen countries_id = group(countries) 
+keep if inlist(countries,"Mexico","Italy","Germany","United States","Japan","South Korea")
+gen D=0
+replace D=1 if inlist(countries,"Italy","United States")
+xtset countries_id year, yearly
+summ year
+xtline projection, overlay scheme(s2mono) ///
+addplot((scatter projection year if year==2027 & D==0, mlabel(countries) legend(off)) ///
+    (scatter projection year if year==2025 & D==1, mlabel(countries))) ///
+    ytitle("Population""Normalized to 1 in 2005") xtitle("") ///
+    caption("Source: Population Projections, OECD")
+graph export PopulationProjections.eps, replace
 
 
 /*********************************************
