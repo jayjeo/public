@@ -29,6 +29,12 @@ https://eis.work.go.kr/ (opened to public)
 Minimum Wage Trend (최저임금위원회 최저임금제도)
 https://www.minimumwage.go.kr/minWage/policy/decisionMain.do (opened to public)
 
+Korea Immigration Service Monthly Statistics (출입국외국인정책 통계월보)
+https://www.immigration.go.kr/immigration/1569/subview.do (opened to public)
+
+Survey on Immigrant's Living Conditions and Labour Force (이민자체류실태및고용조사)
+https://mdis.kostat.go.kr/ (opened to Korean citizen)
+
 *********************************************/
 
 
