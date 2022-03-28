@@ -163,6 +163,8 @@ caption("Source: Monthly Korea Immigration Service Statistics, Ministry of Justi
 graph export e9f4h2.eps, replace
 
 
+
+
 *********************
 *!start
 cd "${path}"
@@ -253,6 +255,22 @@ addplot((scatter projection year if year==2027 & D==0, mlabel(countries) legend(
     ytitle("Population""Normalized to 1 in 2005") xtitle("") ///
     caption("Source: Population Projections, OECD")
 graph export PopulationProjections.eps, replace
+
+
+*********************
+*!start
+cd "${path}"
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata.csv", clear 
+tsset month 
+format month %tm
+
+gen forpercent=fw/(fw+dw)*100
+
+twoway (tsline forpercent, lcolor(gs0)) ///
+, xlabel(624(6)743) xlabel(, grid angle(270)) xline(720) xtitle("") ytitle("%") scheme(s1mono) ///
+ysize(3) xsize(8) legend(off) ///
+caption("Source: Korea Immigration Service Monthly Statistics & Survey on Immigrant's Living Conditions and Labour Force")
+graph export forpercent.eps, replace
 
 
 /*********************************************
@@ -854,9 +872,24 @@ graph export e9shareconcur2.eps, replace
 
 /*********************************************
 VAR with sign restrictions
-(Executable using R)
 *********************************************/
-/*
+cd "${path}"
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata.csv", varnames(1) clear 
+tsset month, monthly 
+
+sax12 u, satype(single) inpref(u.spc) outpref(u) transfunc(log) regpre( const ) ammodel((0,1,1)(0,1,1)) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+sax12im "u.out", ext(d11)
+sax12 v, satype(single) inpref(v.spc) outpref(v) transfunc(log) regpre( const ) ammodel((0,1,1)(0,1,1)) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+sax12im "v.out", ext(d11)
+
+drop u v month
+rename (u_d11 v_d11)(u v)
+
+export delimited using "${path}\SVARdata_seasonadjusted.csv", replace
+*manually saved it to "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasonadjusted.csv"
+
+
+/*************** Executable using R from below:
 
 ### Install required packages
 install.packages("minqa") 
@@ -873,8 +906,7 @@ rm(list = ls())
 set.seed(12345)
 library(VARsignR)
 
-SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata.csv")
-SVARdata = subset(SVARdata, select = -c(month))
+SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasonadjusted.csv")
 SVARdata <- ts (SVARdata, frequency = 12, start = c(2012, 1))
 
 constr <- c(-1,+2,-4)  # FW(-1) should be place in the first order. 
@@ -882,23 +914,24 @@ constr <- c(-1,+2,-4)  # FW(-1) should be place in the first order.
 
 ### Uhlig’s (2005) Penalty Function Method
 
-model <- uhlig.penalty(Y=SVARdata, nlags=3, draws=2000, subdraws=1000, nkeep=1000, KMIN=1, KMAX=2, constrained=constr, constant=FALSE, steps=120, penalty=100, crit=0.001)
+model <- uhlig.penalty(Y=SVARdata, nlags=3, draws=2000, subdraws=1000, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120, penalty=100, crit=0.001)
 
 irfs <- model$IRFS 
 
 vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate", "Vacancy rate")
 
-irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=FALSE)
+irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
 
 ### Fry and Pagan’s (2011) Median-Target (MT) method
 
-model2 <- uhlig.reject(Y=SVARdata, nlags=3, draws=200, subdraws=200, nkeep=1000, KMIN=1, KMAX=2, constrained=constr, constant=FALSE, steps=120)
+model2 <- uhlig.reject(Y=SVARdata, nlags=3, draws=200, subdraws=200, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120)
 
 summary(model2)
 
 irfs2 <- model2$IRFS
 
-fp.target(Y=SVARdata, irfdraws=irfs2, nlags=3, constant=F, labels=vl, target=TRUE, type="median", bands=c(0.16, 0.84), save=FALSE, grid=TRUE, bw=FALSE, legend=TRUE, maxit=1000)
+fp.target(Y=SVARdata, irfdraws=irfs2, nlags=3, constant=F, labels=vl, target=TRUE, type="median", bands=c(0.16, 0.84), save=FALSE, grid=TRUE, bw=TRUE, legend=TRUE, maxit=1000)
 
-*/
+
+********************/
