@@ -163,8 +163,6 @@ caption("Source: Monthly Korea Immigration Service Statistics, Ministry of Justi
 graph export e9f4h2.eps, replace
 
 
-
-
 *********************
 *!start
 cd "${path}"
