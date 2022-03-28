@@ -26,7 +26,7 @@ model <- uhlig.penalty(Y=SVARdata, nlags=3, draws=2000, subdraws=1000, nkeep=100
 
 irfs <- model$IRFS 
 
-vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate", "Vacancy rate")
+vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate","Total Workers")
 
 irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
