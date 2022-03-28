@@ -2,7 +2,7 @@
 
 /*********************************************
 ****************Dataset links****************
-Does not need to download to run this Stata code.
+Does not need to download to run this code.
 Most of webpages do not provide English version.
 
 The Labor Force Survey at Establishments (LFSE; 사업체노동력조사)
@@ -28,12 +28,6 @@ https://eis.work.go.kr/ (opened to public)
 
 Minimum Wage Trend (최저임금위원회 최저임금제도)
 https://www.minimumwage.go.kr/minWage/policy/decisionMain.do (opened to public)
-
-Korea Immigration Service Monthly Statistics (출입국외국인정책 통계월보)
-https://www.immigration.go.kr/immigration/1569/subview.do (opened to public)
-
-Survey on Immigrant's Living Conditions and Labour Force (이민자체류실태및고용조사)
-https://mdis.kostat.go.kr/ (opened to Korean citizen)
 
 *********************************************/
 
@@ -851,3 +845,56 @@ twoway ///
 , xline(720) ylabel(0(4)12) ytitle("E9 Share (%)") xtitle("") legend(off)
 graph export e9shareconcur2.eps, replace
 
+
+
+
+/*********************************************
+VAR with sign restrictions
+(Executable using R)
+*********************************************/
+/*
+
+### Install required packages
+install.packages("minqa") 
+install.packages("HI") 
+install.packages("mvnfast")
+install.packages("lubridate")  
+install.packages("VARsignR")  
+#install.packages("https://raw.githubusercontent.com/jayjeo/VARsignR/master/VARsignR_0.1.2.tar.gz", repos = NULL)    ## if install.packages("VARsignR") does not work. 
+
+
+### Import data and set sign restrictions
+
+rm(list = ls())
+set.seed(12345)
+library(VARsignR)
+
+SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata.csv")
+SVARdata = subset(SVARdata, select = -c(month))
+SVARdata <- ts (SVARdata, frequency = 12, start = c(2012, 1))
+
+constr <- c(-1,+2,-4)  # FW(-1) should be place in the first order. 
+
+
+### Uhlig’s (2005) Penalty Function Method
+
+model <- uhlig.penalty(Y=SVARdata, nlags=3, draws=2000, subdraws=1000, nkeep=1000, KMIN=1, KMAX=2, constrained=constr, constant=FALSE, steps=120, penalty=100, crit=0.001)
+
+irfs <- model$IRFS 
+
+vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate", "Vacancy rate")
+
+irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=FALSE)
+
+
+### Fry and Pagan’s (2011) Median-Target (MT) method
+
+model2 <- uhlig.reject(Y=SVARdata, nlags=3, draws=200, subdraws=200, nkeep=1000, KMIN=1, KMAX=2, constrained=constr, constant=FALSE, steps=120)
+
+summary(model2)
+
+irfs2 <- model2$IRFS
+
+fp.target(Y=SVARdata, irfdraws=irfs2, nlags=3, constant=F, labels=vl, target=TRUE, type="median", bands=c(0.16, 0.84), save=FALSE, grid=TRUE, bw=FALSE, legend=TRUE, maxit=1000)
+
+*/
