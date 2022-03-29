@@ -265,9 +265,10 @@ tsset month
 format month %tm
 
 gen forpercent=fw/(fw+dw)*100
+keep if month >= 648 
 
 twoway (tsline forpercent, lcolor(gs0)) ///
-, xlabel(624(6)743) xlabel(, grid angle(270)) xline(720) xtitle("") ytitle("%") scheme(s1mono) ///
+, xlabel(648(6)743) xlabel(, grid angle(270)) xline(720) xtitle("") ytitle("%") scheme(s1mono) ///
 ysize(3) xsize(8) legend(off) ///
 caption("Source: Korea Immigration Service Monthly Statistics & Survey on Immigrant's Living Conditions and Labour Force")
 graph export forpercent.eps, replace
@@ -891,16 +892,14 @@ export delimited using "${path}\SVARdata_seasonadjusted.csv", replace
 
 /*************** Executable using R from below:
 
-### Install required packages
+###### Install required packages
 install.packages("minqa") 
 install.packages("HI") 
 install.packages("mvnfast")
 install.packages("lubridate")  
 install.packages("VARsignR")  
-#install.packages("https://raw.githubusercontent.com/jayjeo/VARsignR/master/VARsignR_0.1.2.tar.gz", repos = NULL)    ## if install.packages("VARsignR") does not work. 
 
-
-### Import data and set sign restrictions
+###### Import data and set sign restrictions
 
 rm(list = ls())
 set.seed(12345)
@@ -912,18 +911,29 @@ SVARdata <- ts (SVARdata, frequency = 12, start = c(2012, 1))
 constr <- c(-1,+2,-4)  # FW(-1) should be place in the first order. 
 
 
-### Uhlig’s (2005) Penalty Function Method
+###### Uhlig’s (2005) Penalty Function Method
 
 model <- uhlig.penalty(Y=SVARdata, nlags=3, draws=2000, subdraws=1000, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120, penalty=100, crit=0.001)
 
 irfs <- model$IRFS 
 
-vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate", "Vacancy rate")
+vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate")
 
 irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
 
-### Fry and Pagan’s (2011) Median-Target (MT) method
+###### Rubio-Ramirez et al’s (2010) Rejection Method
+
+model3 <- rwz.reject(Y=SVARdata, nlags=3, draws=200, subdraws=200, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120)
+
+irfs3 <- model3$IRFS
+
+vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate")
+
+irfplot(irfdraws=irfs3, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
+
+
+###### Fry and Pagan’s (2011) Median-Target (MT) method
 
 model2 <- uhlig.reject(Y=SVARdata, nlags=3, draws=200, subdraws=200, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120)
 
@@ -932,6 +942,8 @@ summary(model2)
 irfs2 <- model2$IRFS
 
 fp.target(Y=SVARdata, irfdraws=irfs2, nlags=3, constant=F, labels=vl, target=TRUE, type="median", bands=c(0.16, 0.84), save=FALSE, grid=TRUE, bw=TRUE, legend=TRUE, maxit=1000)
+
+
 
 
 ********************/
