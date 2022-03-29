@@ -53,14 +53,14 @@ fp.target(Y=SVARdata, irfdraws=irfs2, nlags=3, constant=F, labels=vl, target=TRU
 
 
 
-################## using SVARdata(variousvariables)_seasonadjusted.csv ##################
+################## using SVARdata(alternativeproduction).csv ##################
 ###### Import data and set sign restrictions
 
 rm(list = ls())
 set.seed(12345)
 library(VARsignR)
 
-SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata(variousvariables)_seasonadjusted.csv")
+SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasonadjusted(alternativeproduction).csv")
 SVARdata <- ts (SVARdata, frequency = 12, start = c(2012, 1))
 
 constr <- c(-1,+2,-4)  # FW(-1) should be place in the first order. 
@@ -97,4 +97,6 @@ summary(model2)
 irfs2 <- model2$IRFS
 
 fp.target(Y=SVARdata, irfdraws=irfs2, nlags=3, constant=F, labels=vl, target=TRUE, type="median", bands=c(0.16, 0.84), save=FALSE, grid=TRUE, bw=TRUE, legend=TRUE, maxit=1000)
+
+
 
