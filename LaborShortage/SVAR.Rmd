@@ -73,7 +73,7 @@ model <- uhlig.penalty(Y=SVARdata, nlags=3, draws=2000, subdraws=1000, nkeep=100
 
 irfs <- model$IRFS 
 
-vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate","Prod Domestic","Prod Abroad","Match Eff","Termination rate")
+vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate","Prod Domestic","Prod Abroad","Match Eff","Termination rate","Part/Full")
 
 irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
@@ -84,7 +84,7 @@ model3 <- rwz.reject(Y=SVARdata, nlags=4, draws=200, subdraws=200, nkeep=1000, K
 
 irfs3 <- model3$IRFS
 
-vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate","Prod Domestic","Prod Abroad","Match Eff","Termination rate")
+vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate","Prod Domestic","Prod Abroad","Match Eff","Termination rate","Part/Full")
 
 irfplot(irfdraws=irfs3, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
