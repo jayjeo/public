@@ -72,14 +72,14 @@ model <- uhlig.penalty(Y=SVARdata, nlags=3, draws=2000, subdraws=1000, nkeep=100
 
 irfs <- model$IRFS 
 
-vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate")
+vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate","Prod Domestic","Prod Abroad")
 
 irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
 
 ###### Rubio-Ramirez et al’s (2010) Rejection Method
 
-model3 <- rwz.reject(Y=SVARdata, nlags=3, draws=200, subdraws=200, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120)
+model3 <- rwz.reject(Y=SVARdata, nlags=4, draws=200, subdraws=200, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120)
 
 irfs3 <- model3$IRFS
 
@@ -90,7 +90,7 @@ irfplot(irfdraws=irfs3, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84
 
 ###### Fry and Pagan’s (2011) Median-Target (MT) method
 
-model2 <- uhlig.reject(Y=SVARdata, nlags=3, draws=200, subdraws=200, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120)
+model2 <- uhlig.reject(Y=SVARdata, nlags=4, draws=200, subdraws=200, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120)
 
 summary(model2)
 
