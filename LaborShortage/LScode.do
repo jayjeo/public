@@ -45,7 +45,7 @@ set scheme s1color, perm
 /*********************************************
 *********************************************/
 * NEED TO SET YOUR PREFERRED PATH
-global path="E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\Github move\Latex\Dissertation Draft ver3.0"   
+global path="E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\Github move\Latex\Dissertation Draft ver5.0"   
 /*********************************************
 *********************************************/
 
@@ -72,7 +72,7 @@ ssc install ranktest, replace
 
 
 /*********************************************
-Graphs
+Graphs generation
 *********************************************/
 *!start
 cd "${path}"
@@ -105,7 +105,7 @@ twoway (tsline minwagereal, lwidth(thick) lcolor(gs0) yaxis(1)) ///
 graph export partpercent.eps, replace
 
 
-
+*********************
 *!start
 cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/monthlye9.csv", clear 
@@ -124,45 +124,6 @@ ysize(3.5) xsize(8) ///
 legend(label(1 "E9 inflow") label(2 "E9 stock")) ///
 caption("Source: Employment Permit System (EPS)")
 graph export monthlye9.eps, replace
-
-
-*!start
-cd "${path}"
-import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/immigrantsproportion.csv", clear
-
-gen prop2000=new2000f/new2000t*100
-gen prop2020=new2020f/new2020t*100
-
-drop if countries=="Switzerland" | countries=="Estonia"
-replace countries="South Korea" if countries=="Korea" 
-replace countries="Slovak" if countries=="Slovak Republic"
-
-twoway (scatter prop2020 prop2000, mlabel(countries) mlabangle(+15) mcolor(gs0) ///
-        text(5 6 "45 degree line")) ///
-		(function y=x, range(0 12) legend(label(1 Proportion of Immigrants) label(2 "y=x"))) ///
-		, ytitle("Year 2020 (%)") xtitle("Year 2000 (%)") ///
-		ysize(3.5) xsize(8) xlabel(0(3)12) ylabel(0(3)15) scheme(s1mono) ///
-        legend(off) ///
-        caption("Source: OECD Statistics" "Greece used data from 2017 instead of 2020" "Switzerland: 19% in 2000 and 24% in 2020")
-graph export immigrantsproportion.eps, replace
-
-
-*********************
-*!start
-cd "${path}"
-import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/e9f4h2.csv", clear 
-gen date=ym(year,month)
-tsset date
-format date %tm
-gen t=date
-
-twoway (tsline f4, lcolor(gs0) clpattern(longdash))(tsline e9, lcolor(gs0))(tsline h2, lcolor(gs0) clpattern(shortdash_dot)) ///
-, xlabel(648(6)737) xlabel(, grid angle(270)) xline(720) ytitle("person") scheme(s1mono) ///
-ysize(3.5) xsize(8) ///
-caption("Source: Monthly Korea Immigration Service Statistics, Ministry of Justice.")
-graph export e9f4h2.eps, replace
-
-
 
 
 *********************
@@ -312,21 +273,16 @@ merge m:1 ym using cpi, nogenerate
 merge 1:1 ym indmc using e9inflow, nogenerate
 merge m:1 indmc using forper, nogenerate
 
-foreach var in wage_totfull wage_totpart hourfull hourpart {
-    destring `var', replace dpcomma
-}
- 
 gen wage=wage_tot*100/cpi/hour  // cpi adjusted hourly wage (unit=KRW)
-gen wagefull=wage_totfull*100/cpi/hourfull  // cpi adjusted hourly wage (unit=KRW)
-gen wagepart=wage_totpart*100/cpi/hourpart  // cpi adjusted hourly wage (unit=KRW)
 
 xtset indmc ym   // indmc = sub-sector of manufacturing industry. ; ym = monthly time.
 format ym %tm
 gen ymraw=ym
-rename (nume numd exit numefull numdfull exitfull numepart numdpart exitpart) (numE numD EXIT numEfull numDfull EXITfull numEpart numDpart EXITpart)  // numE = number of vacant spots ; numD = number of workers ; EXIT = number of separated workers
+rename (nume numd exit numefull numdfull numepart numdpart) (numE numD EXIT numEfull numDfull numEpart numDpart)  
+// numE = number of vacant spots ; numD = number of workers ; EXIT = number of separated workers
 gen v=numE/numD*100   // v = vacancy rate
-gen vfull=numEfull/numDfull*100   // v = vacancy rate
-gen vpart=numEpart/numDpart*100   // v = vacancy rate
+gen vfull=numEfull/numDfull*100   // v = vacancy rate (full-time workers)
+gen vpart=numEpart/numDpart*100   // v = vacancy rate (part-time workers)
 
 gen uibC=uib/numD*100*0.896503381 if ym<720
 replace uibC=uib/numD*100*0.63 if ym>=720
@@ -339,15 +295,15 @@ save panelm, replace
 *!start
 cd "${path}"
 use panelm, clear
-keep ym indmc numD numDfull numDpart e9 v prod wagefull wagepart hourfull hourpart
-reshape wide numD numDfull numDpart e9 v prod wagefull wagepart hourfull hourpart, i(indmc) j(ym)
+keep ym indmc numD e9 hourfull
+reshape wide numD e9 hourfull, i(indmc) j(ym)
 
 ** 719=2019m12; 722=2020m3; 724=2020m5; 739=2021m8
 
 gen e9chg=(e9744-e9715)/numD715*100
 gen e9share=e9715/numD715*100
 
-keep indmc numD719 numD716 numDfull716 numDpart716 e9chg e9share e9719 wagefull716 wagepart716 hourfull716 hourpart716
+keep indmc e9chg e9share hourfull716
 save chg, replace 
 
 
@@ -360,68 +316,19 @@ cd "${path}"
 use panelf2, clear
 sort indmc ym 
 
-gen matEXIT=F1.matched-F1.EXIT 
-gen matEXITfull=F1.matchedfull-F1.EXITfull 
-gen matEXITpart=F1.matchedpart-F1.EXITpart 
-
-gen matchednormal=F1.matched/numD716
-gen EXITnormal=F1.EXIT/numD716
-gen matEXITnormal=matEXIT/numD716
-
-gen matchednormalfull=F1.matchedfull/numDfull716
-gen EXITnormalfull=F1.EXITfull/numDfull716
-gen matEXITnormalfull=matEXITfull/numDfull716
-
-gen matchednormalpart=F1.matchedpart/numDpart716
-gen EXITnormalpart=F1.EXITpart/numDpart716
-gen matEXITnormalpart=matEXITpart/numDpart716
-
-gen fire=EXIT-left
-gen firefull=EXITfull-leftfull
-gen firepart=EXITpart-leftpart
-
-gen hirenormal=F1.hire/numD716
-gen leftnormal=F1.left/numD716
-gen firenormal=F1.fire/numD716
-gen hirenormalfull=F1.hirefull/numDfull716
-gen leftnormalfull=F1.leftfull/numDfull716
-gen firenormalfull=F1.firefull/numDfull716
-gen hirenormalpart=F1.hirepart/numDpart716
-gen leftnormalpart=F1.leftpart/numDpart716
-gen firenormalpart=F1.firepart/numDpart716
-
-gen numDnormal=numD/numD716
-gen numDnormalfull=numDfull/numDfull716
-gen numDnormalpart=numDpart/numDpart716
-
 gen numDpartproportion=numDpart/numDfull*100
-gen numDpartproportion2=numDpart/numD*100
-gen matchedpartproportion=F1.matchedpart/F1.matchedfull*100
-gen EXITpartproportion=F1.EXITpart/F1.EXITfull*100
 
 label var v "Vacancy" 
 label var vfull "Vacancy(Full)" 
 label var vpart "Vacancy(Part)" 
 label var hour "Work Hours" 
-label var hourfull "Work Hours(Full)" 
-label var hourpart "Work Hours(Part)" 
 label var wage "Wage" 
-label var wagefull "Wage(Full)" 
-label var wagepart "Wage(Part)" 
-label var matchednormal "Entering" 
-label var matchednormalfull "Entering(Full)" 
-label var matchednormalpart "Entering(Part)" 
-label var EXITnormal "Leaving" 
-label var EXITnormalfull "Leaving(Full)" 
-label var EXITnormalpart "Leaving(Part)" 
-label var matEXITnormal "Net" 
-label var matEXITnormalfull "Net(Full)" 
-label var matEXITnormalpart "Net(Part)" 
-
 label var numDpartproportion "Part/Full" 
-label var prod "Production"
 label var uibC "Non-emloyment rate" 
-
+label var prod "Production"
+label var proddome "ProdDomestic"
+label var prodabroad "ProdAbroad"
+label var prodoper "ProdOperation" 
 
 preserve
     keep if indmc==0 
@@ -441,49 +348,11 @@ restore
 
 scalar k2=.3146704
 gen l=numD/(1-uibC/100)
-gen lut=numD/(1-ut/100)
-gen luC=numD/(1-uC/100)
 gen a_alter=F1.matched/(uibC/100*l*(v/uibC)^k2)     // alternative calibration result for matching efficiency 
-gen lambda_alter=F1.EXIT/l        // calibration result for termination rate 
-gen lambda_ut=F1.EXIT/lut     
-gen lambda_uC=F1.EXIT/luC     
+gen lambda_alter=F1.EXIT/l        // calibration result for termination rate  
 
 label var a_alter "Match Eff" 
 label var lambda_alter "Termination" 
-
-scalar k2=.3146704
-gen lfull=numDfull/(1-uibC/100)
-gen a_alterfull=F1.matchedfull/(uibC/100*lfull*(vfull/uibC)^k2)     // alternative calibration result for matching efficiency 
-gen lambda_alterfull=F1.EXITfull/numD*(1-uibC/100)        // alternative calibration result for termination rate 
-
-scalar k2=.3146704 
-gen lpart=numDpart/(1-uibC/100)
-gen a_alterpart=F1.matchedpart/(uibC/100*lpart*(vpart/uibC)^k2)     // alternative calibration result for matching efficiency 
-gen lambda_alterpart=F1.EXITpart/numD*(1-uibC/100)        // alternative calibration result for termination rate 
-
-scalar k2=.3146704
-gen l2=numD/(1-uibC/100)
-gen a_alter2=F1.hire/(uibC/100*l2*(v/uibC)^k2)     // alternative calibration result for matching efficiency 
-gen lambda_alter2=F1.left/numD*(1-uibC/100)        // alternative calibration result for termination rate 
-gen lambda_alter3=F1.fire/numD*(1-uibC/100)        // alternative calibration result for termination rate 
-gen a=F1.hire/(ut/100*l2*(v/ut)^k2)     // alternative calibration result for matching efficiency 
-gen a2=F1.hire/(uC/100*l2*(v/uC)^k2)     // alternative calibration result for matching efficiency 
-
-scalar k2=.3146704
-gen l2full=numDfull/(1-uibC/100)
-gen a_alter2full=F1.hirefull/(uibC/100*l2full*(vfull/uibC)^k2)     // alternative calibration result for matching efficiency 
-gen lambda_alter2full=F1.leftfull/numDfull*(1-uibC/100)        // alternative calibration result for termination rate 
-gen lambdafull=F1.EXITfull/numDfull*(1-ut/100)        
-gen lambdafull2=F1.EXITfull/numDfull*(1-uC/100) 
-
-scalar k2=.3146704
-gen l2part=numDpart/(1-uibC/100)
-gen a_alter2part=F1.hirepart/(uibC/100*l2part*(vpart/uibC)^k2)     // alternative calibration result for matching efficiency 
-gen lambda_alter2part=F1.leftpart/numDpart*(1-uibC/100)        // alternative calibration result for termination rate 
-
-scalar k2=.3146704
-gen m=a_alter*(uibC/v)^(1-k2)
-gen mfull=a_alterfull*(uibC/vfull)^(1-k2)
 
 keep if 660<=ym&ym<=744   // largest available data span.
 
@@ -513,9 +382,6 @@ label var d "T"
 label var e9shared "E9SHARE $\times$ D" 
 label var e9chgd "E9CHG $\times$ D" 
 label var forperd "TFWSHARE $\times$ D" 
-label var proddome "ProdDomestic"
-label var prodabroad "ProdAbroad"
-label var prodoper "ProdOperation" 
 
 eststo clear 
 eststo: xtivreg v (e9chgd=e9shared) i.ym proddome prodabroad prodoper, fe vce(cluster indmc)
@@ -538,10 +404,6 @@ ivreghdfe uibC (e9chgd=e9shared) i.ym proddome prodabroad prodoper, absorb(indmc
 twoway (scatter e9share forper)(lfit e9share forper) ///
         , xtitle("TFW Share (%)") ytitle("E9 Share (%)") legend(off)
 graph export TFWe9share.eps, replace
-
-twoway (scatter e9share hourfull716)(lfit e9share hourfull716), ///
-        xtitle("Fulltime Workers' Monthly Work Hours") ytitle("E9 Share (%)") legend(off)
-graph export e9sharehourfull716.eps, replace
 
 twoway (scatter forper hourfull716)(lfit forper hourfull716), ///
         xtitle("Fulltime Workers' Monthly Work Hours") ytitle("TFW Share (%)") legend(off) ///
@@ -589,14 +451,14 @@ foreach i of numlist 1/61 {
 }
 * dum61 = 2020m1
 
-foreach var in proddome prodabroad prodoper a a2 lambda_alter lambda_uC lambda_ut mfull v vfull vpart hour wage hourfull hourpart matched matchednormal EXITnormal matEXITnormal matchednormalfull EXITnormalfull matEXITnormalfull matchednormalpart EXITnormalpart matEXITnormalpart numDnormal numDnormalfull numDnormalpart matchedpartproportion EXITpartproportion numDpartproportion a_alter {
+foreach var in proddome prodabroad prodoper a_alter lambda_alter v vfull vpart hour wage numDpartproportion {
     gen `var'_temp=`var'
     drop `var'
     tsfilter hp `var'_hp2 = `var'_temp, trend(`var') smooth(3)
 }
 
 order *, sequential
-foreach i of varlist numDpartproportion v vfull vpart hour hourfull hourpart wage matchednormal EXITnormal matEXITnormal a_alter lambda_alter uibC {  
+foreach i of varlist numDpartproportion v vfull vpart hour wage a_alter lambda_alter uibC {  
 preserve
         reg `i' e9sharedum1-e9sharedum35 e9sharedum37-e9sharedum61 i.ym i.indmc proddome prodabroad prodoper
         mat b2=e(b)'
@@ -621,20 +483,7 @@ preserve
         gen vfull=.
         gen vpart=.
         gen hour=.
-        gen hourfull=.
-        gen hourpart=.
         gen wage=.
-        gen wagefull=.
-        gen wagepart=.
-        gen matchednormal=.
-        gen matchednormalfull=.
-        gen matchednormalpart=.
-        gen EXITnormal=.
-        gen EXITnormalfull=.
-        gen EXITnormalpart=.
-        gen matEXITnormal=.
-        gen matEXITnormalfull=.
-        gen matEXITnormalpart=.
         gen numDpartproportion=.
         gen lambda_alter=.
         gen a_alter=.
@@ -644,20 +493,7 @@ preserve
         label var vfull "Vacancy(Full)" 
         label var vpart "Vacancy(Part)" 
         label var hour "Work Hours" 
-        label var hourfull "Work Hours(Full)" 
-        label var hourpart "Work Hours(Part)" 
         label var wage "Wage" 
-        label var wagefull "Wage(Full)" 
-        label var wagepart "Wage(Part)" 
-        label var matchednormal "Entering" 
-        label var matchednormalfull "Entering(Full)" 
-        label var matchednormalpart "Entering(Part)" 
-        label var EXITnormal "Leaving" 
-        label var EXITnormalfull "Leaving(Full)" 
-        label var EXITnormalpart "Leaving(Part)" 
-        label var matEXITnormal "Net" 
-        label var matEXITnormalfull "Net(Full)" 
-        label var matEXITnormalpart "Net(Part)" 
         label var numDpartproportion "Ratio Part/Full" 
         label var a_alter "Match Efficiency" 
         label var lambda_alter "Termination" 
