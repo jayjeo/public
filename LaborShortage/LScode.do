@@ -262,6 +262,11 @@ save cpi, replace
 
 *!start
 cd "${path}"
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/exchangerate.csv", varnames(1) clear 
+save exchangerate, replace
+
+*!start
+cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/totalforeignproportion.csv", varnames(1) clear 
 save forper, replace 
 
@@ -270,14 +275,14 @@ cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
 merge m:1 ym using ut, nogenerate
 merge m:1 ym using cpi, nogenerate
+merge m:1 ym using exchangerate, nogenerate
 merge 1:1 ym indmc using e9inflow, nogenerate
 merge m:1 indmc using forper, nogenerate
-
-gen wage=wage_tot*100/cpi/hour  // cpi adjusted hourly wage (unit=KRW)
 
 xtset indmc ym   // indmc = sub-sector of manufacturing industry. ; ym = monthly time.
 format ym %tm
 gen ymraw=ym
+
 rename (nume numd exit numefull numdfull numepart numdpart) (numE numD EXIT numEfull numDfull numEpart numDpart)  
 // numE = number of vacant spots ; numD = number of workers ; EXIT = number of separated workers
 gen v=numE/numD*100   // v = vacancy rate
@@ -287,10 +292,68 @@ gen vpart=numEpart/numDpart*100   // v = vacancy rate (part-time workers)
 gen uibC=uib/numD*100*0.896503381 if ym<720
 replace uibC=uib/numD*100*0.63 if ym>=720
 
-drop if inlist(indmc,12)  // tobacco industry. Extremely few workers, and production data is not available.
-keep if 660<=ym&ym<=745   // largest available data span.
-save panelm, replace
+gen wage=wage_tot*100/cpi/hour/exchangerate  // cpi adjusted hourly wage (unit=USD)
+gen wagefull=wage_totfull*100/cpi/hourfull/exchangerate  // cpi adjusted hourly wage (unit=USD)
+gen wagepart=wage_totpart*100/cpi/hourpart/exchangerate  // cpi adjusted hourly wage (unit=USD)
 
+save panelmf1, replace
+
+*** wage seasonal adjustment
+*!start
+use panelmf1, clear
+keep if 612<=ym&ym<=744   // largest available data span for wage variable.
+
+local i=0
+    preserve
+    keep if indmc==`i'
+    sax12 wage, satype(single) inpref(wage.spc) outpref(wage) transfunc(log) regpre( const ) ammodel((0,1,1)(0,1,1)) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+    sax12im "wage.out", ext(d11)
+
+    sax12 wagefull, satype(single) inpref(wagefull.spc) outpref(wagefull) transfunc(log) regpre( const ) ammodel((0,1,1)(0,1,1)) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+    sax12im "wagefull.out", ext(d11)
+
+    sax12 wagepart, satype(single) inpref(wagepart.spc) outpref(wagepart) transfunc(log) regpre( const ) ammodel((0,1,1)(0,1,1)) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+    sax12im "wagepart.out", ext(d11)
+
+    drop wage wagefull wagepart
+    rename (wage_d11 wagefull_d11 wagepart_d11) (wage wagefull wagepart)
+    keep ym indmc wage wagefull wagepart
+    save wage`i', replace 
+    restore
+
+forvalues i= 10(1)33 {
+    preserve
+    keep if indmc==`i'
+    sax12 wage, satype(single) inpref(wage.spc) outpref(wage) transfunc(log) regpre( const ) ammodel((0,1,1)(0,1,1)) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+    sax12im "wage.out", ext(d11)
+
+    sax12 wagefull, satype(single) inpref(wagefull.spc) outpref(wagefull) transfunc(log) regpre( const ) ammodel((0,1,1)(0,1,1)) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+    sax12im "wagefull.out", ext(d11)
+
+    sax12 wagepart, satype(single) inpref(wagepart.spc) outpref(wagepart) transfunc(log) regpre( const ) ammodel((0,1,1)(0,1,1)) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+    sax12im "wagepart.out", ext(d11)
+
+    drop wage wagefull wagepart
+    rename (wage_d11 wagefull_d11 wagepart_d11) (wage wagefull wagepart)
+    keep ym indmc wage wagefull wagepart
+    save wage`i', replace 
+    restore
+}
+
+use wage0, clear
+forvalues i= 10(1)33 {
+    append using wage`i'
+}
+save wagesax, replace 
+
+use panelmf1, clear
+drop wage wagefull wagepart
+merge m:1 ym indmc using wagesax, nogenerate
+
+drop if inlist(indmc,12)  // tobacco industry. Extremely few workers, and production data is not available.
+sort indmc ym
+keep if 660<=ym&ym<=745   // largest available data span.
+save panelm, replace 
 
 *!start
 cd "${path}"
@@ -323,6 +386,8 @@ label var vfull "Vacancy(Full)"
 label var vpart "Vacancy(Part)" 
 label var hour "Work Hours" 
 label var wage "Wage" 
+label var wagefull "Wage(Full)" 
+label var wagepart "Wage(Part)" 
 label var numDpartproportion "Part/Full" 
 label var uibC "Non-emloyment rate" 
 label var prod "Production"
@@ -431,6 +496,23 @@ ivreghdfe a_alter (e9chgd=e9shared) i.ym proddome prodabroad prodoper, absorb(in
 ivreghdfe lambda_alter (e9chgd=e9shared) i.ym proddome prodabroad prodoper, absorb(indmc) cluster(indmc) first  
 
 
+eststo clear 
+eststo: xtivreg wage (e9chgd=e9shared) i.ym proddome prodabroad prodoper, fe vce(cluster indmc)
+eststo: xtivreg wagefull (e9chgd=e9shared) i.ym proddome prodabroad prodoper, fe vce(cluster indmc)
+eststo: xtivreg wagepart (e9chgd=e9shared) i.ym proddome prodabroad prodoper, fe vce(cluster indmc)
+
+esttab * using "tablemar3.tex", ///
+    title(\label{tablemar3}) ///
+    b(%9.3f) se(%9.3f) ///
+    lab se r2 pr2 noconstant replace ///
+    addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
+
+// Find First-stage F statistics. Does not work in Stata version 16 (bug)
+ivreghdfe wage (e9chgd=e9shared) i.ym proddome prodabroad prodoper, absorb(indmc) cluster(indmc) first  
+ivreghdfe wagefull (e9chgd=e9shared) i.ym proddome prodabroad prodoper, absorb(indmc) cluster(indmc) first  
+ivreghdfe wagepart (e9chgd=e9shared) i.ym proddome prodabroad prodoper, absorb(indmc) cluster(indmc) first  
+
+
 /*********************************************
 Continuous DID Regressions (monthly)
 *********************************************/
@@ -451,14 +533,14 @@ foreach i of numlist 1/61 {
 }
 * dum61 = 2020m1
 
-foreach var in proddome prodabroad prodoper a_alter lambda_alter v vfull vpart hour wage numDpartproportion {
+foreach var in proddome prodabroad prodoper a_alter lambda_alter v vfull vpart hour wage wagefull wagepart numDpartproportion {
     gen `var'_temp=`var'
     drop `var'
     tsfilter hp `var'_hp2 = `var'_temp, trend(`var') smooth(3)
 }
 
 order *, sequential
-foreach i of varlist numDpartproportion v vfull vpart hour wage a_alter lambda_alter uibC {  
+foreach i of varlist numDpartproportion v vfull vpart hour wage wagefull wagepart a_alter lambda_alter uibC {  
 preserve
         reg `i' e9sharedum1-e9sharedum35 e9sharedum37-e9sharedum61 i.ym i.indmc proddome prodabroad prodoper
         mat b2=e(b)'
@@ -484,6 +566,8 @@ preserve
         gen vpart=.
         gen hour=.
         gen wage=.
+        gen wagefull=.
+        gen wagepart=.
         gen numDpartproportion=.
         gen lambda_alter=.
         gen a_alter=.
@@ -494,6 +578,8 @@ preserve
         label var vpart "Vacancy(Part)" 
         label var hour "Work Hours" 
         label var wage "Wage" 
+        label var wagefull "Wage(Full)" 
+        label var wagepart "Wage(Part)" 
         label var numDpartproportion "Ratio Part/Full" 
         label var a_alter "Match Efficiency" 
         label var lambda_alter "Termination" 
