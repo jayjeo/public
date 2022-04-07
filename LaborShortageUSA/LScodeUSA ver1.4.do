@@ -105,14 +105,12 @@ replace emp=3 if inlist(empstat,30,31,32,33,34,35,36)  // inactive
 rename ind1990 ind2
 gen indb=0
 replace indb=1 if 1<=ind2&ind2<40 // agriculture
-replace indb=2 if 40<=ind2&ind2<100 // mining and construction
-replace indb=3 if 100<=ind2&ind2<400 // manufacturing
-replace indb=4 if 400<=ind2&ind2<500 // transportation, communications, and other public utilities
-replace indb=5 if 500<=ind2&ind2<580 // Wholesale trade
-replace indb=6 if 580<=ind2&ind2<700 // Retail trade
-replace indb=7 if 700<=ind2&ind2<761 // FINANCE, INSURANCE, AND REAL ESTATE , BUSINESS AND REPAIR SERVICES
-replace indb=8 if 761<=ind2&ind2<812 // PERSONAL SERVICES, ENTERTAINMENT AND RECREATION SERVICES
-replace indb=9 if 812<=ind2&ind2<1000 // PROFESSIONAL AND RELATED SERVICES, PUBLIC ADMINISTRATION,  ACTIVE DUTY MILITARY, etc
+replace indb=2 if 40<=ind2&ind2<400 // mining, construction, manufacturing
+replace indb=3 if 400<=ind2&ind2<500 // transportation, communications, and other public utilities
+replace indb=4 if 500<=ind2&ind2<700 // Wholesale trade, Retail trade
+replace indb=5 if 700<=ind2&ind2<761 // FINANCE, INSURANCE, AND REAL ESTATE , BUSINESS AND REPAIR SERVICES
+replace indb=6 if 761<=ind2&ind2<812 // PERSONAL SERVICES, ENTERTAINMENT AND RECREATION SERVICES
+replace indb=7 if 812<=ind2&ind2<1000 // PROFESSIONAL AND RELATED SERVICES, PUBLIC ADMINISTRATION,  ACTIVE DUTY MILITARY, etc
 
 drop if yrimmig==0000
 gen yrim=0
@@ -183,8 +181,25 @@ drop Fyst
 rename Fystipo Fyst
 reshape wide Fyst, i(yrim statefip) j(date)
 // completely exist from 662 to 745
-keep statefip yrim Fyst662
+save Fyst_temp, replace
+
+use Fyst_temp, clear 
+keep statefip yrim Fyst684
 save Fyst0, replace
+
+/**************************
+Generate delta_Fyst
+**************************/
+use Fyst_temp, clear 
+forvalues i=684(1)744 {
+    gen delta_Fyst`i'=0
+    local j=`i'+1
+    replace delta_Fyst`i'=Fyst`j'-Fyst`i'
+}
+keep statefip yrim delta_Fyst*
+reshape long delta_Fyst, i(statefip yrim) j(date)
+save delta_Fyst, replace 
+
 
 /**************************
 Generate Fysit0
@@ -205,17 +220,22 @@ keep if yrim>1
 reshape wide Fysit, i(yrim statefip indb) j(date)
 
 gen replaced=0
-forvalues i=663(1)690 {
-    replace replaced=`i' if Fysit662==.
-    replace Fysit662=Fysit`i' if Fysit662==.
+forvalues k=1(1)24 {
+    local i=684+`k'
+    local j=684-`k'
+    replace replaced=`i' if Fysit684==.
+    replace Fysit684=Fysit`i' if Fysit684==.
+    replace replaced=`j' if Fysit684==.
+    replace Fysit684=Fysit`j' if Fysit684==.
 }
+replace Fysit684=0 if Fysit684==.
 
-keep statefip yrim indb Fysit662 replaced
-sort Fysit662
+keep statefip yrim indb Fysit684
+save Fysit0, replace
 
 foreach i of numlist 1 2 4 5 6 8 9 10 12 13 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 45 46 47 48 49 50 51 53 54 55 56 {
     foreach j of numlist 2 3 4 {
-            foreach k of numlist 1 2 3 4 5 6 7 8 9 {
+            foreach k of numlist 1 2 3 4 5 6 7 {
             preserve
                 keep if statefip==`i'&yrim==`j'&indb==`k'
                 tsset date
@@ -236,7 +256,7 @@ gen delete=1
 
 foreach i of numlist 1 2 4 5 6 8 9 10 12 13 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 45 46 47 48 49 50 51 53 54 55 56 {
     foreach j of numlist 2 3 4 {
-            foreach k of numlist 1 2 3 4 5 6 7 8 9 {
+            foreach k of numlist 1 2 3 4 5 6 7 {
                 append using `i'_`j'_`k'
     }
 } 
@@ -249,80 +269,41 @@ reshape wide Fysit, i(yrim statefip indb) j(date)
 keep statefip yrim indb Fysit662
 save Fysit0, replace
 
-
-
-
-
-
-
-
-
-*!start
-use Fyst2, clear
-
-forvalues i=720(1)745 {
-    gen FystCHG`i'=Fyst719-Fyst`i'
-}
-
-forvalues i=720(1)745 {
-    gen FystCHG`i'=Fyst719-Fyst`i'
-}
-
-gen Fyst605keep=Fyst605
-forvalues i=492(1)745 {
-    drop Fyst`i'
-}
-
-save Fyst3, replace 
-
-*!start
+/**************************
+Generate Lsit
+**************************/
 use CPS2, clear 
+
 keep if emp==1
-keep if citizen==5  // Foreigner
-collapse (sum) num [pweight=wgt], by(yrim statefip indb t)
-rename num Fysit0
-save Fysit0, replace 
+**keep if date==719 // 2019m12 PRE-COVID
+collapse (sum) num [pweight=wgt], by(statefip date indb)
+rename num Lsit
+sort Lsit
+save Lsit, replace 
 
-use Fysit0, clear
-keep if yrim>1
-tab indb, nolab
+/**************************
+Generate Merge
+**************************/
+clear all
+set obs 65100
+gen state=.
+gen yrim=.
+gen indb=.
+gen date=.
 
-foreach i of numlist 1 2 4 5 6 8 9 10 11 12 13 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 45 46 47 48 49 50 51 53 54 55 56 {
-    foreach j of numlist 2 3 4 {
-        foreach ind of numlist 1 2 3 4 5 6 7 8 9 {
-        preserve
-            keep if statefip==`i'&yrim==`j'&indb==`ind'
-            tsset t
-            tsfill, full
-            replace statefip=`i' if statefip==.
-            replace yrim=`j' if yrim==.
-            replace indb=`ind' if indb==.
-            ipolate Fysit0 t, gen(Fysit0ipo)
-            save `i'_`j'_`ind', replace 
-        restore
-        }
-    }
-} 
-
-use Fysit0, clear
-keep if yrim>1
-keep if statefip==11&yrim==4&indb==1
-
-*!start
-use 1_2_1, clear
-gen delete=1 
-
-foreach i of numlist 1 2 4 5 6 8 9 10 11 12 13 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 45 46 47 48 49 50 51 53 54 55 56 {
-    foreach j of numlist 2 3 4 5 {
-            foreach ind of numlist 1 2 3 4 5 6 7 8 9 10 11 12 {
-                append using `i'_`j'_`ind'
-        }
-    }
-} 
-drop if delete==1
-drop if statefip==.
-drop Fysit0 
-rename Fysit0ipo Fysit0
-reshape wide Fysit0, i(yrim statefip) j(t)
-
+scalar i=1
+mata x=J(65100, 4, 0)
+forvalues date=684(1)745 {
+mata x[i,1]=`date'
+    foreach state of numlist 1 2 4 5 6 8 9 10 12 13 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 45 46 47 48 49 50 51 53 54 55 56 {
+    mata x[i,2]=`state'
+        foreach yrim of numlist 2 3 4 {
+        mata x[i,3]=`yrim'
+            foreach indb of numlist 1 2 3 4 5 6 7 {
+            mata x[i,4]=`indb'
+            scalar i=`i'+1             
+}
+}
+}
+}
 
