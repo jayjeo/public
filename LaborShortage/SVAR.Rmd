@@ -1,12 +1,10 @@
+
 ###### Install required packages
 install.packages("minqa") 
 install.packages("HI") 
 install.packages("mvnfast")
 install.packages("lubridate")  
 install.packages("VARsignR")  
-
-
-################## using SVARdata_seasonadjusted.csv ##################
 
 ###### Import data and set sign restrictions
 
