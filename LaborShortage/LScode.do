@@ -813,6 +813,7 @@ export delimited using "${path}\SVARdata_seasonadjusted.csv", replace
 
 
 /*************** Executable using R from below:
+*SVAR.Rmd
 
 ###### Install required packages
 install.packages("minqa") 
