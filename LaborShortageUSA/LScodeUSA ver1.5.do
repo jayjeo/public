@@ -75,8 +75,21 @@ append using Maryland
 sort state date 
 save JOLTS, replace 
 
+use JOLTS, clear 
+gen Jobopeningsrate=Jobopenings/(Jobopenings+numD)*100
+keep date state Jobopeningsrate
+egen statenum=group(state)
+drop state 
+xtset statenum date
+xtline Jobopeningsrate, overlay legend(off)
 
 
+/*********************************************
+*********************************************
+*********************************************
+*********************************************
+*********************************************
+*********************************************/
 /*********************************************
 CPS IPUMS Data
 *********************************************/
@@ -236,44 +249,9 @@ forvalues k=1(1)24 {
 }
 replace Fysit684=0 if Fysit684==.
 sort Fysit684
-keep statefip yrim indb Fysit684 replaced
+keep statefip yrim indb Fysit684
 save Fysit0, replace
 
-foreach i of numlist 1 2 4 5 6 8 9 10 12 13 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 45 46 47 48 49 50 51 53 54 55 56 {
-    foreach j of numlist 2 3 4 {
-            foreach k of numlist 1 2 3 4 5 6 7 {
-            preserve
-                keep if statefip==`i'&yrim==`j'&indb==`k'
-                tsset date
-                tsfill, full
-                replace statefip=`i' if statefip==.
-                replace yrim=`j' if yrim==.
-                replace indb=`k' if indb==.
-                ipolate Fysit date, gen(Fysitipo)
-                save `i'_`j'_`k', replace 
-            restore
-        }
-    }
-} 
-
-//!start
-use 1_2_1, clear
-gen delete=1
-
-foreach i of numlist 1 2 4 5 6 8 9 10 12 13 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 45 46 47 48 49 50 51 53 54 55 56 {
-    foreach j of numlist 2 3 4 {
-            foreach k of numlist 1 2 3 4 5 6 7 {
-                append using `i'_`j'_`k'
-    }
-} 
-drop if delete==1
-
-drop Fysit 
-rename Fysitipo Fysit
-reshape wide Fysit, i(yrim statefip indb) j(date)
-// completely exist from 662 to 745
-keep statefip yrim indb Fysit662
-save Fysit0, replace
 
 /**************************
 Generate Lsit
@@ -289,7 +267,7 @@ sort Lsit
 save Lsit, replace 
 
 /**************************
-Generate Merge
+Generate tilde_Fsit
 **************************/
 //!start
 clear all
@@ -318,3 +296,377 @@ use base, clear
 merge m:1 statefip date indb using Lsit, nogenerate
 drop if yrim==.
 merge m:1 yrim statefip indb using Fysit0, nogenerate
+rename Fysit684 Fysit0
+merge m:1 statefip yrim using Fyst0, nogenerate
+rename Fyst684 Fyst0
+merge m:1 statefip yrim date using delta_Fyst, nogenerate
+drop if date==745
+replace Lsit=0 if Lsit==.
+
+reshape wide Fysit0 Fyst0 delta_Fyst Lsit, i(statefip date indb) j(yrim)
+rename Lsit2 Lsit
+drop Lsit3 Lsit4
+gen tilde_Fsit=(Fysit02/Fyst02*delta_Fyst2/Lsit)+(Fysit03/Fyst03*delta_Fyst3/Lsit)+(Fysit04/Fyst04*delta_Fyst4/Lsit)
+replace tilde_Fsit=0 if tilde_Fsit==.
+keep date statefip indb tilde_Fsit
+save tilde_Fsit, replace 
+
+/**************************
+Generate Fsit0
+**************************/
+//!start
+use CPS2, clear 
+
+preserve
+keep if emp==1
+keep if citizen==5  // Foreigner
+**keep if date==719 // 2019m12 PRE-COVID
+collapse (sum) num [pweight=wgt], by(statefip date indb)
+rename num Fsit
+save Fsit, replace 
+restore
+
+use Fsit, clear
+reshape wide Fsit, i(statefip indb) j(date)
+
+gen replaced=0
+forvalues k=1(1)24 {
+    local i=684+`k'
+    local j=684-`k'
+    replace replaced=`i' if Fsit684==.
+    replace Fsit684=Fsit`i' if Fsit684==.
+    replace replaced=`j' if Fsit684==.
+    replace Fsit684=Fsit`j' if Fsit684==.
+}
+replace Fsit684=0 if Fsit684==.
+sort Fsit684
+keep statefip indb Fsit684
+save Fsit0, replace
+
+/**************************
+Generate Fst0
+**************************/
+//!start
+use CPS2, clear 
+keep if emp==1
+keep if citizen==5  // Foreigner
+**keep if date==719 // 2019m12 PRE-COVID
+collapse (sum) num [pweight=wgt], by(statefip date)
+rename num Fst684
+keep if date==684
+save Fst0, replace 
+
+/**************************
+Generate tilde_Fst
+**************************/
+//!start
+use tilde_Fsit, clear 
+merge m:1 statefip indb using Fsit0, nogenerate
+rename Fsit684 Fsit0
+merge m:1 statefip using Fst0, nogenerate
+rename Fst684 Fst0
+reshape wide tilde_Fsit Fsit0 Fst0, i(statefip date) j(indb)
+rename Fst01 temp_Fst0
+drop Fst0*
+rename temp_Fst0 Fst0
+
+forvalues ind=1(1)7 {
+    gen temp`ind'=Fsit0`ind'/Fst0*tilde_Fsit`ind'
+}
+gen tilde_Fst=temp1+temp2+temp3+temp4+temp5+temp6+temp7
+keep statefip date tilde_Fst
+save tilde_Fst, replace 
+
+use tilde_Fst, clear
+drop if inlist(statefip,54,28)
+sort tilde_Fst
+xtset statefip date
+xtline tilde_Fst, overlay 
+
+/**************************
+Generate FstIV
+**************************/
+//!start 
+use tilde_Fst, clear
+merge m:1 statefip using Fst0, nogenerate
+rename Fst684 Fstzero
+gen rate_Fst=1+tilde_Fst
+drop tilde_Fst
+reshape wide rate_Fst Fstzero, i(date) j(statefip)
+
+tsset date, monthly 
+
+foreach state of numlist 1 2 4 5 6 8 9 10 12 13 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 45 46 47 48 49 50 51 53 54 55 56 {  
+    gen temp_Fstzero`state'=Fstzero`state'
+    replace Fstzero`state'=Fstzero`state'*L1.rate_Fst`state'
+    replace Fstzero`state'=temp_Fstzero`state' if date==684
+    drop temp_Fstzero`state'
+}
+drop rate_Fst*
+reshape long Fstzero, i(date) j(statefip)
+rename Fstzero FstIV_temp
+save FstIV_temp, replace 
+
+use FstIV_temp, clear
+keep if date==684
+rename FstIV_temp FstIV_temp684
+save FstIV_temp684, replace 
+
+use FstIV_temp, clear
+merge m:1 statefip using FstIV_temp684, nogenerate
+gen FstIV=FstIV_temp/FstIV_temp684
+save FstIV, replace 
+
+use FstIV, clear
+xtset statefip date
+drop if inlist(statefip,54,28)
+xtline FstIV, overlay 
+
+
+
+/**************************
+Generate delta_Fst
+**************************/
+//!start
+use CPS2, clear 
+
+preserve
+keep if emp==1
+keep if citizen==5  // Foreigner
+**keep if date==719 // 2019m12 PRE-COVID
+collapse (sum) num [pweight=wgt], by(statefip date)
+rename num Fst
+save Fst, replace 
+restore
+
+use Fst, clear
+foreach i of numlist 1 2 4 5 6 8 9 10 12 13 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 45 46 47 48 49 50 51 53 54 55 56 {
+        preserve
+            keep if statefip==`i'
+            tsset date
+            tsfill, full
+            replace statefip=`i' if statefip==.
+            ipolate Fst date, gen(Fstipo)
+            save Fst_temp`i', replace 
+        restore
+} 
+
+//!start
+use Fst_temp1, clear
+foreach i of numlist 2 4 5 6 8 9 10 12 13 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 45 46 47 48 49 50 51 53 54 55 56 {
+        append using Fst_temp`i'
+} 
+
+drop Fst 
+rename Fstipo Fst
+reshape wide Fst, i(statefip) j(date)
+// completely exist from 662 to 745
+save Fst_temp, replace
+
+forvalues i=684(1)744 {
+    gen delta_Fst`i'=0
+    local j=`i'+1
+    replace delta_Fst`i'=Fst`j'-Fst`i'
+}
+keep statefip delta_Fst*
+reshape long delta_Fst, i(statefip) j(date)
+save delta_Fst, replace 
+
+
+/**************************
+Generate Lst
+**************************/
+//!start
+use CPS2, clear 
+
+keep if emp==1
+**keep if date==719 // 2019m12 PRE-COVID
+collapse (sum) num [pweight=wgt], by(statefip date)
+rename num Lst
+sort Lst
+save Lst, replace 
+
+/**************************
+Generate Lst
+**************************/
+//!start
+use Lst, clear 
+merge 1:1 statefip date using delta_Fst, nogenerate
+
+gen test=delta_Fst/Lst
+keep if date>=684
+drop if inlist(statefip,54,28)
+
+xtset statefip date
+xtline test, overlay  
+
+
+
+
+/**************************
+Generate Fsit0
+**************************/
+//!start
+use CPS2, clear 
+
+*keep if emp==1
+keep if citizen==5  // Foreigner
+**keep if date==719 // 2019m12 PRE-COVID
+collapse (sum) num [pweight=wgt], by(yrim date)
+rename num Fyt
+keep if date>=660
+save Fyt, replace 
+
+use Fyt, clear
+keep if date==660
+rename Fyt Fyt0 
+drop date 
+save Fyt0, replace 
+
+use Fyt, clear
+merge m:1 yrim using Fyt0, nogenerate
+gen Fyt_normalized=Fyt/Fyt0
+keep yrim date Fyt_normalized
+xtset yrim date
+xtline Fyt_normalized, overlay  
+
+use CPS2, clear 
+*keep if emp==1
+*keep if citizen==5  // Foreigner
+**keep if date==719 // 2019m12 PRE-COVID
+collapse (sum) num [pweight=wgt], by(date)
+rename num Lt
+keep if date>=660
+save Lt, replace 
+
+use Fyt, clear
+merge m:1 date using Lt, nogenerate
+xtset yrim date
+gen FLt=Fyt/Lt
+xtline FLt, overlay  
+
+
+//!start
+use CPS2, clear 
+keep if emp==1
+keep if citizen==5  // Foreigner
+keep if yrim==4
+**keep if date==719 // 2019m12 PRE-COVID
+collapse (sum) num [pweight=wgt], by(date)
+rename num Ft_emp
+keep if date>=660
+save Ft_emp, replace 
+
+use CPS2, clear 
+keep if emp==1
+*keep if citizen==5  // Foreigner
+**keep if date==719 // 2019m12 PRE-COVID
+collapse (sum) num [pweight=wgt], by(date)
+rename num Lt_emp
+keep if date>=660
+save Lt_emp, replace 
+
+use CPS2, clear 
+*keep if emp==1
+keep if citizen==5  // Foreigner
+keep if yrim==4
+**keep if date==719 // 2019m12 PRE-COVID
+collapse (sum) num [pweight=wgt], by(date)
+rename num Ft_tot
+keep if date>=660
+save Ft_tot, replace 
+
+use CPS2, clear 
+*keep if emp==1
+*keep if citizen==5  // Foreigner
+**keep if date==719 // 2019m12 PRE-COVID
+collapse (sum) num [pweight=wgt], by(date)
+rename num Lt_tot
+keep if date>=660
+save Lt_tot, replace 
+
+use Lt_tot, clear
+merge 1:1 date using Ft_tot, nogenerate
+merge 1:1 date using Ft_emp, nogenerate
+merge 1:1 date using Lt_emp, nogenerate
+gen FLt_tot=Ft_tot/Lt_tot
+gen FLt_emp=Ft_emp/Lt_emp
+tsset date
+tsline FLt_tot FLt_emp
+
+global path="E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\US data\rawdata\CPS"
+copy "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/X12A.EXE" "${path}/X12A.exe"
+net install st0255, from(http://www.stata-journal.com/software/sj12-2)
+adopath + "${path}"
+
+sax12 FLt_tot, satype(single) inpref(FLt_tot.spc) outpref(FLt_tot) transfunc(log) regpre( const ) ammodel((0,1,1)(0,1,1)) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+sax12im "FLt_tot.out", ext(d11)
+
+sax12 FLt_emp, satype(single) inpref(FLt_emp.spc) outpref(FLt_emp) transfunc(log) regpre( const ) ammodel((0,1,1)(0,1,1)) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+sax12im "FLt_emp.out", ext(d11)
+
+tsline FLt_tot_d11 FLt_emp_d11
+tsline Ft_emp Lt_emp 
+
+//!start
+use CPS2, clear 
+*keep if emp==1
+*keep if citizen==5  // Foreigner
+**keep if date==719 // 2019m12 PRE-COVID
+collapse (sum) num [pweight=wgt], by(date)
+rename num Lt_tot
+keep if date>=660
+save Lt_tot, replace 
+tsset date
+tsline Lt_tot
+
+//!start
+use CPS2, clear 
+*keep if emp==1
+keep if citizen==5  // Foreigner
+**keep if date==719 // 2019m12 PRE-COVID
+collapse (sum) num [pweight=wgt], by(date)
+rename num Ft_tot
+keep if date>=660
+save Ft_tot, replace 
+
+merge 1:1 date using Lt_tot, nogenerate
+tsset date
+tsline Lt_tot Ft_tot
+
+
+
+
+
+//!start
+use CPS2, clear 
+*tab bpl, nolab
+gen birth=0 if 9900<=bpl&bpl<15000
+replace birth=1 if 15000<=bpl&bpl<99999
+drop if birth==.
+save CPS3, replace 
+
+use CPS3, clear
+*keep if emp==1
+*keep if citizen==5  // Foreigner
+**keep if date==719 // 2019m12 PRE-COVID
+collapse (sum) num [pweight=wgt], by(date)
+rename num Lt_tot
+keep if date>=660
+save Lt_tot, replace 
+tsset date
+tsline Lt_tot
+
+use CPS3, clear 
+*keep if emp==1
+keep if birth==1  // Foreign birth
+**keep if date==719 // 2019m12 PRE-COVID
+collapse (sum) num [pweight=wgt], by(date)
+rename num Ft_tot
+keep if date>=660
+save Ft_tot, replace 
+
+merge 1:1 date using Lt_tot, nogenerate
+tsset date
+tsline Lt_tot Ft_tot
+
