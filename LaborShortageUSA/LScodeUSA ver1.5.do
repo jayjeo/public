@@ -594,6 +594,17 @@ gen FLt_emp=Ft_emp/Lt_emp
 tsset date
 tsline FLt_tot FLt_emp
 
+gen Dt_tot=(Lt_tot-Ft_tot)/1000
+gen Dt_emp=(Lt_emp-Ft_emp)/1000
+replace Ft_tot=Ft_tot/1000
+replace Ft_emp=Ft_emp/1000
+gen t=date
+twoway (tsline Dt_tot, lcolor(gs0) lwidth(thick))(tsline Ft_tot, lcolor(red) lwidth(thick))(tsline Dt_emp, lcolor(gs0) lpattern(dashed))(tsline Ft_emp, lcolor(red) lpattern(dashed)) ///
+, xtitle("") ytitle("Million person") xline(720) /// 
+legend(label(1 "Domestic Population") label(2 "Foreign Population") label(3 "Domestic Employment") label(4 "Foreign Employment") order(1 2 3 4))
+
+
+
 global path="E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\US data\rawdata\CPS"
 copy "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/X12A.EXE" "${path}/X12A.exe"
 net install st0255, from(http://www.stata-journal.com/software/sj12-2)
