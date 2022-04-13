@@ -38,54 +38,42 @@ keep if date>=683 // 2016.12
 gen retired=0
 replace retired=1 if empstat==36
 keep date wgt state pid emp age retired
-save temp, replace 
+save cps_temp, replace 
 
 
-use temp, clear
+use cps_temp, clear
 drop if pid==0
-gen rand=runiform()
-sort rand 
-
-keep if _n<100
-keep pid 
-format pid %20.3f
-
-save question, replace 
-
-
-
-import delimited "https://raw.githubusercontent.com/jayjeo/public/master/EarlyRetirementsUSA/question.csv", varnames(1) clear
-
-
-/*
-gen datedeci=date/1000
-*recast double datedeci, force
-*replace datedeci=floor(datedeci,.001)
-gen piddate=pid+date/1000
-format piddate %25.3f
-gen dup=0
-replace dup=1 if piddate[_n]==piddate[_n-1]
-*/
-gen pid2=pid
-recast float pid2
-sort pid
-keep pid pid2 
-format pid2 %20.3f
-
-drop if pid==0
-gen datedeci=date/1000
-recast float datedeci, force
-format datedeci %20.3f
-
-gen piddate=pid+datedeci
-sort piddate
-format piddate %20.3f
-gen dup=0
-replace dup=1 if piddate[_n]==piddate[_n-1]
-
-
-xtset pid date
-tsfill, full
 format pid %25.3f
-recast float pid, force
+egen pidnew=group(pid)
+gen double t=date
+assert t==date
+gen double pidnewdate=pidnew*1000+t
+format pidnewdate %25.3f
+sort pidnewdate
+gen dup=0
+replace dup=1 if pidnewdate[_n]==pidnewdate[_n-1]   // duplicate exists
+
+use cps_temp, clear
+drop if pid==0
+drop if wgt==.     // then duplicate does not exist
+format pid %25.3f
+egen pidnew=group(pid)
+gen double t=date
+assert t==date
+gen double pidnewdate=pidnew*1000+t
+format pidnewdate %25.3f
+sort pidnewdate
+gen dup=0
+replace dup=1 if pidnewdate[_n]==pidnewdate[_n-1]   
+sort dup
+
+use cps_temp, clear
+drop if pid==0
+drop if wgt==. 
+egen pidnew=group(pid)
+drop pid
+rename pidnew pid 
 reshape wide wgt emp age retired state, i(pid) j(date)
+save cps_reshape, replace 
+
+
