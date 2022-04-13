@@ -42,13 +42,21 @@ save temp, replace
 
 
 use temp, clear
+drop if pid==0
+gen rand=runiform()
+sort rand 
+
 keep if _n<100
 keep pid 
-save question, replace 
-
 format pid %20.3f
 
-use question, from(https://raw.githubusercontent.com/jayjeo/public/master/EarlyRetirementsUSA/)
+save question, replace 
+
+
+
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/EarlyRetirementsUSA/question.csv", varnames(1) clear
+
+
 /*
 gen datedeci=date/1000
 *recast double datedeci, force
