@@ -566,8 +566,7 @@ reshape wide Jobopeningsrate, i(state) j(date)
 forvalues i=600(1)743 {
     gen vCHG`i'=Jobopeningsrate`i'-Jobopeningsrate719
 }
-drop Jobopeningsrate*
-reshape long vCHG, i(state) j(date)
+reshape long vCHG Jobopeningsrate, i(state) j(date)
 save JOLTS_vCHG, replace 
 
 import delimited "E:\Dropbox\Study\GitHub\public\EarlyRetirementsUSA\GDPbyState.csv", clear 
@@ -626,16 +625,23 @@ format t %3.0f
 xtset state t
 tsfilter hp inflow_hp = inflow, trend(smooth_inflow) smooth(5)
 tsfilter hp vCHG_hp = vCHG, trend(smooth_vCHG) smooth(5)
+tsfilter hp Jobopeningsrate_hp = Jobopeningsrate, trend(smooth_Jobopeningsrate) smooth(5)
 tsfilter hp gdp_hp = gdp, trend(smooth_gdp) smooth(5)
 
+gen lnvCHG=ln(smooth_vCHG)
+gen lninflow=ln(smooth_inflow)
+
+
 xi: xtreg smooth_vCHG smooth_inflow smooth_gdp, fe vce(cluster state)
-*xi: xtreg Jobopeningsrate L1.inflow, fe vce(cluster state)
+xi: xtreg smooth_Jobopeningsrate smooth_inflow smooth_gdp, fe vce(cluster state)
+
 
 **** Arellano and Bond (1991) First-differenced GMM estimator.
 xtdpd smooth_vCHG L.vCHG smooth_inflow smooth_gdp, dgmm(L.smooth_vCHG smooth_inflow smooth_gdp, lag(1))
 
 **** Arellano and Bond (1991) Linear dynamic panel GMM estimator.
 xtabond smooth_vCHG smooth_inflow, lags(2) pre(smooth_gdp)
+xtabond smooth_Jobopeningsrate smooth_inflow, lags(3) pre(smooth_gdp)
 
 **** Moral-Benito et al. (2019) Dynamic Panel Data Model using ML
 xtdpdml smooth_vCHG smooth_inflow, predetermined(smooth_gdp) ylag(1 2) 
