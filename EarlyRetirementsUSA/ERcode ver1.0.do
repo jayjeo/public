@@ -487,7 +487,7 @@ gen edu=0
 replace edu=1 if 91<=educ
 drop if educ==999
 
-keep date wgt state pid emp age sex edu
+keep date wgt state pid emp age sex edu wnlook
 save cps_temp, replace 
 
 cd "${path}"
@@ -556,9 +556,51 @@ scatter minflow t*t
 
 
 //!start
+cd "E:\Dropbox\Study\GitHub\public\EarlyRetirementsUSA\csse_covid_19_daily_reports_us"
+forvalues i=1(1)733{
+    import delimited "`i'.csv", clear 
+    gen filename=`i'
+    save `i', replace 
+}
+use 1, clear
+forvalues i=2(1)733{
+    append using `i'
+}
+drop if fips==.
+drop if fips==11 // District of Columbia
+drop if inlist(fips,60,66,69,72,888,999)  // American Samoa, Guam, Northern Mariana Islands, Puerto Rico, Diamond Princess, Grand Princess  
+drop if fips>56
+rename fips state
+save covid_temp, replace 
+
+use covid_temp, clear
+gen year=substr(last_update,1,4)
+gen month=substr(last_update,6,2)
+gen day=substr(last_update,9,2)
+destring year, replace 
+destring month, replace 
+destring day, replace 
+gen mdy=mdy(month,day,year)
+format mdy %td
+gen tm=mofd(mdy)
+format tm %tm
+keep state tm incident_rate //Incidence Rate = cases per 100,000 persons.
+collapse (mean) incident_rate, by(tm state)
+rename tm date
+rename incident_rate covid
+xtset state date
+tsappend, add(1)
+replace date=719 if date==748
+tsfill
+replace covid=0.1 if date==719
+by state: mipolate covid date, gen(covid2) pchip
+drop covid
+rename covid2 covid
+cd "E:\Dropbox\Study\UC Davis\Writings\EarlyRetirementsUSA\data"
+save covid, replace 
+
 cd "E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\US data\latex\version 1.0"
 use JOLTS, clear
-cd "E:\Dropbox\Study\UC Davis\Writings\EarlyRetirementsUSA\data"
 rename statemerge state
 keep if 600<=date&date<=743
 keep Jobopeningsrate state date
@@ -567,7 +609,16 @@ forvalues i=600(1)743 {
     gen vCHG`i'=Jobopeningsrate`i'-Jobopeningsrate719
 }
 reshape long vCHG Jobopeningsrate, i(state) j(date)
+cd "E:\Dropbox\Study\UC Davis\Writings\EarlyRetirementsUSA\data"
 save JOLTS_vCHG, replace 
+
+cd "E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\US data\latex\version 1.0"
+use JOLTS, clear
+rename statemerge state
+keep if 600<=date&date<=743
+keep Hires numD date state
+cd "E:\Dropbox\Study\UC Davis\Writings\EarlyRetirementsUSA\data"
+save JOLTS_Hire, replace 
 
 import delimited "E:\Dropbox\Study\GitHub\public\EarlyRetirementsUSA\GDPbyState.csv", clear 
 reshape long quarter, i(state) j(dateq)
@@ -601,51 +652,121 @@ cd "E:\Dropbox\Study\UC Davis\Writings\EarlyRetirementsUSA\data"
 save gdp, replace
 
 use cps_indi_1, clear
-*keep if 40<=age&age<=64
+keep if 20<=age&age<=64
+gen active=1 if inlist(emp,1,2)
+gen unemp=1 if inlist(emp,2)
+preserve 
+    collapse (sum) active [pweight=wgt], by(date state)
+    save active, replace 
+restore
+preserve 
+    collapse (sum) unemp [pweight=wgt], by(date state)
+    save unemp, replace 
+restore
+
+use active, clear
+merge 1:1 date state using unemp, nogenerate
+gen u=unemp/active*100
+drop active unemp
+save u, replace 
+
+use cps_indi_1, clear
+keep if 20<=age&age<=64
 gen inflow=.
-replace inflow=1 if pid[_n-1]==pid[_n]&emp[_n-1]==3&inlist(emp[_n],1,2)
-replace inflow=0 if pid[_n-1]==pid[_n]&inlist(emp[_n-1],1,2)&emp[_n]==3
+gen whyinactive=1 if inlist(wnlook,6,7,9)
+replace inflow=1 if pid[_n-1]==pid[_n]&emp[_n-1]==3&whyinactive[_n-1]!=1&inlist(emp[_n],1,2)
+replace inflow=0 if pid[_n-1]==pid[_n]&inlist(emp[_n-1],1,2)&emp[_n]==3&whyinactive[_n]!=1
 format date %tm
 rename state state
 drop if inflow==.
 collapse (mean) inflow [pweight=wgt], by(date state)
 replace inflow=inflow*100
+merge 1:1 date state using u
+keep if _merge==3
+drop _merge
 merge 1:1 date state using JOLTS_vCHG, nogenerate
+merge 1:1 date state using JOLTS_Hire, nogenerate 
 merge 1:1 date state using gdp, nogenerate
-
+merge 1:1 date state using covid
+keep if _merge==3
+drop _merge
 sort date state
 tsfill 
 drop if state==0
 drop if state==15  // Hawaii
+gen v=Jobopeningsrate
+gen l=numD/(1-u/100)
+save cps_indi_2, replace 
+foreach i of numlist 1 2 4 5 6 8 9 10 12 13 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 45 46 47 48 49 50 51 53 54 55 56 {
+    preserve
+        keep if state==`i'
+        gen lnF=ln(F1.Hire/(u/100)/l)
+        gen lntheta=ln(v/u)
+        reg lnF lntheta
+        gen k=_b[lntheta]
+        keep k state
+        keep if _n==1
+        save k`i', replace 
+    restore
+}
+use k1, clear
+foreach i of numlist 2 4 5 6 8 9 10 12 13 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 45 46 47 48 49 50 51 53 54 55 56 {
+    append using k`i'
+}
+save k, replace 
+
+use cps_indi_2, clear 
+merge m:1 state using k, nogenerate
+xtset state date
+sort state date 
+gen matcheff=F1.Hire/(u/100*l*(v/u)^k) 
+keep if 719<=date  // 2019m12
 keep if 696<=date  // 2018m1
 drop if date>=743  // 2021m12
-gen t=date-695
+gen t=date-718
 format t %3.0f
+save master1, replace
 
+use master1, clear
 xtset state t
-tsfilter hp inflow_hp = inflow, trend(smooth_inflow) smooth(5)
-tsfilter hp vCHG_hp = vCHG, trend(smooth_vCHG) smooth(5)
-tsfilter hp Jobopeningsrate_hp = Jobopeningsrate, trend(smooth_Jobopeningsrate) smooth(5)
-tsfilter hp gdp_hp = gdp, trend(smooth_gdp) smooth(5)
+gen lnv=ln(v)
+gen lninflow=ln(inflow)
+gen lnmatcheff=ln(matcheff)
+gen lngdp=ln(gdp)
+gen lncovid=ln(covid)
 
-gen lnvCHG=ln(smooth_vCHG)
-gen lninflow=ln(smooth_inflow)
+tsfilter hp inflow_hp = inflow, trend(smooth_inflow) smooth(1)
+tsfilter hp vCHG_hp = vCHG, trend(smooth_vCHG) smooth(1)
+tsfilter hp v_hp = v, trend(smooth_v) smooth(1)
+tsfilter hp gdp_hp = gdp, trend(smooth_gdp) smooth(1)
+tsfilter hp covid_hp = covid, trend(smooth_covid) smooth(1)
 
-
+**** FE regression
 xi: xtreg smooth_vCHG smooth_inflow smooth_gdp, fe vce(cluster state)
-xi: xtreg smooth_Jobopeningsrate smooth_inflow smooth_gdp, fe vce(cluster state)
-
+xi: xtreg smooth_v smooth_inflow smooth_gdp, fe vce(cluster state)
+xi: xtreg v inflow gdp covid, fe vce(cluster state)
+xi: xtreg v matcheff gdp covid, fe vce(cluster state)
+xi: xtreg lnv lninflow lnmatcheff lngdp lncovid, fe vce(cluster state)
 
 **** Arellano and Bond (1991) First-differenced GMM estimator.
 xtdpd smooth_vCHG L.vCHG smooth_inflow smooth_gdp, dgmm(L.smooth_vCHG smooth_inflow smooth_gdp, lag(1))
 
 **** Arellano and Bond (1991) Linear dynamic panel GMM estimator.
-xtabond smooth_vCHG smooth_inflow, lags(2) pre(smooth_gdp)
-xtabond smooth_Jobopeningsrate smooth_inflow, lags(3) pre(smooth_gdp)
+xtabond smooth_vCHG smooth_inflow, lags(2) pre(smooth_gdp smooth_covid)
+xtabond smooth_v smooth_inflow, lags(2) pre(smooth_gdp smooth_covid)
+xtabond v inflow, lags(1) pre(gdp covid)
+xtabond v matcheff, lags(1) pre(gdp covid)
+xtabond v inflow matcheff, lags(1) pre(gdp covid)
+xtabond lnv lninflow lnmatcheff, lags(3) pre(gdp lncovid)
 
 **** Moral-Benito et al. (2019) Dynamic Panel Data Model using ML
 xtdpdml smooth_vCHG smooth_inflow, predetermined(smooth_gdp) ylag(1 2) 
 xtdpdml vCHG inflow gdp, ylag(2) iterate(50) technique(nr 25 bhhh 25) fiml
+xtdpdml v inflow gdp covid, ylag(2) iterate(50) technique(nr 25 bhhh 25) fiml
+xtdpdml lnv lninflow lnmatcheff, ylag(1 2 3) pre(gdp lncovid)
 
 
+keep if state==8
+tsset t
+twoway(tsline v, yaxis(1))(tsline inflow, yaxis(2))(tsline matcheff, yaxis(3))
 
