@@ -12,15 +12,10 @@ rm(list = ls())
 set.seed(12345)
 library(VARsignR)
 
-SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasonadjusted.csv")
-SVARdata <- ts (SVARdata, frequency = 12, start = c(2012, 1))
+#SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasonadjusted.csv")
+SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasonadjusted(log).csv")
 
-fw <- log(fw)
-numd <- log(numd)
-dw <- log(dw)
-prod <- log(prod)
-u <- log(u)
-v <- log(v)
+SVARdata <- ts (SVARdata, frequency = 12, start = c(2012, 1))
 
 constr <- c(-1,+2,-4)  # FW(-1) should be place in the first order. 
 
