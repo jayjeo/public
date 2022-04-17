@@ -22,6 +22,127 @@ ssc install asgen
 
 
 
+/*********************************************
+JOLTS Data (Seasonally unadjusted)
+*********************************************/
+//!start
+cd "${path}"
+foreach variable in "Jobopeningsrate" "Jobopenings" "Hires" "Quits" "Totalseparations" "Layoffsanddischarges" {
+    foreach state in  "TotalUS" "Alabama" "Alaska" "Arizona" "Arkansas" "California" "Colorado" "Connecticut" "Delaware" "DistrictofColumbia" "Florida" "Georgia" "Hawaii" "Idaho" "Illinois" "Indiana" "Iowa" "Kansas" "Kentucky" "Louisiana" "Maine" "Maryland" "Massachusetts" "Michigan" "Minnesota" "Mississippi" "Missouri" "Montana" "Nebraska" "Nevada" "NewHampshire" "NewJersey" "NewMexico" "NewYork" "NorthCarolina" "NorthDakota" "Ohio" "Oklahoma" "Oregon" "Pennsylvania" "RhodeIsland" "SouthCarolina" "SouthDakota" "Tennessee" "Texas" "Utah" "Vermont" "Virginia" "Washington" "WestVirginia" "Wisconsin" "Wyoming" {
+        import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortageUSA/data/JOLTS(seasonadjusted)/`variable'_`state'_SeriesReport.csv", varnames(1) clear 
+        rename (jan feb mar apr may jun jul aug sep oct nov dec) (m1 m2 m3 m4 m5 m6 m7 m8 m9 m10 m11 m12)
+        reshape long m, i(year) j(month)
+        rename m `variable'
+        gen state="`state'"
+        gen date=ym(year,month)
+        drop year month
+        tsset date
+        format date %tm
+        save `variable'_`state', replace 
+    }
+}
+
+//!start
+cd "${path}"
+foreach state in  "TotalUS" "Alabama" "Alaska" "Arizona" "Arkansas" "California" "Colorado" "Connecticut" "Delaware" "DistrictofColumbia" "Florida" "Georgia" "Hawaii" "Idaho" "Illinois" "Indiana" "Iowa" "Kansas" "Kentucky" "Louisiana" "Maine" "Maryland" "Massachusetts" "Michigan" "Minnesota" "Mississippi" "Missouri" "Montana" "Nebraska" "Nevada" "NewHampshire" "NewJersey" "NewMexico" "NewYork" "NorthCarolina" "NorthDakota" "Ohio" "Oklahoma" "Oregon" "Pennsylvania" "RhodeIsland" "SouthCarolina" "SouthDakota" "Tennessee" "Texas" "Utah" "Vermont" "Virginia" "Washington" "WestVirginia" "Wisconsin" "Wyoming" {
+        use Jobopeningsrate_TotalUS, clear
+        drop Jobopeningsrate state
+    foreach variable in "Jobopeningsrate" "Jobopenings" "Hires" "Quits" "Totalseparations" "Layoffsanddischarges" {
+        merge 1:1 date using `variable'_`state', nogenerate
+    }
+    save `state', replace
+    }
+
+//!start
+use TotalUS, clear
+foreach state in "Alabama" "Alaska" "Arizona" "Arkansas" "California" "Colorado" "Connecticut" "Delaware" "DistrictofColumbia" "Florida" "Georgia" "Hawaii" "Idaho" "Illinois" "Indiana" "Iowa" "Kansas" "Kentucky" "Louisiana" "Maine" "Maryland" "Massachusetts" "Michigan" "Minnesota" "Mississippi" "Missouri" "Montana" "Nebraska" "Nevada" "NewHampshire" "NewJersey" "NewMexico" "NewYork" "NorthCarolina" "NorthDakota" "Ohio" "Oklahoma" "Oregon" "Pennsylvania" "RhodeIsland" "SouthCarolina" "SouthDakota" "Tennessee" "Texas" "Utah" "Vermont" "Virginia" "Washington" "WestVirginia" "Wisconsin" "Wyoming" {
+        append using `state'
+    }
+gen numD=(100/Jobopeningsrate-1)*Jobopenings  // numD = number of employment
+drop Jobopeningsrate
+save JOLTS_temp1, replace 
+
+//!start (merge DistrictofColumbia and Maryland)
+use JOLTS_temp1, clear
+keep if inlist(state,"DistrictofColumbia","Maryland")
+sort date state
+gen statenum=1 if state=="DistrictofColumbia"
+replace statenum=2 if state=="Maryland"
+drop state 
+reshape wide numD Jobopenings Hires Quits Totalseparations Layoffsanddischarges, i(date) j(statenum)
+foreach var in numD Jobopenings Hires Quits Totalseparations Layoffsanddischarges {
+        gen `var'=`var'1+`var'2
+        drop `var'1 `var'2
+    }
+gen state="Maryland"
+save Maryland, replace
+
+//!start
+use JOLTS_temp1, clear
+drop if inlist(state,"DistrictofColumbia","Maryland")
+append using Maryland
+sort state date 
+
+gen Jobopeningsrate=Jobopenings/(Jobopenings+numD)*100
+
+gen statemerge=1 if state=="Alabama"
+replace statemerge=2 if state=="Alaska"
+replace statemerge=4 if state=="Arizona"
+replace statemerge=5 if state=="Arkansas"
+replace statemerge=6 if state=="California"
+replace statemerge=8 if state=="Colorado"
+replace statemerge=9 if state=="Connecticut"
+replace statemerge=10 if state=="Delaware"
+replace statemerge=12 if state=="Florida"
+replace statemerge=13 if state=="Georgia"
+replace statemerge=15 if state=="Hawaii"
+replace statemerge=16 if state=="Idaho"
+replace statemerge=17 if state=="Illinois"
+replace statemerge=18 if state=="Indiana"
+replace statemerge=19 if state=="Iowa"
+replace statemerge=20 if state=="Kansas"
+replace statemerge=21 if state=="Kentucky"
+replace statemerge=22 if state=="Louisiana"
+replace statemerge=23 if state=="Maine"
+replace statemerge=24 if state=="Maryland"
+replace statemerge=25 if state=="Massachusetts"
+replace statemerge=26 if state=="Michigan"
+replace statemerge=27 if state=="Minnesota"
+replace statemerge=28 if state=="Mississippi"
+replace statemerge=29 if state=="Missouri"
+replace statemerge=30 if state=="Montana"
+replace statemerge=31 if state=="Nebraska"
+replace statemerge=32 if state=="Nevada"
+replace statemerge=33 if state=="NewHampshire"
+replace statemerge=34 if state=="NewJersey"
+replace statemerge=35 if state=="NewMexico"
+replace statemerge=36 if state=="NewYork"
+replace statemerge=37 if state=="NorthCarolina"
+replace statemerge=38 if state=="NorthDakota"
+replace statemerge=39 if state=="Ohio"
+replace statemerge=40 if state=="Oklahoma"
+replace statemerge=41 if state=="Oregon"
+replace statemerge=42 if state=="Pennsylvania"
+replace statemerge=44 if state=="RhodeIsland"
+replace statemerge=45 if state=="SouthCarolina"
+replace statemerge=46 if state=="SouthDakota"
+replace statemerge=47 if state=="Tennessee"
+replace statemerge=48 if state=="Texas"
+replace statemerge=49 if state=="Utah"
+replace statemerge=50 if state=="Vermont"
+replace statemerge=51 if state=="Virginia"
+replace statemerge=53 if state=="Washington"
+replace statemerge=54 if state=="WestVirginia"
+replace statemerge=55 if state=="Wisconsin"
+replace statemerge=56 if state=="Wyoming"
+replace statemerge=0 if state=="TotalUS"
+drop state
+save JOLTS, replace 
+
+
+/*********************************************
+CPS IPUMS Data
+*********************************************/
 //!start
 cd "${path}"
 
@@ -719,6 +840,236 @@ use cps_indi_2, clear
 merge m:1 state using k, nogenerate
 xtset state date
 sort state date 
+save master0, replace 
+
+******************************************************
+******************************************************
+* Estimate Match efficiency by state
+******************************************************
+******************************************************
+//!start
+cd "E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\US data\latex\version 1.0"
+use JOLTS, clear
+rename statemerge state
+cd "E:\Dropbox\Study\UC Davis\Writings\EarlyRetirementsUSA\data"
+merge 1:1 date state using u
+keep if _merge==3
+drop _merge
+sort state date
+xtset state date
+rename Jobopeningsrate v
+gen theta=ln(v/u)
+gen l=numD/(1-u/100)
+gen jfr=ln(F1.Hires/(u/100)/l)
+drop if jfr==.
+gen year=year(dofm(date))
+gen month=month(dofm(date))
+gen t=date-599
+keep year month date t jfr theta u state
+tab month, gen(m_)
+drop m_1
+save matcheffmaster, replace 
+
+cap program drop estim_grid
+program define estim_grid
+syntax [, P(real 1) Q(real 1) ADDLAGSTH(integer 1) LAGSJFR(integer 1) PMAX(integer 1) SELECT(string) ETA0(real 1) GRAPH] 
+	
+	preserve
+	
+	if "`select'"~=""	keep if `select'
+	
+	local first = `q' + 1
+	
+	local last_th = `q' + `p' + 1 + `addlagsth'
+	local laglist_th "`first'/`last_th'"
+	
+	if `lagsjfr'>0	{
+		local last_jfr = `q' + `lagsjfr'
+		local laglist_jfr "`first'/`last_jfr'"
+					}
+		
+	if `lagsjfr'>0	local inst "l(`laglist_th').theta l(`laglist_jfr').jfr m_*"
+	else local inst "l(`laglist_th').theta m_*"
+	
+	local addobs = 100
+		
+	// Instruments = 0 if missing
+	local new_n = _N + `addobs'
+	set obs `new_n'
+	recode * (.=0)
+	sort t
+	replace t = _n  
+	sort t
+	tsset t
+	gen insamp = (t>=`addobs' + max(`q'+2,`p'+1))
+	
+	// Proper IV imposing common factor restriction , full sample
+	local urtest "(-1)"
+
+	local esteq "jfr - {eta}*theta - {mu}"
+	forval m = 2/12	{
+		local esteq "`esteq' - {tau`m'}*m_`m'"
+					}		
+	forval l = 1/`p'	{
+		
+		local urtest "[rho`l']_cons + `urtest'"
+		
+		local esteq "`esteq' - {rho`l'}*(l`l'.jfr - {eta}*l`l'.theta"
+		forval m = 2/12	{
+			local esteq "`esteq' - {tau`m'}*l`l'.m_`m'"
+						}	
+		local esteq "`esteq')"
+						}
+
+	local esteq "(`esteq')"
+	local urtest "`urtest' == 0"
+		
+	mat m = J(5 + 2*(`pmax'+2) ,1,.)
+	mat m[1,1] = `p'
+	mat m[2,1] = `q'
+	
+	cap	{
+		noi gmm `esteq' if insamp, instruments(`inst') twostep vce(unadjusted) wmatrix(unadjusted) from(mu 0 eta `eta0')
+		
+		mat V = e(V)
+		
+		// Retrieve the actual constant and its SE
+		matrix V = V["mu:_cons","mu:_cons".."rho`p':_cons"] \ V["rho1:_cons".."rho`p':_cons","mu:_cons".."rho`p':_cons"]
+		matrix V = V[1...,"mu:_cons"] , V[1...,"rho1:_cons".."rho`p':_cons"]
+		local denom = 1
+		forval arp = 1/`p'	{
+			local denom = `denom'-[rho`arp']_b[_cons]
+							}
+							
+		local mu = [mu]_b[_cons]/`denom'
+		
+		mat G = 1/`denom' \ J(`p',1,`mu'/`denom')
+		mat SE = G'*V*G
+				
+		matrix m[3,1] = sqrt(SE[1,1]) \ `mu' 
+		* matrix m[3,1] = [mu]_se[_cons] \ [mu]_b[_cons]  
+		matrix m[5,1] = [eta]_se[_cons] \ [eta]_b[_cons] 
+		forv arp = 1/`p'	{
+			/*
+			local t = [rho`arp']_b[_cons] / [rho`arp']_se[_cons]
+			matrix m[6 + 2*`arp'-1 ,1] = `t' \ [rho`arp']_b[_cons]
+			*/
+			
+			matrix m[6 + 2*`arp'-1 ,1] = [rho`arp']_se[_cons] \ [rho`arp']_b[_cons] 
+			
+							}
+			
+		test "`urtest'"
+		matrix m[6 + 2*`pmax' + 1,1] = r(p)
+		
+		noi estat overid
+		matrix m[6 + 2*`pmax' + 2,1] = r(J) \ r(J_p)
+				
+		if "`graph'"~=""	{
+			predict omega if insamp
+			noi ac omega if insamp, lag(18) level(90) text(-.15 14 "(p,q) = (`p',`q')", box place(e) margin(medsmall)) /*
+				*/ note("") xlab(0(2)18) scheme(s1mono) name(name`p'`q', replace)
+							}
+		}
+	restore
+end
+
+*** p selection protocol
+cap program drop estim_state
+program define estim_state
+    args state 
+        use matcheffmaster, clear
+        keep if state==`state'
+
+        qui	{
+        local pmin = 1
+        local pmax = 6
+
+        matrix results = J(5 + 2*(`pmax'+2),1,.)
+        local rnames "p q sd(mu) mu sd(eta) eta"
+        noi di "--------------------------------------------------"
+        forv p = 1/`pmax'	{
+            local rnames "`rnames' sd(rho`p') rho`p'"
+            
+            if `p'>=`pmin'	{
+                forv q = 0/6	{
+                    noi di _con "(`p' , `q') -- "
+                    estim_grid, p(`p') q(`q') pmax(`pmax') addlagsth(0) lagsjfr(1) eta0(0.7)
+                    matrix results = (results , m)
+                                }	
+                            }
+                            }
+
+        noi di " "
+        noi di "--------------------------------------------------"
+        local rnames "`rnames' UR_p Hansen Hans_p"
+        mat rownames results = `rnames'
+        mat results = results[1...,2...]
+        mat results = results'
+        }
+
+        matain results
+        // p and q
+        mata rest=results[.,1],results[.,2]
+        // p-value for mu
+        mata z=abs(results[.,4]:/results[.,3])
+        mata rest1=2*normal(-abs(z))
+        // eta
+        mata eta=results[.,6]
+        // p-value for eta
+        mata z=abs(results[.,6]:/results[.,5])
+        mata rest2=2*normal(-abs(z))
+        // p-value for rho1
+        mata z=abs(results[.,8]:/results[.,7])
+        mata rest3=2*normal(-abs(z))
+        // p-value for rho2
+        mata z=abs(results[.,10]:/results[.,9])
+        mata rest4=2*normal(-abs(z))
+        // p-value for rho3
+        mata z=abs(results[.,12]:/results[.,11])
+        mata rest5=2*normal(-abs(z))
+        // p-value for rho4
+        mata z=abs(results[.,14]:/results[.,13])
+        mata rest6=2*normal(-abs(z))
+        // p-value for rho5
+        mata z=abs(results[.,16]:/results[.,15])
+        mata rest7=2*normal(-abs(z))
+        // p-value for rho6
+        mata z=abs(results[.,18]:/results[.,17])
+        mata rest8=2*normal(-abs(z))
+
+        mata rest=rest,rest1,eta,rest2,rest3,rest4,rest5,rest6,rest7,rest8
+        mata rest 
+end
+
+*** q selection protocol
+cap prog drop fig
+program define fig
+args state pvalu
+    use matcheffmaster, clear
+    keep if state==`state'
+    forvalue ii=1(1)6{
+        qui{
+        estim_grid, p(`pvalu') q(`ii') pmax(`pvalu') addlagsth(0) lagsjfr(1) eta0(0.7) graph
+        }
+    }
+    graph combine name`pvalu'1 name`pvalu'2 name`pvalu'3 name`pvalu'4 name`pvalu'5 name`pvalu'6
+end
+
+************************ Manually decide p and q by states using the selection protocols provided by Borowczyk-Martins2013 (put state number)
+*** p selection protocol 
+estim_state 2
+
+*** q selection protocol
+fig 1 1
+
+******************************************************
+******************************************************
+******************************************************
+******************************************************
+
+
+use master0, clear
 gen matcheff=F1.Hire/(u/100*l*(v/u)^k) 
 keep if 719<=date  // 2019m12
 keep if 696<=date  // 2018m1
