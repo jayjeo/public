@@ -69,8 +69,8 @@ sort date state
 gen statenum=1 if state=="DistrictofColumbia"
 replace statenum=2 if state=="Maryland"
 drop state 
-reshape wide numD Jobopenings Hires Quits Totalseparations Layoffsanddischarges, i(date) j(statenum)
-foreach var in numD Jobopenings Hires Quits Totalseparations Layoffsanddischarges {
+reshape wide numD Jobopenings Hires, i(date) j(statenum)
+foreach var in numD Jobopenings Hires{
         gen `var'=`var'1+`var'2
         drop `var'1 `var'2
     }
@@ -848,10 +848,9 @@ save master0, replace
 ******************************************************
 ******************************************************
 //!start
-cd "E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\US data\latex\version 1.0"
-use JOLTS, clear
+use JOLTSunadjusted, clear
+drop if statemerge==0
 rename statemerge state
-cd "E:\Dropbox\Study\UC Davis\Writings\EarlyRetirementsUSA\data"
 merge 1:1 date state using u
 keep if _merge==3
 drop _merge
