@@ -47,7 +47,7 @@ cd "${path}"
 foreach state in  "TotalUS" "Alabama" "Alaska" "Arizona" "Arkansas" "California" "Colorado" "Connecticut" "Delaware" "DistrictofColumbia" "Florida" "Georgia" "Hawaii" "Idaho" "Illinois" "Indiana" "Iowa" "Kansas" "Kentucky" "Louisiana" "Maine" "Maryland" "Massachusetts" "Michigan" "Minnesota" "Mississippi" "Missouri" "Montana" "Nebraska" "Nevada" "NewHampshire" "NewJersey" "NewMexico" "NewYork" "NorthCarolina" "NorthDakota" "Ohio" "Oklahoma" "Oregon" "Pennsylvania" "RhodeIsland" "SouthCarolina" "SouthDakota" "Tennessee" "Texas" "Utah" "Vermont" "Virginia" "Washington" "WestVirginia" "Wisconsin" "Wyoming" {
         use Jobopeningsrate_TotalUS, clear
         drop Jobopeningsrate state
-    foreach variable in "Jobopeningsrate" "Jobopenings" "Hires" "Quits" "Totalseparations" "Layoffsanddischarges" {
+    foreach variable in "Jobopeningsrate" "Jobopenings" "Hires" {
         merge 1:1 date using `variable'_`state', nogenerate
     }
     save `state', replace
@@ -137,7 +137,7 @@ replace statemerge=55 if state=="Wisconsin"
 replace statemerge=56 if state=="Wyoming"
 replace statemerge=0 if state=="TotalUS"
 drop state
-save JOLTS, replace 
+save JOLTSunadjusted, replace 
 
 
 /*********************************************
