@@ -1,6 +1,7 @@
 ****************************
+global path="E:\Dropbox\Study\UC Davis\Writings\Labor Shortage USA"  
+cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortageUSA/VISA_ISSUE/immigrant/manual/202104.csv", clear 
-cd "E:\Dropbox\Study\GitHub\public\LaborShortageUSA\VISA_ISSUE\immigrant\manual"
 rename (v1 v2 v3)(nation visa issue)
 save needcorrection, replace
 
@@ -28,12 +29,13 @@ drop nation visa
 rename (nation2 visa2)(nation visa)
 keep nation visa issue
 append using good
-save 202104, replace 
+save immigrant202104, replace 
 
 
 ****************************
+global path="E:\Dropbox\Study\UC Davis\Writings\Labor Shortage USA"  
+cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortageUSA/VISA_ISSUE/immigrant/manual/202102.csv", clear 
-cd "E:\Dropbox\Study\GitHub\public\LaborShortageUSA\VISA_ISSUE\immigrant\manual"
 rename (v1 v2 v3)(nation visa issue)
 save needcorrection, replace
 
@@ -61,4 +63,5 @@ drop nation visa
 rename (nation2 visa2)(nation visa)
 keep nation visa issue
 append using good
-save 202102, replace 
+drop if visa==""
+save immigrant202102, replace 
