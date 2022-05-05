@@ -1,0 +1,4 @@
+
+
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/warehouse/SVARpractice.csv", varnames(1) clear 
+

@@ -1,0 +1,21 @@
+
+
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/warehouse/SVARpractice.csv", varnames(1) clear 
+
+
+tsset t
+mat A=(1,.\0,1)
+mat B=(.,0\0,.)
+svar y z, lags(1) aeq(A) beq(B)
+irf create order1, set(var2.irf) replace step(10)
+irf graph oirf, xlabel(0(2)10) irf(order1) noci yline(0,lcolor(black)) byopts(yrescale)
+irf drop order1 
+
+
+tsset t
+mat A=(1,.\0,1)
+mat B=(.,0\0,.)
+svar y z, lags(1) aeq(A) beq(B)
+irf create order1, set(var2.irf) replace step(10)
+irf graph sirf, xlabel(0(2)10) irf(order1) noci yline(0,lcolor(black)) byopts(yrescale)
+irf drop order1 
