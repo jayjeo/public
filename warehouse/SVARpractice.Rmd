@@ -1,8 +1,4 @@
 
-
-/*************** Executable using R from below:
-*SVAR.Rmd
-
 ###### Install required packages
 install.packages("minqa") 
 install.packages("HI") 
@@ -16,22 +12,22 @@ rm(list = ls())
 set.seed(12345)
 library(VARsignR)
 
-SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/warehouse/SVARpractice.csv")
+SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/warehouse/SVARpractice2.csv")
 SVARdata <- ts (SVARdata, frequency = 12, start = c(2012, 1))
 
-constr <- c(-1,+2) 
+constr <- c(-2,3)  
 
 
-###### Uhlig’s (2005) Rejection Function Method
-model1 <- uhlig.reject(Y=SVARdata, nlags=5, draws=1000, subdraws=100, nkeep=100, KMIN=1,
-KMAX=2, constrained=constr, constant=FALSE, steps=60)
+###### Uhlig’s (2005) Penalty Function Method
 
-irfs1 <- model1$IRFS 
+model <- uhlig.reject(Y=SVARdata, nlags=1, draws=200, subdraws=200, nkeep=1000, KMIN=1,
+KMAX=6, constrained=constr, constant=FALSE, steps=60)
+
+irfs <- model$IRFS 
 
 vl <- c("y","z")
 
-irfplot(irfdraws=irfs1, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=FALSE)
-
+irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
 
 ###### Rubio-Ramirez et al’s (2010) Rejection Method
@@ -40,7 +36,7 @@ model3 <- rwz.reject(Y=SVARdata, nlags=3, draws=200, subdraws=200, nkeep=1000, K
 
 irfs3 <- model3$IRFS
 
-vl <- c("y","z")
+vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate")
 
 irfplot(irfdraws=irfs3, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
@@ -55,7 +51,3 @@ irfs2 <- model2$IRFS
 
 fp.target(Y=SVARdata, irfdraws=irfs2, nlags=3, constant=F, labels=vl, target=TRUE, type="median", bands=c(0.16, 0.84), save=FALSE, grid=TRUE, bw=TRUE, legend=TRUE, maxit=1000)
 
-
-
-
-********************/
