@@ -15,13 +15,12 @@ library(VARsignR)
 SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/warehouse/SVARpractice2.csv")
 SVARdata <- ts (SVARdata, frequency = 12, start = c(2012, 1))
 
-constr <- c(-2,3)  
+constr <- c(-1,2)  
 
 
 ###### Uhlig’s (2005) Penalty Function Method
 
-model <- uhlig.reject(Y=SVARdata, nlags=1, draws=200, subdraws=200, nkeep=1000, KMIN=1,
-KMAX=6, constrained=constr, constant=FALSE, steps=60)
+model <- uhlig.reject(Y=SVARdata, nlags=1, draws=2000, subdraws=200, nkeep=1000, KMIN=1, KMAX=6, constrained=constr, constant=FALSE, steps=60)
 
 irfs <- model$IRFS 
 
