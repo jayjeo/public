@@ -24,7 +24,7 @@ model <- uhlig.reject(Y=SVARdata, nlags=1, draws=2000, subdraws=200, nkeep=1000,
 
 irfs <- model$IRFS 
 
-vl <- c("y","z")
+vl <- c("u","v")
 
 irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
