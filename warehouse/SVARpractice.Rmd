@@ -18,13 +18,13 @@ SVARdata <- ts (SVARdata, frequency = 12, start = c(2012, 1))
 constr <- c(-1,2)  
 
 
-###### Uhlig’s (2005) Penalty Function Method
+###### Uhlig’s (2005) Rejection Method
 
 model <- uhlig.reject(Y=SVARdata, nlags=1, draws=2000, subdraws=200, nkeep=1000, KMIN=1, KMAX=6, constrained=constr, constant=FALSE, steps=60)
 
 irfs <- model$IRFS 
 
-vl <- c("u","v")
+vl <- c("f","v")
 
 irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
