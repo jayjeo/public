@@ -19,18 +19,19 @@ library(VARsignR)
 SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/warehouse/SVARpractice.csv")
 SVARdata <- ts (SVARdata, frequency = 12, start = c(2012, 1))
 
-constr <- c(-1,+2)  # FW(-1) should be place in the first order. 
+constr <- c(-1,+2) 
 
 
-###### Uhlig’s (2005) Penalty Function Method
+###### Uhlig’s (2005) Rejection Function Method
+model1 <- uhlig.reject(Y=SVARdata, nlags=5, draws=1000, subdraws=100, nkeep=100, KMIN=1,
+KMAX=2, constrained=constr, constant=FALSE, steps=60)
 
-model <- uhlig.penalty(Y=SVARdata, nlags=3, draws=2000, subdraws=1000, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120, penalty=100, crit=0.001)
+irfs1 <- model1$IRFS 
 
-irfs <- model$IRFS 
+vl <- c("y","z")
 
-vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate")
+irfplot(irfdraws=irfs1, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=FALSE)
 
-irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
 
 ###### Rubio-Ramirez et al’s (2010) Rejection Method
@@ -39,7 +40,7 @@ model3 <- rwz.reject(Y=SVARdata, nlags=3, draws=200, subdraws=200, nkeep=1000, K
 
 irfs3 <- model3$IRFS
 
-vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate")
+vl <- c("y","z")
 
 irfplot(irfdraws=irfs3, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
