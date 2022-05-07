@@ -15,12 +15,12 @@ library(VARsignR)
 SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/warehouse/SVARpractice2.csv")
 SVARdata <- ts (SVARdata, frequency = 12, start = c(2012, 1))
 
-constr <- c(-1,+2)  
+constr <- c(+1,-2)  
 
 
 ###### Uhlig’s (2005) Rejection Method
 
-model <- uhlig.reject(Y=SVARdata, nlags=1, draws=200, subdraws=100, nkeep=1000, KMIN=1, KMAX=1, constrained=constr, constant=TRUE, steps=30)
+model <- uhlig.reject(Y=SVARdata, nlags=1, draws=200, subdraws=100, nkeep=1000, KMIN=1, KMAX=2, constrained=constr, constant=TRUE, steps=5)
 
 irfs <- model$IRFS 
 
