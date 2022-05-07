@@ -15,18 +15,18 @@ library(VARsignR)
 SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/warehouse/SVARpractice.csv")
 SVARdata <- ts (SVARdata, frequency = 12, start = c(2012, 1))
 
-constr <- c(-1,+2)  
+constr <- c(-1,2)  
 
 
 ###### Uhlig’s (2005) Rejection Method
 
-model <- uhlig.reject(Y=SVARdata, nlags=1, draws=1000, subdraws=500, nkeep=1000, KMIN=1, KMAX=1, constrained=constr, constant=TRUE, steps=100)
+model <- uhlig.reject(Y=SVARdata, nlags=1, draws=200, subdraws=100, nkeep=1000, KMIN=2, KMAX=2, constrained=constr, constant=TRUE, steps=30)
 
 irfs <- model$IRFS 
 
 vl <- c("y","z")
 
-irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
+irfplot(irfdraws=irfs, type="mean", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
 
 ###### Rubio-Ramirez et al’s (2010) Rejection Method
