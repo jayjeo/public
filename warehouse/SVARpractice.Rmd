@@ -20,7 +20,7 @@ constr <- c(-1,+2)
 
 ###### Uhlig’s (2005) Rejection Method
 
-model <- uhlig.reject(Y=SVARdata, nlags=1, draws=1000, subdraws=100, nkeep=10, KMIN=1, KMAX=3, constrained=constr, constant=TRUE, steps=20)
+model <- uhlig.reject(Y=SVARdata, nlags=1, draws=1000, subdraws=500, nkeep=1000, KMIN=1, KMAX=1, constrained=constr, constant=TRUE, steps=100)
 
 irfs <- model$IRFS 
 
