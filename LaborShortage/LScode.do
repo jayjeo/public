@@ -1523,8 +1523,8 @@ sax12im "v.out", ext(d11)
 drop u v month
 rename (u_d11 v_d11)(u v)
 
-export delimited using "${path}\SVARdata_seasonadjusted.csv", replace
-*manually saved it to "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasonadjusted.csv"
+export delimited using "${path}\SVARdata_seasonadjusted2.csv", replace
+*manually saved it to "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasonadjusted2.csv"
 
 
 /*************** Executable using R from below:
@@ -1543,7 +1543,7 @@ rm(list = ls())
 set.seed(12345)
 library(VARsignR)
 
-SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasonadjusted.csv")
+SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasonadjusted2.csv")
 SVARdata <- ts (SVARdata, frequency = 12, start = c(2012, 1))
 
 constr <- c(-1,+2,-4)  # FW(-1) should be place in the first order. 
