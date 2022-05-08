@@ -12,7 +12,7 @@ rm(list = ls())
 set.seed(12345)
 library(VARsignR)
 
-SVARdata <- read.csv(https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasonadjusted2_practice.csv")
+SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasonadjusted2_practice.csv")
 SVARdata <- ts (SVARdata, frequency = 12, start = c(2012, 1))
 
 constr <- c(-1,+2)  
@@ -20,13 +20,13 @@ constr <- c(-1,+2)
 
 ###### Uhlig’s (2005) Rejection Method
 
-model <- uhlig.reject(Y=SVARdata, nlags=1, draws=200, subdraws=100, nkeep=1000, KMIN=1, KMAX=2, constrained=constr, constant=TRUE, steps=5)
+model <- uhlig.reject(Y=SVARdata, nlags=1, draws=200, subdraws=100, nkeep=1000, KMIN=1, KMAX=6, constrained=constr, constant=TRUE, steps=120)
 
 irfs <- model$IRFS 
 
 vl <- c("y","z")
 
-irfplot(irfdraws=irfs, type="mean", labels=vl, save=FALSE, bands=NULL, grid=TRUE, bw=TRUE)
+irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=NULL, grid=TRUE, bw=TRUE)
 
 
 ###### Rubio-Ramirez et al’s (2010) Rejection Method
