@@ -40,7 +40,7 @@ https://www.index.go.kr/potal/main/EachDtlPageDetail.do?idx_cd=1068 (opened to p
 
 *********************************************/
 
-** LScode ver6.3.do
+** LScode ver7.3.do
 cls
 clear all
 set scheme s1color, perm 
@@ -48,7 +48,7 @@ set scheme s1color, perm
 /*********************************************
 *********************************************/
 * NEED TO SET YOUR PREFERRED PATH
-global path="E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\Github move\Latex\Dissertation Draft ver6.0"   
+global path="E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\Github move\Latex\Dissertation Draft ver7.0"   
 /*********************************************
 *********************************************/
 cd "${path}"
@@ -224,6 +224,7 @@ graph export PopulationProjections.eps, replace
 *!start
 cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata.csv", clear 
+gen month=_n+623
 tsset month 
 format month %tm
 
@@ -412,7 +413,9 @@ cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/u.csv", varnames(1) clear 
         // E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\경제활동인구조사\rawdata\infile3 (2015~2017추가).do   =>  nonuC
 rename nonuc ut
+replace ut=ut+0.3
 rename uc uC
+gen indmc=0
 save ut, replace 
 
 //!start
@@ -442,7 +445,7 @@ save forper, replace
 //!start
 cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
-merge m:1 ym using ut, nogenerate
+merge 1:1 ym indmc using ut, nogenerate
 merge m:1 ym using cpi, nogenerate
 merge m:1 ym using exchangerate, nogenerate
 merge 1:1 ym indmc using e9inflow, nogenerate
@@ -459,8 +462,10 @@ gen v=numE/numD*100   // v = vacancy rate
 gen vfull=numEfull/numDfull*100   // v = vacancy rate (full-time workers)
 gen vpart=numEpart/numDpart*100   // v = vacancy rate (part-time workers)
 
-gen uibC=uib/numD*100*0.896503381 if ym<720
-replace uibC=uib/numD*100*0.63 if ym>=720
+gen uibCC=uib/numD*100
+gen uibOriginal=uib/numD*100*0.896503381
+*gen uibCC=uib/numD*100*0.896503381 if ym<720
+*replace uibCC=uib/numD*100*0.63 if ym>=720
 
 gen wage=wage_tot*100/cpi/hour/exchangerate  // cpi adjusted hourly wage (unit=USD)
 gen wagefull=wage_totfull*100/cpi/hourfull/exchangerate  // cpi adjusted hourly wage (unit=USD)
@@ -473,7 +478,63 @@ rename uibmoney2 uibmoney
 drop if inlist(indmc,12)  // tobacco industry. Extremely few workers, and production data is not available.
 sort indmc ym
 keep if 648<=ym&ym<=747   // largest available data span.
+
+gen Break1=0
+replace Break1=1 if ym>=717
+gen Break2=0
+replace Break2=1 if ym>=718
+gen Break3=0
+replace Break3=1 if ym>=719
+gen Break4=0
+replace Break4=1 if ym>=720
+gen Break5=0
+replace Break5=1 if ym>=721
+gen recession1=0
+replace recession1=1 if 668<=ym
+gen recession2=0
+replace recession2=1 if ym<=677
+gen recession3=0
+replace recession3=1 if 699<=ym
+gen recession4=0
+replace recession4=1 if ym<=710
+gen recession5=0
+replace recession5=1 if 719<=ym
+gen recession6=0
+replace recession6=1 if ym<=724
+
+gen months=month(dofm(ym))
+tabulate months, generate(tau)
+gen quarters=quarter(dofm(ym))
+tabulate quarters, generate(rho)
+save panelm_uib, replace 
+
+use panelm_uib, clear
+xtset ym indmc
+reg ut uibCC recession1-recession6 rho1-rho4 tau2-tau12 if indmc==0
+predict uibC
+keep indmc ym uibC
+save uibC_master, replace 
+
+use panelm_uib, clear
+merge 1:1 indmc ym using uibC_master, nogenerate
+*replace uibC=uC if indmc==0&660<=ym
 save panelm, replace 
+
+/*
+use panelm, clear 
+keep if indmc==0
+twoway (tsline uibC uibOriginal)(tsline ut, lwidth(thick))
+
+tsset ym 
+gen uibCCC=uib/numD*100
+sax12 ut, satype(single) inpref(ut.spc) outpref(ut) transfunc(log) regpre( const ) ammodel((0,1,1)(0,1,1)) ammaxlead(0) x11mode(mult) x11seas(S3x9)
+sax12im "ut.out", ext(d11)
+twoway (tsline uibCCC uibCC)(tsline uibC, lwidth(thick))(tsline ut_d11, lcolor(red) lwidth(thick)), xline(720)
+
+use panelm, clear 
+twoway (tsline uibC if indmc==0)(tsline uibC if indmc==10)(tsline uibC if indmc==11)(tsline uibC if indmc==13)(tsline uibC if indmc==14)(tsline uibC if indmc==15)(tsline uibC if indmc==16)(tsline uibC if indmc==17)(tsline uibC if indmc==18)(tsline uibC if indmc==19)(tsline uibC if indmc==20)(tsline uibC if indmc==30)
+*/
+
 
 *!start
 cd "${path}"
@@ -501,9 +562,8 @@ save panelf2, replace
 cd "${path}"
 use panelf2, clear
 sort indmc ym 
-
 gen numDpartproportion=numDpart/numDfull*100
-
+gen l=numD/(1-uibC/100)
 label var v "Vacancy" 
 label var vfull "Vacancy(Full)" 
 label var vpart "Vacancy(Part)" 
@@ -517,35 +577,76 @@ label var prod "Production"
 label var proddome "ProdDomestic"
 label var prodabroad "ProdAbroad"
 label var prodoper "ProdOperation" 
+save panelf2_temp2, replace 
 
-preserve
-    keep if indmc==0 
-    tsset ym, monthly
-    
-    gen theta=v/uibC
-    gen l=numD/(1-uibC/100)
-    gen lnF=ln(F1.matched/(uibC/100)/l)
-    gen lntheta=ln(theta)
-    reg lnF lntheta if 684<=ym
-    scalar k2=_b[lntheta]
-    di k2    // .3146704
-    twoway (scatter lnF lntheta if 684<=ym ) (lfit lnF lntheta if 684<=ym) (scatter lnF lntheta if 684>ym ) (lfit lnF lntheta if 684>ym)
-    twoway (tsline F1.matched) (tsline uibC, yaxis(2))
-    tsline lnF lntheta
-restore
+use panelf2_temp2, clear
+keep if 648<=ym
+gen bk1=0
+replace bk1=1 if 673<=ym
+gen bk2=0
+replace bk2=1 if 703<=ym
+gen bk3=0
+replace bk3=1 if 725<=ym
+foreach i of numlist 0 10 11 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 {
+    preserve 
+        keep if indmc==`i' 
+        tsset ym, monthly
+        gen theta=v/uibC 
+        gen lnF=ln(matched/(uibC/100)/l)
+        gen lntheta=ln(theta)
+        reg lnF lntheta tau1-tau12 bk1-bk3, noconstant 
+        gen eta_biased=_b[lntheta]
+        keep if _n==1
+        di `i'
+        keep indmc eta_biased
+        save eta_biased`i', replace 
+    restore 
+}
 
-scalar k2=.3146704
-gen l=numD/(1-uibC/100)
-gen a_alter=F1.matched/(uibC/100*l*(v/uibC)^k2)     // alternative calibration result for matching efficiency 
-gen lambda_alter=F1.EXIT/l        // calibration result for termination rate  
+use eta_biased0, clear
+foreach i of numlist 10 11 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 {
+    append using eta_biased`i'
+}
+save eta_biased_master, replace 
 
-label var a_alter "Match Eff" 
-label var lambda_alter "Termination" 
+use panelf2_temp2, clear 
+merge m:1 indmc using eta_biased_master, nogenerate
+sort indmc ym
+xtset indmc ym
+gen jfr=ln(matched/(uibC/100)/l)
+gen theta=ln(v/uibC)
+gen jfr_theta_eta=jfr-eta_biased*theta
+gen a_alter=matched/(uibC/100*l*(v/uibC)^eta_biased)
+keep jfr_theta_eta tau* ym indmc eta_biased a_alter
+keep if 648<=ym&ym<=746
+foreach i of numlist 0 10 11 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 {
+    preserve
+        keep if indmc==`i'
+        tsset ym
+        reg jfr_theta_eta tau2-tau12 // if 648<=ym&ym<=719
+        predict a_biased, residuals
+        replace a_biased=a_biased+_b[_cons]
+        replace a_biased=exp(a_biased)
+        reg a_alter tau2-tau12
+        predict a_biased2, residuals
+        replace a_biased2=a_biased2+_b[_cons]
+        replace a_biased2=exp(a_biased2)
+        keep indmc ym a_biased eta_biased a_biased2
+        save matcheff_biased`i', replace 
+    restore
+}
 
+use matcheff_biased0, clear 
+foreach i of numlist 10 11 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 {
+    append using matcheff_biased`i'
+}
+save matcheff_biased_master, replace 
+
+use panelf2_temp2, clear 
+merge 1:1 indmc ym using matcheff_biased_master, nogenerate
+gen lambda=EXIT/l        // calibration result for termination rate  
 keep if 648<=ym&ym<=747   // largest available data span.
-
 save panelf3_temp, replace
-
 
 
 /*********************************************
@@ -554,25 +655,32 @@ Estimate Match efficiency by state (Borowczyk-Martins2013)
 //!start
 cd "${path}"
 use panelf3_temp, clear
-keep if 648<=ym&ym<=719   
-
+keep if 648<=ym&ym<=746
 sort indmc ym
 xtset indmc ym
 gen theta=ln(v/uibC)
-gen jfr=ln(F1.matched/(uibC/100)/l)
+gen jfr=ln(matched/(uibC/100)/l)
 drop if jfr==.
 gen year=year(dofm(ym))
 gen month=month(dofm(ym))
 gen t=ym-647
 rename uibC u
-keep year month ym t jfr theta u indmc
+gen bk1=0
+replace bk1=1 if 673<=ym
+gen bk2=0
+replace bk2=1 if 703<=ym
+gen bk3=0
+replace bk3=1 if 725<=ym
+
+keep year month ym t jfr theta u indmc bk*
 tab month, gen(m_)
 drop m_1
+drop if jfr==.
 save matcheffmaster, replace 
 
 cap program drop estim_grid
 program define estim_grid
-syntax [, P(real 1) Q(real 1) ADDLAGSTH(integer 1) LAGSJFR(integer 1) PMAX(integer 1) SELECT(string) ETA0(real 1) GRAPH] 
+syntax [, P(real 1) Q(real 1) ADDLAGSTH(integer 1) LAGSJFR(integer 1) BK(integer 1) PMAX(integer 1) SELECT(string) ETA0(real 1) GRAPH] 
 	
 	preserve
 	
@@ -591,6 +699,8 @@ syntax [, P(real 1) Q(real 1) ADDLAGSTH(integer 1) LAGSJFR(integer 1) PMAX(integ
 	if `lagsjfr'>0	local inst "l(`laglist_th').theta l(`laglist_jfr').jfr m_*"
 	else local inst "l(`laglist_th').theta m_*"
 	
+    if `bk'==1 local inst "`inst' bk*"
+
 	local addobs = 100
 		
 	// Instruments = 0 if missing
@@ -620,6 +730,12 @@ syntax [, P(real 1) Q(real 1) ADDLAGSTH(integer 1) LAGSJFR(integer 1) PMAX(integ
 						}	
 		local esteq "`esteq')"
 						}
+    if `bk'==1	{
+        local esteq "`esteq' - {b1}*bk1 - {b2}*bk2 - {b3}*bk3"
+        forval l = 1/`p'	{
+            local esteq "`esteq' + {rho`l'}*( {b1}*l`l'.bk1 + {b2}*l`l'.bk2 + {b3}*l`l'.bk3 )"
+                            }
+                }
 
 	local esteq "(`esteq')"
 	local urtest "`urtest' == 0"
@@ -683,7 +799,7 @@ program define estim_indmc
 
         qui	{
         local pmin = 1
-        local pmax = 5
+        local pmax = 4
 
         matrix results = J(5 + 2*(`pmax'+2),1,.)
         local rnames "p q sd(mu) mu sd(eta) eta"
@@ -694,7 +810,7 @@ program define estim_indmc
             if `p'>=`pmin'	{
                 forv q = 0/6	{
                     noi di _con "(`p' , `q') -- "
-                    estim_grid, p(`p') q(`q') pmax(`pmax') addlagsth(0) lagsjfr(1) eta0(0.7)
+                    estim_grid, p(`p') q(`q') pmax(`pmax') addlagsth(0) lagsjfr(1) bk(1) eta0(0.3)
                     matrix results = (results , m)
                                 }	
                             }
@@ -731,11 +847,7 @@ program define estim_indmc
         // p-value for rho4
         mata z=abs(results[.,14]:/results[.,13])
         mata rest6=2*normal(-abs(z))
-        // p-value for rho5
-        mata z=abs(results[.,16]:/results[.,15])
-        mata rest7=2*normal(-abs(z))
-
-        mata rest=rest,rest1,eta,rest2,rest3,rest4,rest5,rest6,rest7
+        mata rest=rest,rest1,eta,rest2,rest3,rest4,rest5,rest6
         mata rest 
 end
 
@@ -745,12 +857,12 @@ program define fig
 args indmc pvalu
     use matcheffmaster, clear
     keep if indmc==`indmc'
-    forvalue ii=1(1)6{
+    forvalue ii=1(1)10{
         qui{
-        estim_grid, p(`pvalu') q(`ii') pmax(`pvalu') addlagsth(0) lagsjfr(1) eta0(0.7) graph
+        estim_grid, p(`pvalu') q(`ii') pmax(`pvalu') addlagsth(0) lagsjfr(1) bk(1) eta0(0.3) graph
         }
     }
-    graph combine name`pvalu'1 name`pvalu'2 name`pvalu'3 name`pvalu'4 name`pvalu'5 name`pvalu'6 
+    graph combine name`pvalu'1 name`pvalu'2 name`pvalu'3 name`pvalu'4 name`pvalu'5 name`pvalu'6 name`pvalu'7 name`pvalu'8 name`pvalu'9 name`pvalu'10
 end
 
 ******* Manually decide p and q by indmc using the selection protocols provided by Borowczyk-Martins2013 
@@ -758,70 +870,83 @@ end
 estim_indmc 0
 
 *** q selection protocol (fig `indmc' `p')
-fig 25 1
+fig 33 1
 
-*** p, q selection results: "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/pq selection result.xlsx"
+*** manual finding for eta
+use matcheffmaster, clear
+keep if indmc==23
+estim_grid, p(3) q(9) pmax(3) addlagsth(0) lagsjfr(1) bk(1) eta0(0.3) graph
+
+*** p, q selection results: "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/pqselectionresult.xlsx"
 
 *** import p, q selection results
 cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/pqselectionresult.csv", varnames(1) clear 
 save pqselectionresult, replace 
 
-use panelf3_temp, clear 
+
+use panelf3_temp, clear
 merge m:1 indmc using pqselectionresult, nogenerate
 sort indmc ym
 xtset indmc ym
-gen a_unbiased=F1.matched/(uibC/100*l*(v/uibC)^eta) 
-keep if 648<=ym&ym<=747 // maximum possible time span. 2014m1~2022m2
-save panelf3_temp2, replace  
+gen jfr=ln(matched/(uibC/100)/l)
+gen theta=ln(v/uibC)
+gen jfr_theta_eta=jfr-eta*theta
+keep jfr_theta_eta tau* ym indmc eta
+keep if 648<=ym&ym<=746
+foreach i of numlist 0 10 11 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 {
+    preserve
+        keep if indmc==`i'
+        tsset ym
+        reg jfr_theta_eta tau2-tau12 // if 648<=ym&ym<=719
+        predict a_unbiased, residuals
+        replace a_unbiased=a_unbiased+_b[_cons]
+        replace a_unbiased=exp(a_unbiased)
+        keep indmc ym a_unbiased eta
+        rename eta eta_unbiased
+        save matcheff`i', replace 
+    restore
+}
+
+use matcheff0, clear 
+foreach i of numlist 10 11 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 {
+    append using matcheff`i'
+}
+save matcheff_unbiased_master, replace 
+
+use panelf3_temp, clear
+merge 1:1 indmc ym using matcheff_unbiased_master, nogenerate
+save panelf3_temp2, replace 
 
 
 /*********************************************
 Deseasonalize by using seasonal dummy 
 *********************************************/
 use panelf3_temp2, clear
-gen quarter=quarter(dofm(ym))
-tabulate quarter, generate(quarterd)
 foreach i of numlist 0 10 11 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 {
     preserve
         keep if indmc==`i'
         tsset ym
-        reg uibC quarterd2 quarterd3 quarterd4
-        predict uibCs, residuals
-        replace uibCs=uibCs+_b[_cons]
-        drop uibC
-        rename uibCs uibC
-        reg wage quarterd2 quarterd3 quarterd4
-        predict wages, residuals
-        replace wages=wages+_b[_cons]
-        drop wage
-        rename wages wage
-        reg wagefull quarterd2 quarterd3 quarterd4
-        predict wagefulls, residuals
-        replace wagefulls=wagefulls+_b[_cons]
-        drop wagefull
-        rename wagefulls wagefull
-        reg wagepart quarterd2 quarterd3 quarterd4
-        predict wageparts, residuals
-        replace wageparts=wageparts+_b[_cons]
-        drop wagepart
-        rename wageparts wagepart
-        reg hour quarterd2 quarterd3 quarterd4
-        predict hours, residuals
-        replace hours=hours+_b[_cons]
-        drop hour
-        rename hours hour
-        reg hourfull quarterd2 quarterd3 quarterd4
-        predict hourfulls, residuals
-        replace hourfulls=hourfulls+_b[_cons]
-        drop hourfull
-        rename hourfulls hourfull
-        reg hourpart quarterd2 quarterd3 quarterd4
-        predict hourparts, residuals
-        replace hourparts=hourparts+_b[_cons]
-        drop hourpart
-        rename hourparts hourpart
-        keep indmc ym uibC wage wagefull wagepart hour hourfull hourpart
+        reg wage tau2-tau12
+        predict wage_p, residuals
+        replace wage_p=wage_p+_b[_cons]
+        reg wagefull tau2-tau12
+        predict wagefull_p, residuals
+        replace wagefull_p=wagefull_p+_b[_cons]
+        reg wagepart tau2-tau12
+        predict wagepart_p, residuals
+        replace wagepart_p=wagepart_p+_b[_cons]
+        reg hour tau2-tau12
+        predict hour_p, residuals
+        replace hour_p=hour_p+_b[_cons]
+        reg hourfull tau2-tau12
+        predict hourfull_p, residuals
+        replace hourfull_p=hourfull_p+_b[_cons]
+        reg hourpart tau2-tau12
+        predict hourpart_p, residuals
+        replace hourpart_p=hourpart_p+_b[_cons]
+        drop wage wagefull wagepart hour hourfull hourpart
+        rename (wage_p wagefull_p wagepart_p hour_p hourfull_p hourpart_p)(wage wagefull wagepart hour hourfull hourpart)
         save panelf3_temp2_seasonal`i', replace 
     restore
 }
@@ -836,6 +961,35 @@ drop uibC wage wagefull wagepart hour hourfull hourpart
 merge 1:1 indmc ym using panelf3_temp2_seasonal, nogenerate
 save panelf3, replace 
 
+
+/*********************************************
+Matching efficiency comparison
+*********************************************/
+use panelf3, clear
+keep if indmc==0
+tsset ym 
+format ym %tm
+
+tsfilter hp a_unbiased_hp = a_unbiased, trend(smooth_a_unbiased) smooth(1)
+tsfilter hp a_biased_hp = a_biased, trend(smooth_a_biased) smooth(1)
+tsfilter hp v_hp = v, trend(smooth_v) smooth(1)
+
+twoway (tsline smooth_v, lpattern(solid) lwidth(thick) lcolor(gs0)) ///
+(tsline smooth_a_unbiased, yaxis(2) lcolor(gs0)) ///
+(tsline smooth_a_biased, yaxis(2) clpattern(shortdash) lcolor(gs0)) ///
+, xtitle("") ytitle("")  xline(720) ysize(1) xsize(3) xlabel(648(12)746) scheme(s1mono) /// 
+legend(label(1 "Vacancy rate(%)") label(2 "Unbiased matching efficiency") label(3 "Biased matching efficiency"))
+graph export matchcomparison.eps, replace
+
+xcorr v smooth_a_unbiased
+xcorr v smooth_a_biased
+
+//!start
+use panelf3, clear
+keep if ym==719
+keep ym eta_unbiased eta_biased
+drop if eta_biased<0
+twoway (scatter eta_unbiased eta_biased)(function y=x)
 
 /*********************************************
 DID Regressions
@@ -864,7 +1018,7 @@ label var e9shared "E9SHARE $\times$ D"
 label var e9share684d "E9SHARE $\times$ D" 
 label var e9chgd "E9CHG $\times$ D" 
 label var forperd "TFWSHARE $\times$ D" 
-label var a_alter "Match Eff" 
+label var a_biased "Match Eff" 
 label var a_unbiased "Match Eff" 
 label var uibmoney "UIB" 
 label var wagefull "Wage(Full)" 
@@ -937,7 +1091,7 @@ drop if indmc==19  // too few observations
 gen La_unbiased=L.a_unbiased 
 gen Luibmoney=L.uibmoney
 
-keep if 684<=ym
+keep if 684<=ym&ym<=745
 tab ym, gen(dum)
 
 gen theta=v/uibC
@@ -1002,165 +1156,81 @@ restore
 }
 
 /*********************************************
-Local Projection method1
+Local Projection method
 *********************************************/
 
 *!start
 cd "${path}"
-use panelf3, clear
-xtset indmc ym
 
-drop if indmc==0    // information for total manufacturing sectors. 
-drop if indmc==32|indmc==16  // too much fluctuations
-drop if indmc==19  // too few observations
-keep if 712<=ym
+capture program drop LP
+program LP 
+    args j depvar
+    use panelf3, clear
+    xtset indmc ym
 
-gen theta=v/uibC
-label var theta "Tightness" 
-label var a_alter "Match Eff" 
-label var uib "UIB" 
+    drop if indmc==0    // information for total manufacturing sectors. 
+    drop if indmc==32|indmc==16  // too much fluctuations
+    drop if indmc==19  // too few observations
+    keep if 712<=ym
 
-preserve
-    keep ym indmc numE numD  
-    keep if ym==720
-    rename (numE numD)(numE720 numD720)
-    save ym720, replace 
-restore
+    gen theta=v/uibC
+    *tsfilter hp hourfull_hp = hourfull, trend(smooth_hourfull) smooth(3)
+    *tsfilter hp wagefull_hp = wagefull, trend(smooth_wagefull) smooth(3)
 
-gen e9numD=e9/numD*100
-gen LP=.
-gen ub=.
-gen lb=.
-forvalues h=0(1)18 {
+    label var theta "Tightness" 
+    label var a_unbiased "Match Eff" 
+    label var uib "UIB" 
+    label var theta "Tightness" 
+    label var v "Vacancy" 
+    label var vfull "Vacancy(Full)" 
+    label var vpart "Vacancy(Part)" 
+    label var hourfull "Work Hours(Full)" 
+    label var wagefull "Wage(Full)" 
+
     preserve
-        gen Fv=F`h'.v
-        keep if 712<=ym&ym<=729
-        xtreg Fv e9numD a_alter uib proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+        keep ym indmc numE numD  
+        keep if ym==720
+        rename (numE numD)(numE720 numD720)
+        save ym720, replace 
     restore
-    replace LP=_b[e9numD] if _n==`h'+1
-    replace ub = _b[e9numD] + 1.645* _se[e9numD] if _n==`h'+1
-    replace lb = _b[e9numD] - 1.645* _se[e9numD] if _n==`h'+1
-}
 
-replace ym=ym+17
-keep if _n<=19
-gen Zero=0
-twoway ///
-(rarea ub lb  ym,  ///
-fcolor(gs13) lcolor(gs13) lw(none) lpattern(solid)) ///
-(line LP ym, lcolor(blue) ///
-lpattern(solid) lwidth(thick)) ///
-(line Zero ym, lcolor(black)), legend(off) ///
-title("Impulse response of Local Projection for 19 months since 2020m10", color(black) size(medsmall)) ///
-ytitle("Percent", size(medsmall)) xtitle("", size(medsmall)) ///
-graphregion(color(white)) plotregion(color(white))
+    gen e9numD=e9/numD*100
+    gen LP=.
+    gen ub=.
+    gen lb=.
+    forvalues h=0(1)16 {
+        preserve
+            gen Fv=F`h'.`depvar'
+            keep if 712<=ym&ym<=731
+            xtreg Fv e9numD a_unbiased uib proddome prodabroad prodoper, fe vce(cluster indmc)
+        restore
+        replace LP=_b[e9numD] if _n==`h'+1
+        replace ub = _b[e9numD] + 1.645* _se[e9numD] if _n==`h'+1
+        replace lb = _b[e9numD] - 1.645* _se[e9numD] if _n==`h'+1
+    }
 
+    replace ym=ym+19
+    keep if _n<=17
+    gen Zero=0
+    twoway ///
+    (rarea ub lb  ym,  ///
+    fcolor(gs13) lcolor(gs13) lw(none) lpattern(solid)) ///
+    (line LP ym, lcolor(blue) ///
+    lpattern(solid) lwidth(thick)) ///
+    (line Zero ym, lcolor(black)), legend(off) ///
+    ytitle("", size(medsmall)) xtitle("", size(medsmall)) ///
+    graphregion(color(white)) plotregion(color(white)) xlabel(731(4)747) ///
+    title(Panel(`j'): `: variable label `depvar'') ///
+    ysize(1) xsize(1.7)
+    graph export LP`depvar'.eps, replace
+end
 
-/*********************************************
-Local Projection method2
-*********************************************/
-
-*!start
-cd "${path}"
-use panelf3, clear
-xtset indmc ym
-
-drop if indmc==0    // information for total manufacturing sectors. 
-drop if indmc==32|indmc==16  // too much fluctuations
-drop if indmc==19  // too few observations
-keep if 712<=ym
-
-gen theta=v/uibC
-label var theta "Tightness" 
-label var a_alter "Match Eff" 
-label var uib "UIB" 
-
-preserve
-    keep ym indmc numE numD  
-    keep if ym==720
-    rename (numE numD)(numE720 numD720)
-    save ym720, replace 
-restore
-
-gen e9numD=e9/numD*100
-gen LP=.
-gen ub=.
-gen lb=.
-forvalues h=0(1)16 {
-    preserve
-        gen Fv=F`h'.vfull
-        keep if 712<=ym&ym<=731
-        xtreg Fv e9numD a_alter uib proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-    restore
-    replace LP=_b[e9numD] if _n==`h'+1
-    replace ub = _b[e9numD] + 1.645* _se[e9numD] if _n==`h'+1
-    replace lb = _b[e9numD] - 1.645* _se[e9numD] if _n==`h'+1
-}
-
-replace ym=ym+20
-keep if _n<=16
-gen Zero=0
-twoway ///
-(rarea ub lb  ym,  ///
-fcolor(gs13) lcolor(gs13) lw(none) lpattern(solid)) ///
-(line LP ym, lcolor(blue) ///
-lpattern(solid) lwidth(thick)) ///
-(line Zero ym, lcolor(black)), legend(off) ///
-title("Impulse response of Local Projection for 16 months since 2020m1", color(black) size(medsmall)) ///
-ytitle("Percent", size(medsmall)) xtitle("", size(medsmall)) ///
-graphregion(color(white)) plotregion(color(white))
-
-
-
-
-/*********************************************
-Local Projection method3
-*********************************************/
-
-*!start
-cd "${path}"
-use panelf3, clear
-xtset indmc ym
-
-drop if indmc==0    // information for total manufacturing sectors. 
-drop if indmc==32|indmc==16  // too much fluctuations
-drop if indmc==19  // too few observations
-keep if 712<=ym
-
-gen theta=v/uibC
-label var theta "Tightness" 
-label var a_alter "Match Eff" 
-label var uib "UIB" 
-
-xtset indmc ym 
-
-gen e9numD=e9/numD*100
-gen LP=.
-gen ub=.
-gen lb=.
-forvalues h=0(1)6 {
-    preserve
-        gen Fv=F`h'.v
-        xtreg Fv e9numD a_alter uib proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-    restore
-    replace LP=_b[e9numD] if _n==`h'+1
-    replace ub = _b[e9numD] + 1.645* _se[e9numD] if _n==`h'+1
-    replace lb = _b[e9numD] - 1.645* _se[e9numD] if _n==`h'+1
-}
-
-replace ym=ym+64
-keep if _n<=6
-gen Zero=0
-twoway ///
-(rarea ub lb  ym,  ///
-fcolor(gs13) lcolor(gs13) lw(none) lpattern(solid)) ///
-(line LP ym, lcolor(blue) ///
-lpattern(solid) lwidth(thick)) ///
-(line Zero ym, lcolor(black)), legend(off) ///
-title("Impulse response of Local Projection for 2 years", color(black) size(medsmall)) ///
-ytitle("Percent", size(medsmall)) xtitle("Months", size(medsmall)) ///
-graphregion(color(white)) plotregion(color(white))
-
+LP A theta
+LP B v
+LP C vfull
+LP D vpart
+LP E hourfull
+LP F wagefull
 
 
 /*********************************************
@@ -1371,8 +1441,6 @@ xi: reg sel e9share684dum1-e9share684dum4 e9share684dum6 i.year i.indmc age i.se
         graph export ols.eps, replace
 
 
-
-
 ********************
 use klips_master, clear
 foreach i in 12 13 14 15 16 17 18 19 20 21 22 {
@@ -1522,13 +1590,13 @@ sax12im "v.out", ext(d11)
 
 drop u v month
 rename (u_d11 v_d11)(u v)
+order fw dw prod u v 
 
 export delimited using "${path}\SVARdata_seasonadjusted.csv", replace
 *manually saved it to "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasonadjusted.csv"
 
 
-/*************** Executable using R from below:
-*SVAR.Rmd
+/*************** Executable using R (SVAR.Rmd)
 
 ###### Install required packages
 install.packages("minqa") 
@@ -1537,52 +1605,39 @@ install.packages("mvnfast")
 install.packages("lubridate")  
 install.packages("VARsignR")  
 
-###### Import data and set sign restrictions
-
+###### Import data
 rm(list = ls())
 set.seed(12345)
 library(VARsignR)
-
 SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasonadjusted.csv")
 SVARdata <- ts (SVARdata, frequency = 12, start = c(2012, 1))
 
+###### Set sign restrictions
 constr <- c(-1,+2,-4)  # FW(-1) should be place in the first order. 
 
-
-###### Uhlig’s (2005) Penalty Function Method
-
-model <- uhlig.penalty(Y=SVARdata, nlags=3, draws=2000, subdraws=1000, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120, penalty=100, crit=0.001)
-
+###### Uhlig’s (2005) Rejection Method
+model <- uhlig.reject(Y=SVARdata, nlags=3, draws=1000, subdraws=1000, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120)
 irfs <- model$IRFS 
-
 vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate")
-
 irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
+###### Uhlig’s (2005) Penalty Function Method
+model <- uhlig.penalty(Y=SVARdata, nlags=3, draws=1000, subdraws=1000, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120, penalty=100, crit=0.001)
+irfs <- model$IRFS 
+vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate")
+irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
 ###### Rubio-Ramirez et al’s (2010) Rejection Method
-
 model3 <- rwz.reject(Y=SVARdata, nlags=3, draws=200, subdraws=200, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120)
-
 irfs3 <- model3$IRFS
-
 vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate")
-
 irfplot(irfdraws=irfs3, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
-
 ###### Fry and Pagan’s (2011) Median-Target (MT) method
-
 model2 <- uhlig.reject(Y=SVARdata, nlags=3, draws=200, subdraws=200, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120)
-
 summary(model2)
-
 irfs2 <- model2$IRFS
-
 fp.target(Y=SVARdata, irfdraws=irfs2, nlags=3, constant=F, labels=vl, target=TRUE, type="median", bands=c(0.16, 0.84), save=FALSE, grid=TRUE, bw=TRUE, legend=TRUE, maxit=1000)
-
-
-
 
 ********************/
 
