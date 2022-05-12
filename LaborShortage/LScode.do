@@ -154,7 +154,7 @@ replace uib_p=uib if ym<717
 twoway (tsline ut, lcolor(gs0))(tsline uib, lcolor(red))(tsline uib_p, lcolor(blue) clpattern(longdash)) ///
     , xtitle("") ytitle("%") xline(720) /// 
     ysize(3.5) xsize(8) ///
-    legend(label(1 "Unemployment rate") label(2 "Unemployment Insurance Benefit (adjusted)") label(3 "Unemployment Insurance Benefit") order(1 2 3))
+    legend(label(1 "Unemployment rate") label(2 "Unemployment Insurance Benefit") label(3 "Unemployment Insurance Benefit (adjusted)") order(1 2 3))
 graph export uib.eps, replace
 
 
