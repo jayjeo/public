@@ -133,14 +133,25 @@ graph export monthlye9.eps, replace
 *!start
 cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/uib.csv", varnames(1) clear 
-replace t=t+592
-format t %tm
-tsset t 
+gen ym=t+592
+format ym %tm
+tsset ym
 gen uib_adj=uib
-gen tt=t
-replace uib_adj=uib*0.7 if t>=720  
-*0.674947869
-twoway (tsline ut, lcolor(gs0))(tsline uib_adj, lcolor(red))(tsline uib, lcolor(blue) clpattern(longdash)) ///
+*replace uib_adj=uib*0.7 if ym>=720  
+
+gen recession1=0
+replace recession1=1 if 717<=ym   //2019m10
+gen recession2=0
+replace recession2=1 if 719<=ym
+gen recession3=0
+replace recession3=1 if 721<=ym
+gen recession4=0
+replace recession4=1 if 724<=ym
+
+reg ut uib recession1-recession4
+predict uib_p
+replace uib_p=uib if ym<717
+twoway (tsline ut, lcolor(gs0))(tsline uib, lcolor(red))(tsline uib_p, lcolor(blue) clpattern(longdash)) ///
     , xtitle("") ytitle("%") xline(720) /// 
     ysize(3.5) xsize(8) ///
     legend(label(1 "Unemployment rate") label(2 "Unemployment Insurance Benefit (adjusted)") label(3 "Unemployment Insurance Benefit") order(1 2 3))
@@ -413,7 +424,7 @@ cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/u.csv", varnames(1) clear 
         // E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\경제활동인구조사\rawdata\infile3 (2015~2017추가).do   =>  nonuC
 rename nonuc ut
-replace ut=ut+0.3
+replace ut=ut
 rename uc uC
 gen indmc=0
 save ut, replace 
@@ -523,7 +534,7 @@ save panelm, replace
 /*
 use panelm, clear 
 keep if indmc==0
-twoway (tsline uibC uibOriginal)(tsline ut, lwidth(thick))
+twoway (tsline uibC)(tsline ut, lwidth(thick))(tsline uibOriginal)
 
 tsset ym 
 gen uibCCC=uib/numD*100
@@ -589,12 +600,13 @@ gen bk3=0
 replace bk3=1 if 725<=ym
 foreach i of numlist 0 10 11 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 {
     preserve 
-        keep if indmc==`i' 
+        keep if indmc==`i'
         tsset ym, monthly
-        gen theta=v/uibC 
+        gen theta=v/uibC
         gen lnF=ln(matched/(uibC/100)/l)
         gen lntheta=ln(theta)
-        reg lnF lntheta tau1-tau12 bk1-bk3, noconstant 
+        reg lnF lntheta tau2-tau12 bk1-bk3, noconstant 
+        *nl (lnF={eta=0.7}*lntheta+{xb:tau2-tau12}+{bkb:bk1-bk3})
         gen eta_biased=_b[lntheta]
         keep if _n==1
         di `i'
@@ -867,15 +879,15 @@ end
 
 ******* Manually decide p and q by indmc using the selection protocols provided by Borowczyk-Martins2013 
 *** p selection protocol (estim_indmc `indmc') 
-estim_indmc 0
+estim_indmc 10
 
 *** q selection protocol (fig `indmc' `p')
 fig 33 1
 
 *** manual finding for eta
 use matcheffmaster, clear
-keep if indmc==23
-estim_grid, p(3) q(9) pmax(3) addlagsth(0) lagsjfr(1) bk(1) eta0(0.3) graph
+keep if indmc==32
+estim_grid, p(1) q(0) pmax(1) addlagsth(0) lagsjfr(1) bk(1) eta0(0.3) graph
 
 *** p, q selection results: "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/pqselectionresult.xlsx"
 
@@ -883,7 +895,6 @@ estim_grid, p(3) q(9) pmax(3) addlagsth(0) lagsjfr(1) bk(1) eta0(0.3) graph
 cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/pqselectionresult.csv", varnames(1) clear 
 save pqselectionresult, replace 
-
 
 use panelf3_temp, clear
 merge m:1 indmc using pqselectionresult, nogenerate
@@ -989,7 +1000,9 @@ use panelf3, clear
 keep if ym==719
 keep ym eta_unbiased eta_biased
 drop if eta_biased<0
-twoway (scatter eta_unbiased eta_biased)(function y=x)
+twoway (scatter eta_unbiased eta_biased)(function y=x) ///
+, scheme(s1mono) ytitle("Unbiased eta") xtitle("Biased eta") legend(off)
+graph export etacomparison.eps, replace
 
 /*********************************************
 DID Regressions
@@ -1187,13 +1200,6 @@ program LP
     label var hourfull "Work Hours(Full)" 
     label var wagefull "Wage(Full)" 
 
-    preserve
-        keep ym indmc numE numD  
-        keep if ym==720
-        rename (numE numD)(numE720 numD720)
-        save ym720, replace 
-    restore
-
     gen e9numD=e9/numD*100
     gen LP=.
     gen ub=.
@@ -1223,6 +1229,89 @@ program LP
     title(Panel(`j'): `: variable label `depvar'') ///
     ysize(1) xsize(1.7)
     graph export LP`depvar'.eps, replace
+end
+
+LP A theta
+LP B v
+LP C vfull
+LP D vpart
+LP E hourfull
+LP F wagefull
+
+
+
+/*********************************************
+Local Projection method (DD)
+*********************************************/
+
+
+
+eststo: xtivreg theta (e9chgd=e9share684d) L.a_unbiased  L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+
+*!start
+cd "${path}"
+
+capture program drop LP
+program LP 
+    args j depvar
+    use panelf3, clear
+    xtset indmc ym
+
+    drop if indmc==0    // information for total manufacturing sectors. 
+    drop if indmc==32|indmc==16  // too much fluctuations
+    drop if indmc==19  // too few observations
+    keep if 684<=ym
+    gen d=0 if  684<=ym&ym<=719  // 684<=ym&ym<=719 // inlist(ym,712,713,714,715,716,717,718,719) 
+    replace d=1 if 730<=ym&ym<=740 // inlist(ym,738,739,740,741,742,743,744)
+    drop if 719<ym&ym<739
+    gen e9share684d=e9share684*d
+    gen e9chgd=e9chg*d
+    gen theta=v/uibC
+    gen La_unbiased=L.a_unbiased 
+    gen Luibmoney=L.uibmoney  
+    *tsfilter hp hourfull_hp = hourfull, trend(smooth_hourfull) smooth(3)
+    *tsfilter hp wagefull_hp = wagefull, trend(smooth_wagefull) smooth(3)
+
+    label var theta "Tightness" 
+    label var a_unbiased "Match Eff" 
+    label var uib "UIB" 
+    label var theta "Tightness" 
+    label var v "Vacancy" 
+    label var vfull "Vacancy(Full)" 
+    label var vpart "Vacancy(Part)" 
+    label var hourfull "Work Hours(Full)" 
+    label var wagefull "Wage(Full)" 
+    label var e9share684d "E9SHARE $\times$ D" 
+    label var e9chgd "E9CHG $\times$ D" 
+
+    gen LP=.
+    gen ub=.
+    gen lb=.
+    forvalues h=0(1)6 {
+        preserve
+            gen Fv=F`h'.`depvar'
+            keep if 684<=ym&ym<=740
+            xtivreg Fv (e9chgd=e9share684d) La_unbiased Luibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+        restore
+        replace LP=_b[e9chgd] if _n==`h'+1
+        replace ub = _b[e9chgd] + 1.645* _se[e9chgd] if _n==`h'+1
+        replace lb = _b[e9chgd] - 1.645* _se[e9chgd] if _n==`h'+1
+    }
+
+    replace ym=ym+56
+    keep if _n<=7
+    gen Zero=0
+    twoway ///
+    (rarea ub lb  ym,  ///
+    fcolor(gs13) lcolor(gs13) lw(none) lpattern(solid)) ///
+    (line LP ym, lcolor(blue) ///
+    lpattern(solid) lwidth(thick)) ///
+    (line Zero ym, lcolor(black)), legend(off) ///
+    ytitle("", size(medsmall)) xtitle("", size(medsmall)) ///
+    graphregion(color(white)) plotregion(color(white)) xlabel(740(3)747) ///
+    title(Panel(`j'): `: variable label `depvar'') ///
+    ysize(1) xsize(1.7)
+    graph export LPDD`depvar'.eps, replace
 end
 
 LP A theta
