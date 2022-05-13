@@ -503,15 +503,13 @@ replace Break5=1 if ym>=721
 gen recession1=0
 replace recession1=1 if 668<=ym
 gen recession2=0
-replace recession2=1 if ym<=677
+replace recession2=1 if ym<=672
 gen recession3=0
-replace recession3=1 if 699<=ym
+replace recession3=1 if ym<=677
 gen recession4=0
-replace recession4=1 if ym<=710
+replace recession4=1 if 699<=ym
 gen recession5=0
-replace recession5=1 if 719<=ym
-gen recession6=0
-replace recession6=1 if ym<=724
+replace recession5=1 if ym<=710
 
 gen months=month(dofm(ym))
 tabulate months, generate(tau)
@@ -521,20 +519,19 @@ save panelm_uib, replace
 
 use panelm_uib, clear
 xtset ym indmc
-reg ut uibCC recession1-recession6 rho1-rho4 tau2-tau12 if indmc==0
+reg ut uibCC recession1-recession5 rho1-rho4 tau2-tau12 if indmc==0
 predict uibC
 keep indmc ym uibC
 save uibC_master, replace 
 
 use panelm_uib, clear
 merge 1:1 indmc ym using uibC_master, nogenerate
-*replace uibC=uC if indmc==0&660<=ym
 save panelm, replace 
 
 /*
 use panelm, clear 
 keep if indmc==0
-twoway (tsline uibC)(tsline ut, lwidth(thick))(tsline uibOriginal)
+twoway (tsline uibC)(tsline ut, lwidth(thick))
 
 tsset ym 
 gen uibCCC=uib/numD*100
@@ -1685,7 +1682,7 @@ export delimited using "${path}\SVARdata_seasonadjusted.csv", replace
 *manually saved it to "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasonadjusted.csv"
 
 
-/*************** Executable using R (SVAR.Rmd)
+/*************** Executable using R (SVAR.R)
 
 ###### Install required packages
 install.packages("minqa") 
