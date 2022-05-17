@@ -9,7 +9,7 @@ install.packages("VARsignR")
 rm(list = ls())
 set.seed(12345)
 library(VARsignR)
-SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasonadjusted.csv")
+SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasondummyadj.csv")
 SVARdata <- ts (SVARdata, frequency = 12, start = c(2012, 1))
 
 ###### Set sign restrictions
