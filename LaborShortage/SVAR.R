@@ -22,7 +22,7 @@ vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment ra
 irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
 ###### Uhlig¡¯s (2005) Penalty Function Method
-model <- uhlig.penalty(Y=SVARdata, nlags=3, draws=1000, subdraws=1000, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120, penalty=100, crit=0.001)
+model <- uhlig.penalty(Y=SVARdata, nlags=3, draws=100000, subdraws=10000, nkeep=10000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120, penalty=100, crit=0.001)
 irfs <- model$IRFS 
 vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate")
 irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
