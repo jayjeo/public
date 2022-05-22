@@ -83,4 +83,4 @@ Run_SVAR_v1
 %% Some Results
 % Impulse Responses
 Plot_IRFs_LS
-
+saveas(gcf,'Plot_IRFs','epsc')
