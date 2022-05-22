@@ -9,32 +9,33 @@ install.packages("VARsignR")
 rm(list = ls())
 set.seed(12345)
 library(VARsignR)
-SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasondummyadj.csv")
-SVARdata <- ts (SVARdata, frequency = 12, start = c(2012, 1))
+SVARdata <- read.csv("E:/Dropbox/Study/GitHub/public/LaborShortage/SVARdata_seasondummyadj.csv")
+#SVARdata <- read.csv("https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/SVARdata_seasondummyadj.csv")
+SVARdata <- ts (SVARdata, frequency = 12, start = c(2015, 1))
 
 ###### Set sign restrictions
-constr <- c(-1,+2,-4)  # FW(-1) should be place in the first order. 
+constr <- c(-1,+2,-3)  # FW(-1) should be place in the first order. 
 
 ###### Uhlig¡¯s (2005) Rejection Method
-model <- uhlig.reject(Y=SVARdata, nlags=3, draws=1000, subdraws=1000, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120)
+model <- uhlig.reject(Y=SVARdata, nlags=3, draws=1000, subdraws=1000, nkeep=1000, KMIN=1, KMAX=12, constrained=constr, constant=FALSE, steps=120)
 irfs <- model$IRFS 
-vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate")
+vl <- c("Foreign Workers","Domestic Workers","Unemployment rate","Vacancy rate")
 irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
 ###### Uhlig¡¯s (2005) Penalty Function Method
-model <- uhlig.penalty(Y=SVARdata, nlags=3, draws=1000, subdraws=1000, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120, penalty=100, crit=0.001)
+model <- uhlig.penalty(Y=SVARdata, nlags=3, draws=1000, subdraws=1000, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=TRUE, steps=120, penalty=100, crit=0.001)
 irfs <- model$IRFS 
-vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate")
+vl <- c("Foreign Workers","Domestic Workers","Unemployment rate","Vacancy rate")
 irfplot(irfdraws=irfs, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
 ###### Rubio-Ramirez et al¡¯s (2010) Rejection Method
-model3 <- rwz.reject(Y=SVARdata, nlags=3, draws=200, subdraws=200, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120)
+model3 <- rwz.reject(Y=SVARdata, nlags=3, draws=5000, subdraws=100, nkeep=5000, KMIN=1, KMAX=12, constrained=constr, constant=FALSE, steps=120)
 irfs3 <- model3$IRFS
-vl <- c("Foreign Workers","Domestic Workers","Production Shock","Unemployment rate","Vacancy rate")
+vl <- c("Foreign Workers","Domestic Workers","Unemployment rate","Vacancy rate","Production")
 irfplot(irfdraws=irfs3, type="median", labels=vl, save=FALSE, bands=c(0.16, 0.84), grid=TRUE, bw=TRUE)
 
 ###### Fry and Pagan¡¯s (2011) Median-Target (MT) method
-model2 <- uhlig.reject(Y=SVARdata, nlags=3, draws=200, subdraws=200, nkeep=1000, KMIN=1, KMAX=3, constrained=constr, constant=FALSE, steps=120)
+model2 <- uhlig.reject(Y=SVARdata, nlags=3, draws=200, subdraws=200, nkeep=1000, KMIN=1, KMAX=12, constrained=constr, constant=FALSE, steps=120)
 summary(model2)
 irfs2 <- model2$IRFS
 fp.target(Y=SVARdata, irfdraws=irfs2, nlags=3, constant=F, labels=vl, target=TRUE, type="median", bands=c(0.16, 0.84), save=FALSE, grid=TRUE, bw=TRUE, legend=TRUE, maxit=1000)
