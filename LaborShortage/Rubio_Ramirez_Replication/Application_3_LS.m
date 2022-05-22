@@ -10,14 +10,14 @@ clc
 
 %% Reduced form Settings 
 % Data Location and Adjustments
-T = readtable('E:\Dropbox\Study\DR\220521\Replication\data\SVARdata_seasondummyadj_dates.csv','NumHeaderLines',1);
+T = readtable('E:\Dropbox\Study\DR\220521\Rubio_Ramirez_Replication\data\SVARdata_seasondummyadj_dates.csv','NumHeaderLines',1);
 dates = datenum([T.Var3,T.Var2,T.Var1]);
-data = table2array(readtable('E:\Dropbox\Study\DR\220521\Replication\data\SVARdata_seasondummyadj.csv','NumHeaderLines',1));
+data = table2array(readtable('E:\Dropbox\Study\DR\220521\Rubio_Ramirez_Replication\data\SVARdata_seasondummyadj.csv','NumHeaderLines',1));
 clearvars T
 
 save('LS.mat','dates','data') 
-load('data\LSvarnames.mat')
-save('data\LS.mat')
+load('E:\Dropbox\Study\DR\220521\Rubio_Ramirez_Replication\data\LSvarnames.mat')
+save('E:\Dropbox\Study\DR\220521\Rubio_Ramirez_Replication\data\LS.mat')
 
 clear
 clc
@@ -45,17 +45,17 @@ agnostic = 'irfs';  % select: 'structural' or 'irfs';
        
     % Set up Sign Restrictions       
       % SR{r} = {Shockname,{Variable Names}, Horizon, Sign (1 or -1),}; 
-        SR{1} = {'reallocationshock',{'u'}    ,6,1};
-        SR{2} = {'reallocationshock',{'v'}    ,6,1};
+        SR{1} = {'reallocationshock',{'UNEMPLOYMENT'}    ,6,1};
+        SR{2} = {'reallocationshock',{'VACANCY'}         ,6,1};
 
-        SR{3} = {'aggregateshock',{'u'}       ,6,1};
-        SR{4} = {'aggregateshock',{'v'}       ,6,-1};
+        SR{3} = {'aggregateshock',{'UNEMPLOYMENT'}       ,6,1};
+        SR{4} = {'aggregateshock',{'VACANCY'}            ,6,-1};
 
-        SR{5} = {'TFWshock',{'fw'}            ,6,-1};
-        SR{6} = {'TFWshock',{'u'}             ,6,-1};
+        SR{5} = {'TFWshock',{'TFW'}                      ,6,-1};
+        SR{6} = {'TFWshock',{'UNEMPLOYMENT'}             ,6,-1};
 
-        SR{7} = {'nativeshock',{'dw'}         ,6,-1};
-        SR{8} = {'nativeshock',{'u'}          ,6,-1};
+        SR{7} = {'NATIVEshock',{'NATIVE'}                ,6,-1};
+        SR{8} = {'NATIVEshock',{'UNEMPLOYMENT'}          ,6,-1};
 
     % Set up Narrative Sign Restrictions        
       % NSR{r} = {'shockname',type of restriction ('sign of shock' or
@@ -63,13 +63,13 @@ agnostic = 'irfs';  % select: 'structural' or 'irfs';
       % (for contributions only), sign, 'strong' or 'weak' for
       % contributions.
             %sign_of_shocks
-            NSR{1} = {'TFWshock','contribution',datenum(2020,04,01),datenum(2022,03,31),'fw',1,'strong'};
-            NSR{2} = {'nativeshock','contribution',datenum(2020,04,01),datenum(2022,03,31),'dw',1,'strong'};
+            NSR{1} = {'TFWshock','contribution',datenum(2020,04,01),datenum(2022,03,31),'TFW',1,'strong'};
+            NSR{2} = {'NATIVEshock','contribution',datenum(2020,04,01),datenum(2022,03,31),'NATIVE',1,'strong'};
 
 cumulateWhich = []; % Compute Cumulated IRFs for Plots
     
 %% Gibss Sampler Settings
-numDesiredDraws = 500;
+numDesiredDraws = 5000;
 BetaSigmaTries = 50;
 Qs_per_BetaSigma = 50;
 nRepsWeights = 50;
@@ -82,5 +82,5 @@ Run_SVAR_v1
 
 %% Some Results
 % Impulse Responses
-Plot_IRFs
+Plot_IRFs_LS
 
