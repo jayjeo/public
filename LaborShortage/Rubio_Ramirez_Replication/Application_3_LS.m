@@ -62,7 +62,6 @@ agnostic = 'irfs';  % select: 'structural' or 'irfs';
       % 'contribution'), date, end date (for contributions only), variable 
       % (for contributions only), sign, 'strong' or 'weak' for
       % contributions.
-            %sign_of_shocks
             NSR{1} = {'TFWshock','contribution',datenum(2020,04,01),datenum(2022,03,31),'TFW',1,'strong'};
             NSR{2} = {'NATIVEshock','contribution',datenum(2020,04,01),datenum(2022,03,31),'NATIVE',1,'strong'};
 
