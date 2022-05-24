@@ -1016,6 +1016,81 @@ graph export etacomparison.eps, replace
 
 
 /*********************************************
+Spurious Correlation check
+*********************************************/
+use panelf3, clear
+drop if indmc==0
+keep ym indmc v
+keep if 715<=ym&ym<=719
+collapse (mean) v, by(indmc)
+rename v vmean719
+save vmean719, replace // vacancy mean before covid
+
+use panelf3, clear
+drop if indmc==0
+keep ym indmc v
+keep if 738<=ym&ym<=743
+collapse (mean) v, by(indmc)
+rename v vmean743
+save vmean743, replace
+
+use panelf3, clear
+drop if indmc==0
+keep ym indmc prod
+keep if 715<=ym&ym<=719
+collapse (mean) prod, by(indmc)
+rename prod prodmean719
+save prodmean719, replace // prod mean before covid
+
+use panelf3, clear
+keep if indmc==0
+tsset ym 
+tsline prod, xline(724)
+
+use panelf3, clear
+drop if indmc==0
+keep ym indmc prod
+keep if ym==724
+keep indmc prod
+rename prod prodmean724
+save prodmean724, replace 
+
+use panelf3, clear
+drop if indmc==0
+keep ym indmc e9
+keep if 715<=ym&ym<=719
+collapse (mean) e9, by(indmc)
+keep indmc e9
+rename e9 e9mean719
+save e9mean719, replace // E9 mean before covid
+
+use panelf3, clear
+drop if indmc==0
+keep ym indmc e9
+keep if ym==743
+keep indmc e9
+rename e9 e9mean743
+save e9mean743, replace 
+
+use vmean719, replace 
+merge 1:1 indmc using vmean743, nogenerate
+merge 1:1 indmc using prodmean719, nogenerate
+merge 1:1 indmc using prodmean724, nogenerate
+merge 1:1 indmc using e9mean719, nogenerate
+merge 1:1 indmc using e9mean743, nogenerate
+drop if indmc==32|indmc==16  // too much fluctuations
+drop if indmc==19  // too few observations
+
+gen vdif=vmean743-vmean719
+gen proddif=prodmean724-prodmean719
+gen e9dif=e9mean743-e9mean719
+
+twoway (scatter proddif vdif)
+twoway (scatter proddif e9dif)
+twoway (scatter e9dif vdif)
+
+
+/*********************************************
 DID Regressions
 *********************************************/
 *!start
@@ -1532,7 +1607,8 @@ export delimited using "${path}\SVARdata_seasondummyadj_dates.csv", replace
 restore 
 
 /*************** Executable using Matlab code by Antolín-Díaz and Rubio-Ramírez 2018
-1) Download Replication data for: Narrative Sign Restrictions for SVARs from https://www.openicpsr.org/openicpsr/project/113168/version/V1/view
-2) Download and merge entire files from https://github.com/jayjeo/public/tree/main/LaborShortage/Rubio_Ramirez_Replication
+1) Download Replication data: Narrative Sign Restrictions for SVARs from https://www.openicpsr.org/openicpsr/project/113168/version/V1/view
+2) Download entire files from https://github.com/jayjeo/public/tree/main/LaborShortage/Rubio_Ramirez_Replication, and merge it to the previous one.
+3) Run Application_3_LS.m
 ********************/
 
