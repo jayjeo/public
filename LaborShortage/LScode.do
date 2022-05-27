@@ -40,7 +40,7 @@ https://www.index.go.kr/potal/main/EachDtlPageDetail.do?idx_cd=1068 (opened to p
 
 *********************************************/
 
-** LScode ver7.7.do
+** LScode ver7.11.do
 cls
 clear all
 set scheme s1color, perm 
@@ -381,6 +381,7 @@ rename uc uC
 gen indmc=0
 save ut, replace 
 
+use ut, clear
 //!start
 cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/e9inflow.csv", varnames(1) clear 
@@ -1426,7 +1427,7 @@ program LP
     drop if indmc==0    // information for total manufacturing sectors. 
     drop if indmc==32|indmc==16  // too much fluctuations
     drop if indmc==19  // too few observations
-    keep if 712<=ym
+    keep if 708<=ym
 
     label var theta "Tightness" 
     label var a_unbiased "Match Eff" 
@@ -1445,10 +1446,10 @@ program LP
     gen ub=.
     gen lb=.
 
-    forvalues h=0(1)16 {
+    forvalues h=0(1)28 {
         preserve
             gen Fv=F`h'.`depvar'
-            keep if 712<=ym&ym<=731
+            keep if 708<=ym&ym<=719
             xtreg Fv e9numD uibmoney lambda a_unbiased proddome prodabroad prodoper, fe vce(cluster indmc)
         restore
         replace LP = _b[e9numD] if _n==`h'+1
@@ -1456,8 +1457,8 @@ program LP
         replace lb = _b[e9numD] - 1.645* _se[e9numD] if _n==`h'+1
     }
 
-    replace ym=ym+19
-    keep if _n<=17
+    replace ym=ym+11
+    keep if _n<=29
     gen Zero=0
     twoway ///
     (rarea ub lb  ym,  ///
@@ -1466,7 +1467,7 @@ program LP
     lpattern(solid) lwidth(thick)) ///
     (line Zero ym, lcolor(black)), legend(off) ///
     ytitle("", size(medsmall)) xtitle("", size(medsmall)) ///
-    graphregion(color(white)) plotregion(color(white)) xlabel(731(4)747) ///
+    graphregion(color(white)) plotregion(color(white)) xlabel(719(4)747) ///
     title(Panel(`j'): `: variable label `depvar'') ///
     ysize(1) xsize(1.6)
     graph export LP`depvar'.eps, replace
@@ -1515,6 +1516,23 @@ twoway ///
 (tsline `var' if indmc==33, lcolor(gs0)) ///
 , xline(720) ylabel(0(4)12) ytitle("E9 Share (%)") xtitle("") legend(off)
 graph export e9shareconcur2.eps, replace
+
+
+//!start
+cd "${path}"
+use panelf3, clear
+keep if indmc==0
+merge 1:1 ym using ut
+keep ym v prod uC
+drop if uC==.
+tsset ym, monthly
+label var uC "Unemployment rate"
+label var v "Vacancy rate"
+twoway (tsline v, lwidth(thick) lcolor(gs0) yaxis(1)) /// 
+    (tsline uC, lcolor(gs0) yaxis(2)) ///
+    (tsline prod, lcolor(gs0) clpattern(longdash) yaxis(3)) ///
+    , xtitle("") ytitle("") xline(720) xline(724) ysize(1) xsize(3) xlabel(660(12)744)
+graph export vup.eps, replace
 
 
 /*********************************************
