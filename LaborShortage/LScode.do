@@ -48,7 +48,7 @@ set scheme s1color, perm
 /*********************************************
 *********************************************/
 * NEED TO SET YOUR PREFERRED PATH
-global path="E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\Github move\Latex\Dissertation Draft ver7.0"   
+global path="E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\Github move\Latex\Dissertation Draft ver8.0"   
 /*********************************************
 *********************************************/
 cd "${path}"
@@ -1526,8 +1526,18 @@ merge 1:1 ym using ut
 keep ym v prod uC
 drop if uC==.
 tsset ym, monthly
+tsfilter hp v_hp = v, trend(smooth_v) smooth(1)
+drop v
+rename smooth_v v
+tsfilter hp uC_hp = uC, trend(smooth_uC) smooth(1)
+drop uC
+rename smooth_uC uC
+tsfilter hp prod_hp = prod, trend(smooth_prod) smooth(1)
+drop prod
+rename smooth_prod prod
 label var uC "Unemployment rate"
 label var v "Vacancy rate"
+label var prod "Production"
 twoway (tsline v, lwidth(thick) lcolor(gs0) yaxis(1)) /// 
     (tsline uC, lcolor(gs0) yaxis(2)) ///
     (tsline prod, lcolor(gs0) clpattern(longdash) yaxis(3)) ///
