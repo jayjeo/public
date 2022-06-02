@@ -40,7 +40,7 @@ https://www.index.go.kr/potal/main/EachDtlPageDetail.do?idx_cd=1068 (opened to p
 
 *********************************************/
 
-** LScode ver7.11.do
+** LScode ver7.12.do
 cls
 clear all
 set scheme s1color, perm 
@@ -48,7 +48,7 @@ set scheme s1color, perm
 /*********************************************
 *********************************************/
 * NEED TO SET YOUR PREFERRED PATH
-global path="E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\Github move\Latex\Dissertation Draft ver8.0"   
+global path="E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\Github move\Latex\Dissertation Draft ver9.0"   
 /*********************************************
 *********************************************/
 cd "${path}"
@@ -158,20 +158,6 @@ twoway (tsline ut, lcolor(gs0))(tsline uib, lcolor(red))(tsline uib_p, lcolor(bl
 graph export uib.eps, replace
 
 
-*********************
-*!start
-cd "${path}"
-import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/participationandprod.csv", varnames(1) clear 
-tsset ym 
-format ym %tm
-drop if ym>740
-tsfilter hp prod_hp = prod, trend(smooth_prod) smooth(1)
-tsfilter hp activeall_hp = activeall_d11, trend(smooth_activeall) smooth(1)
-label var smooth_prod "Production (Left)"
-label var smooth_activeall "Labor Participation Rate (Right)"
-twoway (tsline smooth_prod, lcolor(gs0) lwidth(thick) yaxis(1))(tsline smooth_activeall, lcolor(gs0) yaxis(2)) /// 
-, xtitle("") xline(720) ysize(1) xsize(3) xlabel(660(12)730)
-graph export participationandprod.eps, replace
 
 		
 *********************
@@ -957,7 +943,6 @@ save panelf3, replace
 
 *********************
 //!start
-cd "${path}"
 use panelf3, clear
 keep if indmc==0
 save panelf3_uibfigure, replace 
@@ -978,10 +963,12 @@ tsset ym
 format ym %tm
 tsfilter hp lambda_hp = lambda, trend(smooth_lambda) smooth(3)
 tsfilter hp uibmoney2_hp = uibmoney2, trend(smooth_uibmoney2) smooth(1)
+tsfilter hp prod_hp = prod, trend(smooth_prod) smooth(1)
+label var smooth_prod "Production (Left)"
 keep if 648<=ym&ym<=746
-twoway (tsline smooth_lambda, yaxis(1) lwidth(thick))(tsline smooth_uibmoney2, yaxis(2)) ///
+twoway (tsline smooth_prod, lcolor(gs0) lwidth(thick) yaxis(1))(tsline smooth_uibmoney2, lwidth(thick) clpattern(dash) yaxis(2)) ///
 , xtitle("") ytitle("Termination rate", axis(1)) ytitle("2005 real, $", axis(2)) xline(720) ysize(1) xsize(3) xlabel(648(12)746) scheme(s1mono) /// 
-legend(label(1 "Termination rate (Left)") label(2 "Unemployment Insurance Benefit Payment (Right)")) 
+legend(label(1 "Production (Left)") label(2 "Unemployment Insurance Benefit Payment (Right)")) 
 graph export uibmoney.eps, replace
 
 /*********************************************
@@ -1122,13 +1109,15 @@ label var hourfull "Hour(Full)"
 
 ******* Reduced form
 eststo clear 
-eststo: xtreg theta e9share684d L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg v e9share684d L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg vfull e9share684d L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg vpart e9share684d L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg numDpartproportion e9share684d L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg wagefull e9share684d L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg hourfull e9share684d L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtreg theta e9share684d L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtreg v e9share684d L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtreg vfull e9share684d L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtreg vpart e9share684d L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtreg numDpartproportion e9share684d L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtreg wagefull e9share684d L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtreg hourfull e9share684d L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtreg a_unbiased e9share684d L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtreg lambda e9share684d L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
 
 esttab * using "tableapril1.tex", ///
     title(\label{tableapril1}) ///
@@ -1138,13 +1127,15 @@ esttab * using "tableapril1.tex", ///
 
 ******* IV
 eststo clear 
-eststo: xtivreg theta (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg v (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg vfull (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg vpart (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg numDpartproportion (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg wagefull (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg hourfull (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg theta (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg v (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg vfull (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg vpart (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg numDpartproportion (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg wagefull (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg hourfull (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg a_unbiased (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg lambda (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
 
 esttab * using "tableapril2.tex", ///
     title(\label{tableapril2}) ///
@@ -1154,14 +1145,15 @@ esttab * using "tableapril2.tex", ///
 
 
 // Find First-stage F statistics. Does not work in Stata version 16
-ivreghdfe theta (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe v (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe vfull (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe vpart (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe numDpartproportion (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe wagefull (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe hourfull (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first
-
+ivreghdfe theta (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
+ivreghdfe v (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
+ivreghdfe vfull (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
+ivreghdfe vpart (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
+ivreghdfe numDpartproportion (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
+ivreghdfe wagefull (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
+ivreghdfe hourfull (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first
+ivreghdfe a_unbiased (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first
+ivreghdfe lambda (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first
 
 ******* Graphs
 twoway (scatter e9share forper)(lfit e9share forper) ///
@@ -1170,14 +1162,14 @@ graph export TFWe9share.eps, replace
 
 twoway (scatter forper hourfull716)(lfit forper hourfull716), ///
         xtitle("Fulltime Workers' Monthly Work Hours") ytitle("TFW Share (%)") legend(off) ///
-        title("Panel (H): Corr between Work hours and TFW share") xline(174)
+        title("Panel (F): Corr between Work hours and TFW share") xline(174)
 graph export TFWsharehourfull716.eps, replace
 
 
 ******* IV (Robustness Check)
 eststo clear 
-eststo: xtivreg theta_alter (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg v_alter (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg theta_alter (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg v_alter (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
 esttab * using "tableapril4.tex", ///
     title(\label{tableapril4}) ///
     b(%9.3f) se(%9.3f) ///
@@ -1185,8 +1177,8 @@ esttab * using "tableapril4.tex", ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
 
 // Find First-stage F statistics. Does not work in Stata version 16
-ivreghdfe theta_alter (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe v_alter (e9chgd=e9share684d) L.uibmoney L.lambda L.a_unbiased proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
+ivreghdfe theta_alter (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
+ivreghdfe v_alter (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
 
 
 /*********************************************
@@ -1198,11 +1190,7 @@ use panelf3, clear
 drop if indmc==0    // information for total manufacturing sectors. 
 drop if indmc==32|indmc==16  // too much fluctuations
 drop if indmc==19  // too few observations
-gen La_unbiased=L.a_unbiased 
-gen Llambda=L.lambda 
 gen Luibmoney=L.uibmoney
-label var La_unbiased "Match Eff" 
-label var Llambda "Termination" 
 label var Luibmoney "UIB" 
 
 keep if 684<=ym&ym<=745
@@ -1215,7 +1203,7 @@ foreach i of numlist 1/62 {
 }
 * dum61 = 2020m1
 
-foreach var in theta uibC theta_alter v vfull vpart v_alter vfull_alter numDpartproportion hourfull wagefull proddome prodabroad prodoper La_unbiased Llambda Luibmoney {
+foreach var in theta uibC theta_alter v vfull vpart v_alter vfull_alter numDpartproportion hourfull wagefull proddome prodabroad prodoper a_unbiased lambda Luibmoney {
     gen `var'_temp=`var'
     drop `var'
     tsfilter hp `var'_hp2 = `var'_temp, trend(`var') smooth(1)
@@ -1226,7 +1214,7 @@ capture program drop contdidreg
 program contdidreg 
 args i j
     preserve
-            reg `i' e9share684dum1-e9share684dum35 e9share684dum37-e9share684dum62 i.ym i.indmc Luibmoney Llambda La_unbiased proddome prodabroad prodoper
+            reg `i' e9share684dum1-e9share684dum35 e9share684dum37-e9share684dum62 i.ym i.indmc Luibmoney proddome prodabroad prodoper
             mat b2=e(b)'
             mat b=b2[1..35,1]\0\b2[36..61,1]   
             mat v2=vecdiag(e(V))'
@@ -1256,6 +1244,8 @@ args i j
             gen hourfull=.
             gen wagefull=.
             gen dw_approx=.
+            gen a_unbiased=.
+            gen lambda=.
 
             label var theta "Tightness"
             label var theta_alter "Tightness(alter)" 
@@ -1268,6 +1258,8 @@ args i j
             label var hourfull "Work Hours(Full)" 
             label var wagefull "Wage(Full)" 
             label var dw_approx "Domestic Workers" 
+            label var a_unbiased "Match Efficiency" 
+            label var lambda "Termination" 
 
             twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t), xline(719) yline(0) xtitle("") ytitle("") /// 
             legend(off) xlabel(684(12)745) ///
@@ -1281,11 +1273,13 @@ contdidreg v B
 contdidreg vfull C
 contdidreg vpart D
 contdidreg numDpartproportion E
-contdidreg wagefull F
-contdidreg hourfull G
+contdidreg wagefull G
+contdidreg hourfull H
 contdidreg theta_alter A
 contdidreg v_alter B
 contdidreg vfull_alter C
+contdidreg a_unbiased I
+contdidreg lambda J
 //contdidreg uibC D
 
 
@@ -1353,7 +1347,7 @@ foreach i of numlist 1/60 {
     gen e9share684dum`i'=e9share684*dum`i'
 }
 
-foreach var in numD theta_alter v_alter dw_approx proddome prodabroad prodoper La_unbiased Llambda Luibmoney {
+foreach var in numD theta_alter v_alter dw_approx proddome prodabroad prodoper Luibmoney {
     gen `var'_temp=`var'
     drop `var'
     tsfilter hp `var'_hp2 = `var'_temp, trend(`var') smooth(1)
@@ -1363,7 +1357,7 @@ capture program drop contdidreg2
 program contdidreg2
 args i j
     preserve
-            reg `i' e9share684dum1-e9share684dum35 e9share684dum37-e9share684dum60 i.ym i.indmc Luibmoney Llambda La_unbiased proddome prodabroad prodoper
+            reg `i' e9share684dum1-e9share684dum35 e9share684dum37-e9share684dum60 i.ym i.indmc Luibmoney proddome prodabroad prodoper
             mat b2=e(b)'
             mat b=b2[1..35,1]\0\b2[36..59,1]   
             mat v2=vecdiag(e(V))'
@@ -1450,7 +1444,7 @@ program LP
         preserve
             gen Fv=F`h'.`depvar'
             keep if 708<=ym&ym<=719
-            xtreg Fv e9numD uibmoney lambda a_unbiased proddome prodabroad prodoper, fe vce(cluster indmc)
+            xtreg Fv e9numD uibmoney proddome prodabroad prodoper, fe vce(cluster indmc)
         restore
         replace LP = _b[e9numD] if _n==`h'+1
         replace ub = _b[e9numD] + 1.645* _se[e9numD] if _n==`h'+1
@@ -1480,6 +1474,79 @@ LP D vfull
 LP E vpart
 LP F hourfull
 LP G wagefull
+LP G lambda 
+LP G a_unbiased
+
+
+/*********************************************
+Local Projection method (DD)
+*********************************************/
+*!start
+cd "${path}"
+
+capture program drop LPDID
+program LPDID 
+    args j depvar
+    use panelf3, clear
+    xtset indmc ym
+
+    drop if indmc==0    // information for total manufacturing sectors. 
+    drop if indmc==32|indmc==16  // too much fluctuations
+    drop if indmc==19  // too few observations
+    keep if 708<=ym
+
+    label var theta "Tightness" 
+    label var uibmoney "UIB" 
+    label var theta "Tightness" 
+    label var v "Vacancy" 
+    label var vfull "Vacancy(Full)" 
+    label var vpart "Vacancy(Part)" 
+    label var hourfull "Work Hours(Full)" 
+    label var wagefull "Wage(Full)" 
+    label var v_alter "Vacancy(Alternative)" 
+
+    gen e9numD=e9/numD*100
+    gen LP=.
+    gen ub=.
+    gen lb=.
+
+    forvalues h=0(1)18 {
+        preserve
+            gen Fv=F`h'.`depvar'
+            gen d=0 if  710<=ym&ym<=719  
+            replace d=1 if 720<=ym&ym<=729
+            drop if d==.
+            gen e9share684d=e9share684*d
+            xtreg Fv e9share684d uibmoney proddome prodabroad prodoper, fe vce(cluster indmc)
+        restore
+        replace LP = _b[e9share684d] if _n==`h'+1
+        replace ub = _b[e9share684d] + 1.645* _se[e9share684d] if _n==`h'+1
+        replace lb = _b[e9share684d] - 1.645* _se[e9share684d] if _n==`h'+1
+    }
+
+    replace ym=ym+19
+    keep if _n<=19
+    gen Zero=0
+    twoway ///
+    (rarea ub lb  ym,  ///
+    fcolor(gs13) lcolor(gs13) lw(none) lpattern(solid)) ///
+    (line LP ym, lcolor(blue) ///
+    lpattern(solid) lwidth(thick)) ///
+    (line Zero ym, lcolor(black)), legend(off) ///
+    ytitle("", size(medsmall)) xtitle("", size(medsmall)) ///
+    graphregion(color(white)) plotregion(color(white)) xlabel(729(4)747) ///
+    title(Panel(`j'): `: variable label `depvar'') ///
+    ysize(1) xsize(1.6)
+    graph export LP`depvar'.eps, replace
+end
+
+LPDID A theta
+LPDID B v_alter
+LPDID C v
+LPDID D vfull
+LPDID E vpart
+LPDID F hourfull
+LPDID G wagefull
 
 
 /*********************************************
