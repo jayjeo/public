@@ -48,7 +48,7 @@ set scheme s1color, perm
 /*********************************************
 *********************************************/
 * NEED TO SET YOUR PREFERRED PATH
-global path="E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\Github move\Latex\Dissertation Draft ver9.0"   
+global path="E:\Dropbox\Study\UC Davis\Writings\Labor Shortage\210718\Github move\Latex\Dissertation Draft ver10.0"   
 /*********************************************
 *********************************************/
 cd "${path}"
@@ -116,12 +116,10 @@ gen date=ym(year,month)
 tsset date
 format date %tm
 
-tsfilter hp e9inflow_hp = e9inflow, trend(smooth_e9inflow) smooth(1)
-sax12 smooth_e9inflow, satype(single) inpref(e9inflow.spc) outpref(e9inflow) transfunc(log) regpre( const ) ammodel((0,1,1)(0,1,1)) ammaxlead(0) x11mode(mult) x11seas(S3x9)
-sax12im "e9inflow.out", ext(d11)
+tsfilter hp e9inflow_hp = e9inflow, trend(smooth_e9inflow) smooth(6)
 keep if date>=648
 
-twoway (tsline e9inflow_d11, lcolor(gs0))(tsline e9stock, lwidth(thick) lcolor(gs0) yaxis(2)) ///
+twoway (tsline smooth_e9inflow, lcolor(gs0))(tsline e9stock, lwidth(thick) lcolor(gs0) yaxis(2)) ///
 , xlabel(648(6)744) xlabel(, grid angle(270)) xline(720) ytitle("person", axis(1)) ytitle("person", axis(2)) scheme(s1mono) ///
 ysize(3.5) xsize(8) ///
 legend(label(1 "E9 inflow") label(2 "E9 stock")) ///
@@ -1144,7 +1142,7 @@ esttab * using "tableapril2.tex", ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
 
 
-// Find First-stage F statistics. Does not work in Stata version 16
+// Find First-stage F statistics. Does not work below Stata version 17
 ivreghdfe theta (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
 ivreghdfe v (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
 ivreghdfe vfull (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
@@ -1176,7 +1174,7 @@ esttab * using "tableapril4.tex", ///
     lab se r2 pr2 noconstant replace ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
 
-// Find First-stage F statistics. Does not work in Stata version 16
+// Find First-stage F statistics. Does not work below Stata version 16
 ivreghdfe theta_alter (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
 ivreghdfe v_alter (e9chgd=e9share684d) L.uibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
 
