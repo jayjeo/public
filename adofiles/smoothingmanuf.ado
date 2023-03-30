@@ -1,4 +1,3 @@
-capture program drop smoothingmanuf
 program smoothingmanuf 
 args sector varlists 
     egen ij_temp=group(location `sector')

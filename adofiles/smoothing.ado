@@ -1,4 +1,3 @@
-capture program drop smoothing
 program smoothing 
 args varlists 
     egen location_temp=group(location)
