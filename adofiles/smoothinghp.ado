@@ -3,7 +3,7 @@ args sector varlists length
     egen ij_temp=group(location `sector')
     xtset ij_temp year 
     tsfill
-    drop if sector==""|location==""
+    drop if ij_temp==.
     foreach var of varlist `varlists' {
         rename `var' `var'_temp_temp
         ipolate `var'_temp_temp year, gen(`var'_temp) by(ij_temp) 
