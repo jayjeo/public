@@ -2,7 +2,7 @@ program smoothinghp
 args sector varlists length
     egen ij_temp=group(location `sector')
     xtset ij_temp year 
-    tsfill
+   // tsfill
     foreach var of varlist `varlists' {
         rename `var' `var'_temp
         //ipolate `var'_temp_temp year, gen(`var'_temp) epolate by(ij_temp) 
