@@ -8,7 +8,7 @@
 
 
 # Instructions for Running the Code
-  * Begin by downloading the required files using [this link](https://raw.githubusercontent.com/jayjeo/public/master/Laborshare/Replication%20data%20and%20code.zip).
+  * Begin by downloading the required files using [this link](https://raw.githubusercontent.com/jayjeo/public/master/Laborshare/ReplicationCodeandData.zip).
     * This zip file has been checked and is free of viruses and malware.
     * Please note, initializing the download will take some time due to the large file size.
   * Once the download is complete, execute the file named "master.do".
