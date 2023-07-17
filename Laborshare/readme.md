@@ -31,12 +31,13 @@
   * IFR:
     * Access to this dataset requires purchasing the IFR data. This process usually takes a few days.
     * We are using the 2023 release of this dataset.
+    * After downloading, save it in the /Secured/ folder in the current directory. The file name should be IFRdata.csv
   * CompNet:
     * This dataset is freely accessible to the public with a proper application, but redistribution is prohibited.
     * Access to it requires an application for data permission, which typically takes about a week to process.
     * We are using the 8th Round version.
       * Manually download the 8th Round of the Comp-Net file, named ``unconditional_industry2d_all_unweighted''.
-      * After downloading, save it in the /Secured folder in the current directory.
+      * After downloading, save it in the /Secured folder in the current directory. The file name should be unconditional_industry2d_all_unweighted.dta
 
 # Replication codes and data (for reference. Download is not requried for this paper) 
 * Gutiérrez, G., & Piton, S. (2020). Revisiting the global decline of the (non-housing) labor share. American Economic Review: Insights, 2(3), 321–338.
