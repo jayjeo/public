@@ -9,7 +9,6 @@
 
 # Instructions for Running the Code
   * Begin by downloading the required files using [this link](https://www.dropbox.com/s/agttgr8z3gmdiy1/ReplicationCodeandData.zip).
-    * Press this button located at the top-right corner [![file format](https://github.com/jayjeo/public/raw/main/Laborshare/button.png)](#features)
     * This zip file has been checked and is free of viruses and malware.
     * Please note, initializing the download will take some time due to the large file size.
   * Once the download is complete, execute the file named "master.do".
