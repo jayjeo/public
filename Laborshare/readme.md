@@ -1,40 +1,40 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
-- [How to run codes](#how-to-run-codes)
-- [Required datasets descriptions](#required-datasets-descriptions)
+- [Instructions for Running the Code](#instructions-for-running-the-code)
+- [Description of Required Datasets](#description-of-required-datasets)
         - [Public access is allowed under proper citation:](#public-access-is-allowed-under-proper-citation)
-        - [Public access is forbidden for the following datasets:](#public-access-is-forbidden-for-the-following-datasets)
+        - [The following datasets are not publicly accessible:](#the-following-datasets-are-not-publicly-accessible)
 - [Replication codes and data (for reference. Download is not requried for this paper)](#replication-codes-and-data-for-reference-download-is-not-requried-for-this-paper)
 
 
-# How to run codes
-  * Download this from Dropbox link below. 
+# Instructions for Running the Code
+  * Begin by downloading the required files using the Dropbox link provided below.
     * Link: https://www.dropbox.com/sh/9d2nowqpczh0sng/AACI_gMpxVzISDVVE9PQ77Jba
-    * Downloading files will take some time because of their large size.
-  * Run master.do.
-# Required datasets descriptions 
+    * Please note, the download may take some time due to the large file size.
+  * Once the download is complete, execute the file named "master.do".
+# Description of Required Datasets
 ##### Public access is allowed under proper citation:
-  * US-Census, OECD STAN, KLEMS, ONET, UN-Comtrade, etc are open to public. 
-  * The storage volumn for US-Census is huge, which takes much time to download and run. 
-  * Use KLEMS data and codes that we provided. 
-    * You can directly download from the website below, but it is not recommened.
-      * For KLEMS 2023 vintage release, visit https://euklems-intanprod-llee.luiss.it/
-      * For entire vintages download, use Gutiérrez, G., & Piton, S. (2020)'s replication code and data
-      * Downloading entire vintages from official KLEMS webpage does not work well or you have to spend a lot of time.
-##### Public access is forbidden for the following datasets:
+  * Datasets such as US-Census, OECD STAN, KLEMS, ONET, UN-Comtrade, and others are open to the public. 
+  * The US-Census dataset has a substantial storage volume, which might cause a lengthy download and processing time. 
+  * We recommend utilizing the KLEMS data and codes that we have provided.
+    * Although it's possible to download directly from the website listed below, we don't recommend this approach.
+      * To access the 2023 vintage release of KLEMS, visit https://euklems-intanprod-llee.luiss.it/.
+      * For the download of all available vintages, refer to Gutiérrez, G., & Piton, S. (2020)'s replication code and data.
+      * Be aware that downloading all vintages directly from the official KLEMS webpage may not work efficiently, or it may require a substantial amount of time.
+##### The following datasets are not publicly accessible:
   * EU-LFS:
-    * It is free. To access to it, you need to apply for the data permission, which takes about two months to process. 
-    * We are using 2023 released version.
-    * After download, save it under current folder under /Secured folder 
+    * While this dataset is free, access requires an application for data permission, which typically takes around two months to process.
+    * We are using the 2023 release of this dataset.
+    * After downloading, save it in the /Secured/EULFS folder in the current directory.
   * IFR:
-    * To access to it, you need to purchase IFR data. It usually takes within few days. 
-    * We are using 2023 released version.
+    * Access to this dataset requires purchasing the IFR data. This process usually takes a few days.
+    * We are using the 2023 release of this dataset.
   * CompNet:
-    * It is free. Open to public with proper application, but distribution is forbidden.
-    * To access to it, you need to apply for the data permission, which takes about a week to process. 
-    * We are using 8th Round version.
-      * Download 8th Round of Comp-Net file, named ``unconditional_industry2d_all_unweighted'' manually.
-      * After download, save it under current folder under /Secured folder 
+    * This dataset is freely accessible to the public with a proper application, but redistribution is prohibited.
+    * Access to it requires an application for data permission, which typically takes about a week to process.
+    * We are using the 8th Round version.
+      * Manually download the 8th Round of the Comp-Net file, named ``unconditional_industry2d_all_unweighted''.
+      * After downloading, save it in the /Secured folder in the current directory.
 
 # Replication codes and data (for reference. Download is not requried for this paper) 
 * Gutiérrez, G., & Piton, S. (2020). Revisiting the global decline of the (non-housing) labor share. American Economic Review: Insights, 2(3), 321–338.
