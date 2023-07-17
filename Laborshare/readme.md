@@ -27,7 +27,7 @@
     * We are using the 2023 release of this dataset.
     * After downloading, save it in the /Secured/EULFS folder in the current directory.
     * The file format should look like this:
-      * [![solarized dualmode](https://github.com/jayjeo/public/raw/main/img/format.png)](#features)
+      * [![solarized dualmode](https://github.com/jayjeo/public/raw/main/Laborshare/format.png)](#features)
   * IFR:
     * Access to this dataset requires purchasing the IFR data. This process usually takes a few days.
     * We are using the 2023 release of this dataset.
