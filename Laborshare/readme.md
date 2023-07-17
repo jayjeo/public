@@ -8,9 +8,10 @@
 
 
 # Instructions for Running the Code
-  * Begin by downloading the required files using the Dropbox link provided below.
+  * Begin by downloading the required files using the link provided below.
     * Link: https://www.dropbox.com/sh/9d2nowqpczh0sng/AACI_gMpxVzISDVVE9PQ77Jba
-    * Please note, the download may take some time due to the large file size.
+    * This zip file has been checked and is free of viruses and malware.
+    * Please note, initializing the download will take some time due to the large file size.
   * Once the download is complete, execute the file named "master.do".
 # Description of Required Datasets
 ##### Public access is allowed under proper citation:
