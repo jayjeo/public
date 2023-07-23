@@ -608,7 +608,7 @@ reg pscore cs wa free sex totexpk
 
 
 ******** MoM
-*for ols and just-identified IV, MoM resulsts are identical to conventional ols and iv. 
+*for ols and just-identified IV, MoM results are identical to conventional ols and iv. 
 *for ols there is no need to use GMM. 
 *for over-identified IV,GMM is necessary. 
 
