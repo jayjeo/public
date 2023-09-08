@@ -1,14 +1,18 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
+- [Most Recent Documents](#most-recent-documents)
 - [Instructions for Running the Code](#instructions-for-running-the-code)
 - [Description of Required Datasets](#description-of-required-datasets)
         - [Public access is allowed under proper citation:](#public-access-is-allowed-under-proper-citation)
         - [The following datasets are not publicly accessible:](#the-following-datasets-are-not-publicly-accessible)
 - [Replication codes and data (for reference. Download is not requried for this paper)](#replication-codes-and-data-for-reference-download-is-not-requried-for-this-paper)
 
-
+# Most Recent Documents
+  * [Paper in progress](https://publish.obsidian.md/jayjeong/Published+files/LaborShare_Latex.pdf)
+  * [Replication code and data](https://www.dropbox.com/s/agttgr8z3gmdiy1/ReplicationCodeandData.zip)
+  * [Online appendix](https://github.com/jayjeo/public/blob/main/Laborshare/Online_Appendix.pdf)
 # Instructions for Running the Code
-  * Begin by downloading the required files using [this link](https://www.dropbox.com/s/agttgr8z3gmdiy1/ReplicationCodeandData.zip).
+  * Begin by downloading the required files using ~~this link~~.
     * This zip file has been checked and is free of viruses and malware.
     * Please note, initializing the download will take some time due to the large file size.
   * Once the download is complete, execute the file named "master.do".
