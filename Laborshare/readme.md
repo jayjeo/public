@@ -8,9 +8,8 @@
 - [Replication codes and data (for reference. Download is not requried for this paper)](#replication-codes-and-data-for-reference-download-is-not-requried-for-this-paper)
 
 # Most Recent Documents
-  * [Paper in progress](https://publish.obsidian.md/jayjeong/Published+files/LaborShare_Latex.pdf)
+  * [Paper in progress](https://github.com/jayjeo/public/blob/main/Laborshare/LaborShare_Latex.pdf)
   * [Replication code and data](https://www.dropbox.com/s/agttgr8z3gmdiy1/ReplicationCodeandData.zip)
-  * [Online appendix](https://github.com/jayjeo/public/blob/main/Laborshare/Online_Appendix.pdf)
 # Instructions for Running the Code
   * Begin by downloading the required files using ~~this link~~.
     * This zip file has been checked and is free of viruses and malware.
