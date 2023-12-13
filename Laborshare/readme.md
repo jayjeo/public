@@ -8,10 +8,9 @@
 - [Replication codes and data (for reference. Download is not requried for this paper)](#replication-codes-and-data-for-reference-download-is-not-requried-for-this-paper)
 
 # Most Recent Documents
-  * [Paper in progress](https://github.com/jayjeo/public/blob/main/Laborshare/LaborShare_Latex.pdf)
-  * [Replication code and data](https://www.dropbox.com/s/agttgr8z3gmdiy1/ReplicationCodeandData.zip)
+  * [Working paper](https://github.com/jayjeo/public/blob/main/Laborshare/LaborShare_Latex.pdf)
 # Instructions for Running the Code
-  * Begin by downloading the required files using ~~this link~~.
+  * Begin by downloading the required files using ~~this link~~. (We will provide this link after publication.)
     * This zip file has been checked and is free of viruses and malware.
     * Please note, initializing the download will take some time due to the large file size.
   * Once the download is complete, execute the file named "master.do".
