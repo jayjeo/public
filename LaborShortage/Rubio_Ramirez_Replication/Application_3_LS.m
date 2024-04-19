@@ -10,14 +10,14 @@ clc
 
 %% Reduced form Settings 
 % Data Location and Adjustments
-T = readtable('E:\Dropbox\Study\DR\220521\Rubio_Ramirez_Replication\data\SVARdata_seasondummyadj_dates.csv','NumHeaderLines',1);
+T = readtable('C:\Users\acubens\Documents\acubens_UCDserver\NarrativeSignRestrictions\data\SVARdata_seasondummyadj_dates.csv','NumHeaderLines',1);
 dates = datenum([T.Var3,T.Var2,T.Var1]);
-data = table2array(readtable('E:\Dropbox\Study\DR\220521\Rubio_Ramirez_Replication\data\SVARdata_seasondummyadj.csv','NumHeaderLines',1));
+data = table2array(readtable('C:\Users\acubens\Documents\acubens_UCDserver\NarrativeSignRestrictions\data\SVARdata_seasondummyadj.csv','NumHeaderLines',1));
 clearvars T
 
 save('LS.mat','dates','data') 
-load('E:\Dropbox\Study\DR\220521\Rubio_Ramirez_Replication\data\LSvarnames.mat')
-save('E:\Dropbox\Study\DR\220521\Rubio_Ramirez_Replication\data\LS.mat')
+load('C:\Users\acubens\Documents\acubens_UCDserver\NarrativeSignRestrictions\data\LSvarnames.mat')
+save('C:\Users\acubens\Documents\acubens_UCDserver\NarrativeSignRestrictions\data\LS.mat')
 
 clear
 clc
@@ -27,12 +27,12 @@ datafile ='data\LS.mat'
 
 panelselect = [1:4];                % Choose subset and/or re-order variables (optional); Empty = use all;
 exog = [];
-startYear = 2015;                       % Choose start year
-endYear = 2022;                           
+startYear = 2020;                       % Choose start year
+endYear = 2024;                           
 
 % Model Specification
 constant = 1;                           % Add constant in VAR
-p = 6;                                  % Maximum lag order of factor VAR
+p = 3;                                  % Maximum lag order of factor VAR
 h = 120;                                % Desired forecast horizon
 
 %% Reduced Form Priors
@@ -45,25 +45,25 @@ agnostic = 'irfs';  % select: 'structural' or 'irfs';
        
     % Set up Sign Restrictions       
       % SR{r} = {Shockname,{Variable Names}, Horizon, Sign (1 or -1),}; 
-        SR{1} = {'reallocationshock',{'UNEMPLOYMENT'}    ,6,1};
-        SR{2} = {'reallocationshock',{'VACANCY'}         ,6,1};
+        SR{1} = {'reallocationshock',{'UNEMPLOYMENT'}    ,10,-1};
+        SR{2} = {'reallocationshock',{'VACANCY'}         ,10,-1};
 
-        SR{3} = {'aggregateshock',{'UNEMPLOYMENT'}       ,6,1};
-        SR{4} = {'aggregateshock',{'VACANCY'}            ,6,-1};
+        SR{3} = {'aggregateshock',{'UNEMPLOYMENT'}    ,10,-1};
+        SR{4} = {'aggregateshock',{'VACANCY'}         ,10,1};
 
-        SR{5} = {'TFWshock',{'TFW'}                      ,6,-1};
-        SR{6} = {'TFWshock',{'UNEMPLOYMENT'}             ,6,-1};
+        SR{5} = {'TFWshock',{'TFW'}             ,10,-1};
+        SR{6} = {'TFWshock',{'UNEMPLOYMENT'}    ,10,-1};
 
-        SR{7} = {'NATIVEshock',{'NATIVE'}                ,6,-1};
-        SR{8} = {'NATIVEshock',{'UNEMPLOYMENT'}          ,6,-1};
+        SR{7} = {'NATIVEshock',{'NATIVE'}          ,1,-1};
+        SR{8} = {'NATIVEshock',{'UNEMPLOYMENT'}    ,1,-1};
 
-    % Set up Narrative Sign Restrictions        
+
+  % Set up Narrative Sign Restrictions        
       % NSR{r} = {'shockname',type of restriction ('sign of shock' or
       % 'contribution'), date, end date (for contributions only), variable 
       % (for contributions only), sign, 'strong' or 'weak' for
       % contributions.
-            NSR{1} = {'TFWshock','contribution',datenum(2020,05,01),datenum(2022,03,31),'TFW',1,'strong'};
-            NSR{2} = {'NATIVEshock','contribution',datenum(2020,05,01),datenum(2022,03,31),'NATIVE',1,'strong'};
+            NSR{1} = {'TFWshock','contribution',datenum(2020,04,01),datenum(2022,12,31),'TFW',1,'strong'};
 
 cumulateWhich = []; % Compute Cumulated IRFs for Plots
     
