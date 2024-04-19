@@ -63,15 +63,16 @@ agnostic = 'irfs';  % select: 'structural' or 'irfs';
       % 'contribution'), date, end date (for contributions only), variable 
       % (for contributions only), sign, 'strong' or 'weak' for
       % contributions.
-            NSR{1} = {'TFWshock','contribution',datenum(2020,04,01),datenum(2022,12,31),'TFW',1,'strong'};
+            NSR{1} = {'TFWshock','contribution',datenum(2020,04,01),datenum(2022,11,31),'NATIVE',1,'weak'};
+            NSR{1} = {'NATIVEshock','contribution',datenum(2020,04,01),datenum(2022,11,31),'TFW',1,'weak'};
 
 cumulateWhich = []; % Compute Cumulated IRFs for Plots
     
 %% Gibss Sampler Settings
-numDesiredDraws = 5000;
+numDesiredDraws = 1000;
 BetaSigmaTries = 50;
-Qs_per_BetaSigma = 50;
-nRepsWeights = 50;
+Qs_per_BetaSigma = 5;
+nRepsWeights = 5;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % End of Code that is Edited Frequently %
