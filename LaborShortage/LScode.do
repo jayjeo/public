@@ -439,15 +439,20 @@ gen indmc=1
 reshape wide numD e9 numE, i(indmc) j(ym)
 
 gen e9share0=e9719/numD719*100
-gen e9share1=e9744/numD744*100
+gen e9share1=e9746/numD746*100
 scalar e9sharediff=e9share0-e9share1
 display e9sharediff
-// i.e. Overall, E9share decreased by 1.32 percent point. 
+scalar e9share0=e9share0
+scalar e9share1=e9share1
+display e9share0
+display e9share1
+// i.e. Overall, E9share decreased by 1.30 percent point. 
 
 gen v0=numE719/numD719*100
-gen v1=numE744/numD744*100
+gen v1=numE746/numD746*100
 scalar vdiff=v0-v1
 display vdiff
+// i.e. Overall, E9share decreased by 8.56 percent point. 
 
 *!start
 cd "${path}"
@@ -585,7 +590,7 @@ drop if indmc==0    // information for total manufacturing sectors.
 drop if indmc==19  // too few observations
 gen d=0 if  648<=ym&ym<=719  // 684<=ym&ym<=719 // inlist(ym,712,713,714,715,716,717,718,719) 
 //gen d=0 if  708<=ym&ym<=719  // 684<=ym&ym<=719 // inlist(ym,712,713,714,715,716,717,718,719) 
-replace d=1 if 724<=ym&ym<=752 // inlist(ym,738,739,740,741,742,743,744)
+replace d=1 if 724<=ym&ym<=752 // inlist(ym,738,739,740,741,742,743,744)  752 = 2022m09, 769 = 2024m02
 drop if d==.
 
 gen forperd=forper*d
@@ -675,7 +680,7 @@ drop if indmc==0    // information for total manufacturing sectors.
 //drop if indmc==32|indmc==16  // too much fluctuations
 drop if indmc==19  // too few observations
 
-keep if 648<=ym&ym<=752
+keep if 648<=ym&ym<=752  // 752 = 2022m09, 769 = 2024m02
 tab ym, gen(dum)
 
 label var theta "Tightness" 
@@ -809,7 +814,7 @@ drop if indmc==0
 drop if indmc==19  // too few observations
 xtset indmc ym 
 
-keep if 648<=ym&ym<=752
+keep if 648<=ym&ym<=752   // 752 = 2022m09, 769 = 2024m02
 tab ym, gen(dum)
 
 foreach i of numlist 1/104 {
@@ -886,7 +891,7 @@ program LPDID
         preserve
             gen Fv=F`h'.`depvar'
             gen d=0 if  710<=ym&ym<=719  
-            replace d=1 if 720<=ym&ym<=729
+            replace d=1 if 720<=ym&ym<=729    // 752 = 2022m09, 769 = 2024m02
             drop if d==.
             gen e9shared=e9share*d
             xtreg Fv e9shared proddome prodabroad prodoper uibmoney, fe vce(cluster indmc)
