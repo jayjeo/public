@@ -40,7 +40,7 @@ https://www.index.go.kr/potal/main/EachDtlPageDetail.do?idx_cd=1068 (opened to p
 
 *********************************************/
 
-** LScode ver15.2.do
+** LScode ver16.3.do
 cls
 clear all
 set scheme s1color, perm 
