@@ -48,7 +48,7 @@ set scheme s1color, perm
 /*********************************************
 *********************************************/
 * NEED TO SET YOUR PREFERRED PATH
-global path="C:\Users\acube\Dropbox\Study\UC Davis\Writings\Labor Shortage\test 240419_2"   
+global path="C:\Users\acube\Dropbox\Study\UC Davis\Writings\Labor Shortage\test 240510"   
 /*********************************************
 *********************************************/
 cd "${path}"
@@ -574,7 +574,33 @@ use panelf3_temp4, clear
 drop wage wagefull wagepart hour hourfull hourpart
 //drop v vfull vpart v_alter theta theta_alter wage wagefull wagepart hour hourfull hourpart
 merge 1:1 indmc ym using panelf3_temp5_seasonal, nogenerate
+save panelf3_temp5, replace 
+
+
+
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/MSMMyear.csv", clear
+reshape long y, i(ind) j(j)
+rename y profit_temp
+rename j year
+rename ind indmc
+gen ym = ym(year, 1)  // Generate monthly time variable starting January each year
+xtset indmc ym, monthly
+tsfill, full 
+drop year 
+save MSMMmonth, replace 
+
+use panelf3_temp5, clear 
+merge 1:1 indmc ym using MSMMmonth, nogenerate
+sort indmc ym 
+by indmc: ipolate profit_temp ym, gen(profit) epolate
+foreach var of varlist uibmoney profit proddome prodabroad prodoper {
+        egen `var'_sd=sd(`var')
+        replace `var'=(`var')/`var'_sd
+        drop `var'_sd
+    }
+drop profit_temp
 save panelf3, replace 
+
 
 
 /*********************************************
@@ -584,7 +610,6 @@ DID Regressions
 cd "${path}"
 use panelf3, clear
 xtset indmc ym
-gen Luibmoney=L.uibmoney
 drop if indmc==0    // information for total manufacturing sectors. 
 //drop if indmc==32|indmc==16  // too much fluctuations
 drop if indmc==19  // too few observations
@@ -600,51 +625,54 @@ label var d "T"
 
 label var e9shared "E9SHARE $\times$ D" 
 label var e9chgd "E9CHG $\times$ D" 
-label var Luibmoney "UIB" 
+label var uibmoney "UIB" 
 label var wagefull "Wage(Full)" 
 label var hourfull "Hour(Full)" 
 
 ******* Reduced form
 eststo clear 
-eststo: xtreg theta e9shared Luibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg v e9shared Luibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg vfull e9shared Luibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg vpart e9shared Luibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg numDpartproportion e9shared Luibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg wagefull e9shared Luibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg hourfull e9shared Luibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtreg theta e9shared uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtreg v e9shared uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtreg vfull e9shared uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtreg vpart e9shared uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtreg numDpartproportion e9shared uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtreg wagefull e9shared uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtreg hourfull e9shared uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
 
 esttab * using "tableapril1.tex", ///
     title(\label{tableapril1}) ///
     b(%9.5f) se(%9.5f) ///
     lab se r2 pr2 noconstant replace ///
-    addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
+    star(* 0.10 ** 0.05 *** 0.01) ///
+    addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")
+
 
 ******* IV
 eststo clear 
-eststo: xtivreg theta (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg v (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg vfull (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg vpart (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg numDpartproportion (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg wagefull (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg hourfull (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg theta (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg v (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg vfull (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg vpart (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg numDpartproportion (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg wagefull (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg hourfull (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
 
 esttab * using "tableapril2.tex", ///
     title(\label{tableapril2}) ///
     b(%9.5f) se(%9.5f) ///
     lab se r2 pr2 noconstant replace ///
+    star(* 0.10 ** 0.05 *** 0.01) ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
 
 
 // Find First-stage F statistics. Does not work below Stata version 17
-ivreghdfe theta (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe v (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe vfull (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe vpart (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe numDpartproportion (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe wagefull (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe hourfull (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first
+ivreghdfe theta (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
+ivreghdfe v (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
+ivreghdfe vfull (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
+ivreghdfe vpart (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
+ivreghdfe numDpartproportion (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
+ivreghdfe wagefull (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
+ivreghdfe hourfull (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first
 
 
 ******* Graphs
@@ -656,8 +684,8 @@ graph export TFWsharehourfull716.eps, replace
 
 ******* IV (Robustness Check)
 eststo clear 
-eststo: xtivreg theta_alter (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg v_alter (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg theta_alter (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xtivreg v_alter (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
 esttab * using "tableapril4.tex", ///
     title(\label{tableapril4}) ///
     b(%9.3f) se(%9.3f) ///
@@ -665,8 +693,8 @@ esttab * using "tableapril4.tex", ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
 
 // Find First-stage F statistics. Does not work below Stata version 16
-ivreghdfe theta_alter (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe v_alter (e9chgd=e9shared) Luibmoney proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
+ivreghdfe theta_alter (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
+ivreghdfe v_alter (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
 
 
 
@@ -695,7 +723,7 @@ capture program drop contdidreg
 program contdidreg 
 args i j
     preserve
-            xtreg `i' e9sharedum1-e9sharedum71 e9sharedum73-e9sharedum104 i.ym proddome prodabroad prodoper uibmoney, fe vce(cluster indmc) 
+            xtreg `i' e9sharedum1-e9sharedum71 e9sharedum73-e9sharedum104 i.ym profit proddome prodabroad prodoper uibmoney, fe vce(cluster indmc) 
             mat b2=e(b)'
             mat b=b2[1..71,1]\0\b2[72..103,1]   
             mat v2=vecdiag(e(V))'
@@ -826,7 +854,7 @@ capture program drop contdidreg2
 program contdidreg2
 args i j
     preserve
-            xtreg `i' e9sharedum1-e9sharedum71 e9sharedum73-e9sharedum104 i.ym proddome prodabroad prodoper uibmoney, fe vce(cluster indmc)
+            xtreg `i' e9sharedum1-e9sharedum71 e9sharedum73-e9sharedum104 i.ym profit proddome prodabroad prodoper uibmoney, fe vce(cluster indmc)
             mat b2=e(b)'
             mat b=b2[1..71,1]\0\b2[72..103,1]   
             mat v2=vecdiag(e(V))'
@@ -894,7 +922,7 @@ program LPDID
             replace d=1 if 720<=ym&ym<=729    // 752 = 2022m09, 769 = 2024m02
             drop if d==.
             gen e9shared=e9share*d
-            xtreg Fv e9shared proddome prodabroad prodoper uibmoney, fe vce(cluster indmc)
+            xtreg Fv e9shared profit proddome prodabroad prodoper uibmoney, fe vce(cluster indmc)
         restore
         replace LP = _b[e9shared] if _n==`h'+1
         replace ub = _b[e9shared] + 1.645* _se[e9shared] if _n==`h'+1
