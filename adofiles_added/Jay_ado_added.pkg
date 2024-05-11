@@ -1,3 +1,10 @@
-begin Jay_ado_added.pkg
-    alarmplay.ado
-end Jay_ado_added.pkg
+v 3
+d 'Jay_ado_added': Jay Jeong's ado files
+d 
+d Distribution-Date:   20240511
+d License: Academic Free License v3.0
+d 
+F alarmplay.ado
+
+
+
