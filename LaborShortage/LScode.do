@@ -48,7 +48,7 @@ set scheme s1color, perm
 /*********************************************
 *********************************************/
 * NEED TO SET YOUR PREFERRED PATH
-global path="C:\Users\acube\Dropbox\Study\UC Davis\Writings\Labor Shortage\test 240510"   
+global path="C:\Users\acube\Dropbox\Study\UC Davis\Writings\Labor Shortage\test240524"   
 /*********************************************
 *********************************************/
 cd "${path}"
@@ -922,7 +922,7 @@ program LPDID
             replace d=1 if 720<=ym&ym<=729    // 752 = 2022m09, 769 = 2024m02
             drop if d==.
             gen e9shared=e9share*d
-            xtreg Fv e9shared profit proddome prodabroad prodoper uibmoney, fe vce(cluster indmc)
+            xtreg Fv e9shared profit proddome prodabroad prodoper uibmoney i.ym, fe vce(cluster indmc)
         restore
         replace LP = _b[e9shared] if _n==`h'+1
         replace ub = _b[e9shared] + 1.645* _se[e9shared] if _n==`h'+1
