@@ -40,7 +40,7 @@ https://www.index.go.kr/potal/main/EachDtlPageDetail.do?idx_cd=1068 (opened to p
 
 *********************************************/
 
-** LScode ver16.3.do
+** LScode ver16.5.do
 cls
 clear all
 set scheme s1color, perm 
@@ -48,7 +48,7 @@ set scheme s1color, perm
 /*********************************************
 *********************************************/
 * NEED TO SET YOUR PREFERRED PATH
-global path="C:\Users\acube\Dropbox\Study\UC Davis\Writings\Labor Shortage\test240524"   
+global path="C:\Users\acube\ubuzuz Dropbox\J J\Study\UC Davis\Writings\Labor Shortage\test240524"   
 /*********************************************
 *********************************************/
 cd "${path}"
