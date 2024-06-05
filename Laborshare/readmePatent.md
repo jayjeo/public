@@ -3,7 +3,7 @@
 
 # Instructions for Patent related works. 
 
-##### VERSION CONTROLS:
+### VERSION CONTROLS:
 Developed under Python 3.10.9
 
 For Windows, open Command Prompt (cmd) or PowerShell, and type these lines. 
@@ -26,11 +26,11 @@ pip install typing==3.7.4.3
 pip install matplotlib==3.9.0
 ```
 
-##### IMPORTANT NOTES:
+### IMPORTANT NOTES:
 Read NOTES 1 through 3 for a faster way. In the meantime, I will share the final data files generated at each step. Therefore, if you want to skip the tedious processes, you can simply download the files from the provided link: 
 [https://www.dropbox.com/scl/fo/jmbbjgw6hda3bn30abhv1/AGQ73nI4rysYXWC_rN2fjXE?rlkey=y5vnz4k3xl08j8oyomxypv2h4&st=qtfojwl7&dl=0](https://www.dropbox.com/scl/fo/jmbbjgw6hda3bn30abhv1/AGQ73nI4rysYXWC_rN2fjXE?rlkey=y5vnz4k3xl08j8oyomxypv2h4&st=qtfojwl7&dl=0)
 
-##### GENERAL STEPS:
+### GENERAL STEPS:
 1) Generate three folders: DownloadXML, SplitXML, and ExtractedXML.   <<< These folders should be already made. 
 
 2) Execute "downloadZIP.py"    <<< This takes about a day. 
@@ -64,14 +64,14 @@ Read NOTES 1 through 3 for a faster way. In the meantime, I will share the final
 
 14) Execute remaining do files that appears in master.do
 
-##### NOTES 1:
+### NOTES 1:
   * Using OpenAI's embedding is fast because it does not depend on the performance of your local computer's GPU (it relies directly on OpenAI's servers). This means you can execute Step 10 using your local computer. In contrast, Microsoft's embedding (Step 7) depends directly on your computer's hardware specifications. Thus, it can be very slow if your computer has low GPU specifications. 
 
   * To address this issue, you may consider using a GPU server cloud rental service, such as TensorDock or RunPod. I recommend TensorDock for its reliability and faster staff replies. Meanwhile, both servers are more affordable than other cloud services.
 
   * In general, embedding tasks are heavily dependent on GPUs, and the calculation of the cosine similarity score relies primarily on the CPU. Therefore, when you are working on the embedding part (or the cosine similarity score part), it is advisable to use a computer with a large number of GPUs (or CPUs). Typically, a personal computer has one CPU and one GPU, which will make the work extremely slow.
 
-##### NOTES 2:
+### NOTES 2:
 To save time on Step 7, you can follow the procedure below. Normally, Step 7 takes about 28 days, but the following method only requires about 36 hours.
 
 7A) Complete Step 7 using a server with GPU (recommend at least AMD EPYC 7513 vCPUs (18 CPUs) / 80 GB RAM / A100 SXM4 80GB (1 GPU)) until the following four files are present in your working directory: patent_embeddings.npy, soc_embeddings.npy, filtered_df.pkl, soc_df.pkl. This process takes about 24 hours. 
@@ -82,7 +82,7 @@ If you run MatchSOC_Microsoft.py from Step 7 on this server, the expected proces
 
 7C) Download the generated data files (1001 files) from the server to your local computer in your working directory. The resulting dataset is provided in Dropbox link. 
 
-##### NOTES 3:
+### NOTES 3:
 To save time on Step 10, you can follow the procedure below. Normally, Step 10 takes about 10 days, but the following method only requires about 2 days. 
 
 10A) Use a CPU cloud server (not a GPU) to execute MatchSOC_OpenAI_server.py. In MatchSOC_OpenAI_server.py, you should set correct OpenAI api key, and adjust the number of CPUs available in your server using code line 121 (max_workers: int = 100). For instance, it is set as 100. I recommend using TensorDock with the same speficiations explained above (Step 7B). 
@@ -93,7 +93,7 @@ Unlike Step 7A, described above, utilizing the OpenAI method does not require GP
 
 10B) Download the generated data files (1001 files) from the server to your local computer in your working directory. The resulting dataset is provided in Dropbox link. 
 
-##### NOTES 4:
+### NOTES 4:
   * In the meantime, I recommend using the "screen" program for Python. After installing it with "pip install screen", you can type "screen" to use it. This program allows you to reconnect to the server without losing currently running Python script when your local computer abruptly disconnects from the server. You can resume your Python execution by typing "screen -r 12345", where 12345 is your PID. PID can be found by typing "screen -ls". For instance, 12345.pts-0.hostname.
 
   * Additionally, I recommend using WinSCP if your local computer runs a Windows system. WinSCP allows for easy and stable uploads and downloads of extremely large data files. It also enables you to resume uploads and downloads if your local computer experiences an unfortunate disconnection from the server.
