@@ -5,6 +5,7 @@
 - [Overview of Required Datasets](#overview-of-required-datasets)
         - [Public access is permitted with appropriate citation.:](#public-access-is-permitted-with-appropriate-citation)
         - [The datasets listed below are not available for public access.](#the-datasets-listed-below-are-not-available-for-public-access)
+- [Instructions for Patent related works.](#instructions-for-patent-related-works)
 - [Replication codes and data are provided for reference (Downloading them is not required for this paper).](#replication-codes-and-data-are-provided-for-reference-downloading-them-is-not-required-for-this-paper)
 
 # Most Recent Paper
@@ -37,13 +38,10 @@
     * Accessing this dataset necessitates the purchase of the IFR data, a process that typically takes a few days.
     * We are utilizing the 2023 release of this dataset.
     * After downloading, please save the file in the /Secured folder within the current directory. The file should be named 'IFRdata.csv'.
-  * CompNet:
-    * This dataset is freely accessible to the public upon submission of a proper application, however, its redistribution is strictly prohibited.
-    * Access to this dataset necessitates an application for data permission, which is typically processed within approximately one week.
-    * We are utilizing the 8th Round version of the dataset.
-      * Manually download the 8th Round of the Comp-Net file, which is named 'unconditional_industry2d_all_unweighted.'
-      * After downloading, please save the file in the /Secured folder located within the current directory. The file should be named 'unconditional_industry2d_all_unweighted.dta'.
 
+# Instructions for Patent related works. 
+  * Follow this link: [https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md](https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md)
+  
 # Replication codes and data are provided for reference (Downloading them is not required for this paper). 
 * Gutiérrez, G., & Piton, S. (2020). Revisiting the global decline of the (non-housing) labor share. American Economic Review: Insights, 2(3), 321–338.
 https://www.aeaweb.org/articles?id=10.1257/aeri.20190285
