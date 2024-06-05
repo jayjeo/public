@@ -7,6 +7,7 @@
 Developed under Python 3.10.9
 
 For Windows, open Command Prompt (cmd) or PowerShell, and type these lines. 
+```
 pip install openai==1.30.1
 pip install numpy==1.26.4
 pip install pandas==2.2.2
@@ -23,6 +24,7 @@ pip install Pool==0.1.2
 pip install cpu_count==1.0.0
 pip install typing==3.7.4.3
 pip install matplotlib==3.9.0
+```
 
 ##### IMPORTANT NOTES:
 Read NOTES 1 through 3 for a faster way. In the meantime, I will share the final data files generated at each step. Therefore, if you want to skip the tedious processes, you can simply download the files from the provided link: 
