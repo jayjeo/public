@@ -53,7 +53,6 @@
   * Additionally, you will not need to purchase IFR data, which costs about $3,000. 
   * This public release complies with the data protection agreements mandated by the EU-LFS and IFR, as it only contains aggregated information, not detailed data.
 
-
 # Instructions for Patent related works. 
   * Follow this link: [https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md](https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md)
   
