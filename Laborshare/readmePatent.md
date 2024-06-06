@@ -56,7 +56,7 @@ Read NOTES 1 through 3 for a faster way. In the meantime, I will share the final
 <<< This process takes 10 days under the condition of my personal computer: INTEL i5-13500 (1 CPU) / 32 GB RAM / Nvidia RTX4070 12GB (1 GPU)
 
 11) Execute filter_top_scores_OpenAI.py. This gives you final_similarityresults_OpenAI.dta
-<<< "filter_top_scores_OpenAI.py" works well with 100 CPUs but may not function correctly with only 1 CPU. The code needs to be modified accordingly for single CPU usage.
+<<< "filter_top_scores_OpenAI.py" works well with 100 CPUs but may not function correctly with only 1 CPU. The code needs to be modified accordingly for single CPU usage. I do not provide this code.
 
 12) Steps 10 and 11 require about 150GB free disk space. Alternatively, you can skip Steps 10 and 11, and you can just download the final result from my Dropbox link. This gives you final_similarityresults_OpenAI.dta
 
