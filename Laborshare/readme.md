@@ -43,9 +43,9 @@
 - However, it is possible to replicate "regression.do", "accounting.do", "elasticity.do". 
 ```
   * The final datasets that are eventually required to process "regression.do", "accounting.do", "elasticity.do" are provided in the link below. 
-    * Specifically, you can replicate the "regression.do" file starting from code line 313 onwards.
-    * Specifically, you can replicate the "accounting.do" file starting from code line 130 onwards.
-    * Specifically, you can replicate the "elasticity.do" file starting from code line 18 onwards.
+    * Specifically, you can replicate the "regression.do" file starting from code line 320 onwards.
+    * Specifically, you can replicate the "accounting.do" file starting from code line 136 onwards.
+    * Specifically, you can replicate the "elasticity.do" file starting from code line 20 onwards.
   * Please download all files located in the folder named "Eventually required datasets".
   * https://www.dropbox.com/scl/fo/jmbbjgw6hda3bn30abhv1/AGQ73nI4rysYXWC_rN2fjXE?rlkey=y5vnz4k3xl08j8oyomxypv2h4&st=qtfojwl7&dl=0
   * By downloading this data, you can bypass the entire process before "regression.do", "accounting.do", "elasticity.do". 
