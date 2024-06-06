@@ -24,6 +24,7 @@ pip install Pool==0.1.2
 pip install cpu_count==1.0.0
 pip install typing==3.7.4.3
 pip install matplotlib==3.9.0
+pip install bs4==0.0.2
 ```
 
 ### IMPORTANT NOTES:
