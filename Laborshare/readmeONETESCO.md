@@ -27,6 +27,7 @@ pip install matplotlib==3.9.0
 pip install bs4==0.0.2
 pip install openpyxl==3.1.3
 pip install psutil==5.9.8
+pip install pyreadstat==1.2.7
 ```
 
 ### NOTES:
