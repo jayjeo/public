@@ -43,7 +43,7 @@
 ```diff
 - However, it is possible to replicate "regression.do", "accounting.do", "elasticity.do". 
 ```
-  * The final datasets that are eventually required to process "regression.do", "accounting.do", "elasticity.do" are provided in the link below. 
+  * The final datasets required for processing 'regression.do', 'accounting.do', and 'elasticity.do' are provided in the link below.
     * Specifically, you can replicate the "regression.do" file starting from code line 320 onwards.
     * Specifically, you can replicate the "accounting.do" file starting from code line 140 onwards.
     * Specifically, you can replicate the "elasticity.do" file starting from code line 20 onwards.
