@@ -30,6 +30,9 @@ pip install psutil==5.9.8
 pip install pyreadstat==1.2.7
 ```
 
+### STEPS:
+  * Sequentially follow the steps explained in the "ESCO vs ONET comparison" section in master.do.
+
 ### NOTES:
   * These codes use the embedding feature recently developed by Microsoft.
   * Utilizing the OpenAI embedding method does not require GPU computing power, as it employs the server API from OpenAI, which is closed-source. In contrast, the Microsoft method uses an open-source embedding feature that operates directly on your computer without relying on Microsoft's servers. This independence from Microsoft's servers is beneficial, but the downside is that computing speed crucially depends on your own computing power. This is why this code requires a powerful GPU.  
@@ -38,5 +41,4 @@ pip install pyreadstat==1.2.7
     *  I recommend using a server provided by TensorDock as it is relatively cheap, very reliable, and the staff feedback is fast and good.
   * If a private local computer with one CPU cannot handle this code, modify it accordingly, especially by not using multiprocessing and instead using the threading feature.
 
-### STEPS:
-  * Sequentially follow the steps explained in the "ESCO vs ONET comparison" section in master.do.
+
