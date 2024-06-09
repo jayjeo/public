@@ -1,7 +1,7 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [Most Recent Paper](#most-recent-paper)
-- [General instructions for Running the Code](#general-instructions-for-running-the-code)
+- [General instructions for running the entire codes.](#general-instructions-for-running-the-entire-codes)
 - [Specific instructions for the comparison between ONET and ESCO.](#specific-instructions-for-the-comparison-between-onet-and-esco)
 - [Specific instructions for Patent related works.](#specific-instructions-for-patent-related-works)
 - [Overview of Required Datasets](#overview-of-required-datasets)
@@ -12,7 +12,7 @@
 # Most Recent Paper
   * [Automation, Human Task Innovation, and Labor Share: Unveiling the Role of Elasticity of Substitution](https://github.com/ubuzuz/public/blob/main/LaborShare/Automation_Human_Task_Innovation_and_Labor_Share.pdf)
 
-# General instructions for Running the Code
+# General instructions for running the entire codes.
   * Begin by downloading the files using [this link](https://www.dropbox.com/scl/fo/1pp7avt06esszoz1fju2b/AFS-SxHLbvrlEdmdIulogEE?rlkey=fvszr2ab7igw83xr7pd51vn2u&st=9ss50nq6&dl=0)
     * The files in this link has been verified and are free from viruses and malware.
     * Please be aware that initializing the download may take some time due to the large size of the file.
