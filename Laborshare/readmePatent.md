@@ -1,7 +1,7 @@
 # General Instructions for Entire Paper.
   * [https://github.com/jayjeo/public/blob/main/Laborshare/readme.md](https://github.com/jayjeo/public/blob/main/Laborshare/readme.md)
 
-# Instructions for Patent related works. 
+# Instructions for patent related works. 
 
 ### VERSION CONTROLS:
 Developed under Python 3.10.9

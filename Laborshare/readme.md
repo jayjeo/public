@@ -3,7 +3,7 @@
 - [Most Recent Paper](#most-recent-paper)
 - [General instructions for running the entire codes.](#general-instructions-for-running-the-entire-codes)
 - [Specific instructions for the comparison between ONET and ESCO.](#specific-instructions-for-the-comparison-between-onet-and-esco)
-- [Specific instructions for Patent related works.](#specific-instructions-for-patent-related-works)
+- [Specific instructions for patent related works.](#specific-instructions-for-patent-related-works)
 - [Overview of Required Datasets](#overview-of-required-datasets)
         - [Public access is permitted with appropriate citation.:](#public-access-is-permitted-with-appropriate-citation)
         - [The datasets listed below are not available for public access.](#the-datasets-listed-below-are-not-available-for-public-access)
@@ -21,7 +21,7 @@
 # Specific instructions for the comparison between ONET and ESCO. 
   * Follow this link: [https://github.com/jayjeo/public/blob/main/Laborshare/readmeONETESCO.md](https://github.com/jayjeo/public/blob/main/Laborshare/readmeONETESCO.md)
   
-# Specific instructions for Patent related works. 
+# Specific instructions for patent related works. 
   * Follow this link: [https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md](https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md)
 
 # Overview of Required Datasets
