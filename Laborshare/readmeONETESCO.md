@@ -46,5 +46,5 @@ pip install pyreadstat==1.2.7
   * I used a server with 100 CPUs and a special GPU as described below. I cannot guarantee that a personal local computer with one CPU can handle this code, but it may work well.
     *  AMD EPYC 7742 vCPUs (100 CPUs), A100 SXM4 80 GB (1 GPU), 340 GB RAM
     *  I recommend using a server provided by TensorDock as it is relatively cheap, very reliable, and the staff feedback is fast and good.
-  * If a private local computer with one CPU cannot handle this code, modify it accordingly, especially by not using multiprocessing and instead using the threading feature.
+  * If a personal local computer with one CPU cannot handle this code, modify it accordingly, especially by not using multiprocessing and instead using the threading feature.
 
