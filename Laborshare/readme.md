@@ -1,9 +1,9 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [Most Recent Paper](#most-recent-paper)
-- [Instructions for Running the Code](#instructions-for-running-the-code)
-- [Instructions for the comparison between ONET and ESCO by using embedding feature.](#instructions-for-the-comparison-between-onet-and-esco-by-using-embedding-feature)
-- [Instructions for Patent related works.](#instructions-for-patent-related-works)
+- [General instructions for Running the Code](#general-instructions-for-running-the-code)
+- [Specific instructions for the comparison between ONET and ESCO by using embedding feature.](#specific-instructions-for-the-comparison-between-onet-and-esco-by-using-embedding-feature)
+- [Specific instructions for Patent related works.](#specific-instructions-for-patent-related-works)
 - [Overview of Required Datasets](#overview-of-required-datasets)
         - [Public access is permitted with appropriate citation.:](#public-access-is-permitted-with-appropriate-citation)
         - [The datasets listed below are not available for public access.](#the-datasets-listed-below-are-not-available-for-public-access)
@@ -11,16 +11,17 @@
 
 # Most Recent Paper
   * [Automation, Human Task Innovation, and Labor Share: Unveiling the Role of Elasticity of Substitution](https://github.com/ubuzuz/public/blob/main/LaborShare/Automation_Human_Task_Innovation_and_Labor_Share.pdf)
-# Instructions for Running the Code
+
+# General instructions for Running the Code
   * Begin by downloading the files using [this link](https://www.dropbox.com/scl/fo/1pp7avt06esszoz1fju2b/AFS-SxHLbvrlEdmdIulogEE?rlkey=fvszr2ab7igw83xr7pd51vn2u&st=9ss50nq6&dl=0)
     * The files in this link has been verified and are free from viruses and malware.
     * Please be aware that initializing the download may take some time due to the large size of the file.
   * After the download is complete, execute the file named 'master.do'.
 
-# Instructions for the comparison between ONET and ESCO by using embedding feature. 
+# Specific instructions for the comparison between ONET and ESCO by using embedding feature. 
   * Follow this link: [https://github.com/jayjeo/public/blob/main/Laborshare/readmeONETESCO.md](https://github.com/jayjeo/public/blob/main/Laborshare/readmeONETESCO.md)
   
-# Instructions for Patent related works. 
+# Specific instructions for Patent related works. 
   * Follow this link: [https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md](https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md)
 
 # Overview of Required Datasets
