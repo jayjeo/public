@@ -37,7 +37,7 @@ pip install pyreadstat==1.2.7
   * Import_ONET_Tasks.py may not work in the future.
     * ESCO provides occupation and task information in a CSV file. Inside this CSV, they only provide HTML links to the ESCO webpage (they do not provide the actual code numbers or task descriptions). To avoid the tedious manual work of copying and pasting by visiting each link in each row, this Python code automatically visits the website, captures the necessary information, and stores it in a CSV file.
     * If the HTML structure of the webpage changes, you may need to adjust the parsing logic accordingly. Therefore, this Python code may not work in the future if there is a webpage update by ESCO.
-  * In case the HTML structure has changed and this code does not work, and if you do not want to modify the Python code accordingly, just download the final result of this code from the link below. The final result is stored in a folder named 'ESCO HTML Parsing', so you can skip running this Python code.
+  * In case the HTML structure has changed and this code does not work, and if you do not want to modify the Python code accordingly, just download the final result of this code from the link below. The final result is stored in a folder named 'ESCO HTML Parsing', so you can skip running this Python code, `Import_ONET_Tasks.py'.
     * https://www.dropbox.com/scl/fo/jmbbjgw6hda3bn30abhv1/AGQ73nI4rysYXWC_rN2fjXE?rlkey=y5vnz4k3xl08j8oyomxypv2h4&st=qtfojwl7&dl=0
 
 ### NOTES 2:
