@@ -31,8 +31,8 @@ pip install pyreadstat==1.2.7
 ```
 
 ### IMPORTANT NOTES:
-Read NOTES 1 through 3 for a faster way. In the meantime, I will share the final data files generated at each step. Therefore, if you want to skip the tedious processes, you can simply download the files from the provided link: 
-[https://www.dropbox.com/scl/fo/jmbbjgw6hda3bn30abhv1/AGQ73nI4rysYXWC_rN2fjXE?rlkey=y5vnz4k3xl08j8oyomxypv2h4&st=qtfojwl7&dl=0](https://www.dropbox.com/scl/fo/jmbbjgw6hda3bn30abhv1/AGQ73nI4rysYXWC_rN2fjXE?rlkey=y5vnz4k3xl08j8oyomxypv2h4&st=qtfojwl7&dl=0)
+  * Read NOTES 1 through 3 for a faster way. In the meantime, I will share the final data files generated at each step. Therefore, if you want to skip the tedious processes, you can simply download the files from the provided link: 
+  * [https://www.dropbox.com/scl/fo/jmbbjgw6hda3bn30abhv1/AGQ73nI4rysYXWC_rN2fjXE?rlkey=y5vnz4k3xl08j8oyomxypv2h4&st=qtfojwl7&dl=0](https://www.dropbox.com/scl/fo/jmbbjgw6hda3bn30abhv1/AGQ73nI4rysYXWC_rN2fjXE?rlkey=y5vnz4k3xl08j8oyomxypv2h4&st=qtfojwl7&dl=0)
 
 ### GENERAL STEPS:
 1) Generate three folders: DownloadXML, SplitXML, and ExtractedXML.   <<< These folders should be already made. 
