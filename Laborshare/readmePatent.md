@@ -64,7 +64,7 @@ pip install pyreadstat==1.2.7
   * 10B) Download the generated data files (1001 files) from the server to your local computer in your working directory. The resulting dataset is provided in Dropbox link.
 
 ### GENERAL STEPS:
-1) Generate three folders: DownloadXML, SplitXML, and ExtractedXML.   <<< These folders should be already made. 
+1) Generate three folders: DownloadXML, SplitXML, and ExtractedXML.   <<< These folders should already exist. 
 
 2) Execute "downloadZIP.py"    <<< This takes about a day. 
 
