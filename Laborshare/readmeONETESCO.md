@@ -43,7 +43,7 @@ pip install pyreadstat==1.2.7
 ### NOTES 2:
   * These codes use the embedding feature recently developed by Microsoft.
   * Utilizing the OpenAI embedding method does not require GPU computing power, as it employs the server API from OpenAI, which is closed-source. In contrast, the Microsoft method uses an open-source embedding feature that operates directly on your computer without relying on Microsoft's servers. This independence from Microsoft's servers is beneficial, but the downside is that computing speed crucially depends on your own computing power. This is why this code requires a powerful GPU.  
-  * I used a server with 100 CPUs and a special GPU as described below. I cannot guarantee that a private local computer with one CPU can handle this code, but it may work well.
+  * I used a server with 100 CPUs and a special GPU as described below. I cannot guarantee that a personal local computer with one CPU can handle this code, but it may work well.
     *  AMD EPYC 7742 vCPUs (100 CPUs), A100 SXM4 80 GB (1 GPU), 340 GB RAM
     *  I recommend using a server provided by TensorDock as it is relatively cheap, very reliable, and the staff feedback is fast and good.
   * If a private local computer with one CPU cannot handle this code, modify it accordingly, especially by not using multiprocessing and instead using the threading feature.
