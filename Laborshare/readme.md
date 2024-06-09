@@ -2,11 +2,11 @@
 - [Table of contents](#table-of-contents)
 - [Most Recent Paper](#most-recent-paper)
 - [Instructions for Running the Code](#instructions-for-running-the-code)
+- [Instructions for the comparison between ONET and ESCO by using embedding feature.](#instructions-for-the-comparison-between-onet-and-esco-by-using-embedding-feature)
+- [Instructions for Patent related works.](#instructions-for-patent-related-works)
 - [Overview of Required Datasets](#overview-of-required-datasets)
         - [Public access is permitted with appropriate citation.:](#public-access-is-permitted-with-appropriate-citation)
         - [The datasets listed below are not available for public access.](#the-datasets-listed-below-are-not-available-for-public-access)
-- [Instructions for the comparison between ONET and ESCO by using embedding feature.](#instructions-for-the-comparison-between-onet-and-esco-by-using-embedding-feature)
-- [Instructions for Patent related works.](#instructions-for-patent-related-works)
 - [Replication codes and data are provided for reference (Downloading them is not required for this paper).](#replication-codes-and-data-are-provided-for-reference-downloading-them-is-not-required-for-this-paper)
 
 # Most Recent Paper
@@ -16,6 +16,12 @@
     * The files in this link has been verified and are free from viruses and malware.
     * Please be aware that initializing the download may take some time due to the large size of the file.
   * After the download is complete, execute the file named 'master.do'.
+
+# Instructions for the comparison between ONET and ESCO by using embedding feature. 
+  * Follow this link: [https://github.com/jayjeo/public/blob/main/Laborshare/readmeONETESCO.md](https://github.com/jayjeo/public/blob/main/Laborshare/readmeONETESCO.md)
+  
+# Instructions for Patent related works. 
+  * Follow this link: [https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md](https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md)
 
 # Overview of Required Datasets
 ##### Public access is permitted with appropriate citation.:
@@ -53,12 +59,6 @@
   * In this way, you will not need to secure an official grant for the EU-Labor Force Survey data, which typically requires about two months of paperwork and waiting time. 
   * Additionally, you will not need to purchase IFR data, which costs about $3,000. 
   * This public release complies with the data protection agreements mandated by the EU-LFS and IFR, as it only contains aggregated information, not detailed data.
-
-# Instructions for the comparison between ONET and ESCO by using embedding feature. 
-  * Follow this link: [https://github.com/jayjeo/public/blob/main/Laborshare/readmeONETESCO.md](https://github.com/jayjeo/public/blob/main/Laborshare/readmeONETESCO.md)
-  
-# Instructions for Patent related works. 
-  * Follow this link: [https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md](https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md)
 
 # Replication codes and data are provided for reference (Downloading them is not required for this paper). 
 * Gutiérrez, G., & Piton, S. (2020). Revisiting the global decline of the (non-housing) labor share. American Economic Review: Insights, 2(3), 321–338.
