@@ -34,6 +34,35 @@ pip install pyreadstat==1.2.7
   * Read NOTES 1 through 3 for a faster way. In the meantime, I will share the final data files generated at each step. Therefore, if you want to skip the tedious processes, you can simply download the files from the provided link: 
   * [https://www.dropbox.com/scl/fo/jmbbjgw6hda3bn30abhv1/AGQ73nI4rysYXWC_rN2fjXE?rlkey=y5vnz4k3xl08j8oyomxypv2h4&st=qtfojwl7&dl=0](https://www.dropbox.com/scl/fo/jmbbjgw6hda3bn30abhv1/AGQ73nI4rysYXWC_rN2fjXE?rlkey=y5vnz4k3xl08j8oyomxypv2h4&st=qtfojwl7&dl=0)
 
+### NOTES 1:
+  * Using OpenAI's embedding is fast because it does not depend on the performance of your local computer's GPU (it relies directly on OpenAI's servers). This means you can execute Step 10 using your local computer. In contrast, Microsoft's embedding (Step 7) depends directly on your computer's hardware specifications. Thus, it can be very slow if your computer has low GPU specifications. 
+
+  * To address this issue, you may consider using a GPU server cloud rental service, such as TensorDock or RunPod. I recommend TensorDock for its reliability and faster staff replies. Meanwhile, both servers are more affordable than other cloud services.
+
+  * In general, embedding tasks are heavily dependent on GPUs, while the calculation of the cosine similarity score relies primarily on the CPU. Therefore, when you are working on the embedding part, it is advisable to use a computer with a large number of GPUs. When you are working on the cosine similarity score part, it is advisable to use a computer with a large number of CPUs. Typically, a personal computer has four CPU cores and one GPU, which will make the work extremely slow.
+
+### NOTES 2:
+  * To save time on Step 7, you can follow the procedure below. Normally, Step 7 takes about 28 days, but the following method only requires about 36 hours.
+
+  * 7A) Complete Step 7 using a server with GPU (recommend at least AMD EPYC 7513 vCPUs (18 CPUs) / 80 GB RAM / A100 SXM4 80GB (1 GPU)) until the following four files are present in your working directory: patent_embeddings.npy, soc_embeddings.npy, filtered_df.pkl, soc_df.pkl. This process takes about 24 hours. 
+
+  * 7B) Use a CPU cloud server (not a GPU) to execute MatchSOC_Microsoft_server.py. This process takes about 12 hours. I recommend using TensorDock with the following specifications: Intel Xeon Platinum 8470 vCPUs (100 CPUs), 340GB RAM, 150GB SSD. 
+
+  * If you run MatchSOC_Microsoft.py from Step 7 on this server, the expected processing time would still be around 28 days. This is due to a bottleneck issue found in coding, MatchSOC_Microsoft.py, which cannot utilize 100 CPUs simultaneously. Instead, use MatchSOC_Microsoft_server.py, which has resolved these issues. On the contrary, if you try running MatchSOC_Microsoft_server.py on your local personal computer, the process will likely be terminated automatically. This is because your computer may not meet the code execution requirements of MatchSOC_Microsoft_server.py.
+
+  * 7C) Download the generated data files (1001 files) from the server to your local computer in your working directory. The resulting dataset is provided in Dropbox link. 
+
+### NOTES 3:
+  * To save time on Step 10, you can follow the procedure below. Normally, Step 10 takes about 10 days, but the following method only requires about 2 days. 
+
+  * 10A) Use a CPU cloud server (not a GPU) to execute MatchSOC_OpenAI_server.py. In MatchSOC_OpenAI_server.py, you should set correct OpenAI api key, and adjust the number of CPUs available in your server using code line 121 (max_workers: int = 100). For instance, it is set as 100. I recommend using TensorDock with the same speficiations explained above (Step 7B). 
+
+  * If you run MatchSOC_OpenAI.py on this server, the expected processing time would still be 10 days. This is because MatchSOC_OpenAI.py uses only four CPU cores (max_workers: int = 4) and automatically lowers it if your CPU cores are smaller than four.
+
+  * Unlike Step 7A, described above, utilizing the OpenAI method does not require GPU computing power, as it employs the server API from OpenAI, which is closed-source. In contrast, the Microsoft method (Step 7A) uses an open-source embedding feature that operates directly on your computer without relying on Microsoft's servers. This independence from Microsoft's servers is beneficial, but the downside is that computing speed crucially depends on your own computing power. This is why Step 7B requires a powerful GPU, such as the A100 SXM4 80GB. 
+
+  * 10B) Download the generated data files (1001 files) from the server to your local computer in your working directory. The resulting dataset is provided in Dropbox link.
+
 ### GENERAL STEPS:
 1) Generate three folders: DownloadXML, SplitXML, and ExtractedXML.   <<< These folders should be already made. 
 
@@ -67,35 +96,6 @@ pip install pyreadstat==1.2.7
 13) Execute Compare_OAI_MS.py and Pythonplot_OAI_MS.py for a figure generation.
 
 14) Execute remaining do files that appears in master.do
-
-### NOTES 1:
-  * Using OpenAI's embedding is fast because it does not depend on the performance of your local computer's GPU (it relies directly on OpenAI's servers). This means you can execute Step 10 using your local computer. In contrast, Microsoft's embedding (Step 7) depends directly on your computer's hardware specifications. Thus, it can be very slow if your computer has low GPU specifications. 
-
-  * To address this issue, you may consider using a GPU server cloud rental service, such as TensorDock or RunPod. I recommend TensorDock for its reliability and faster staff replies. Meanwhile, both servers are more affordable than other cloud services.
-
-  * In general, embedding tasks are heavily dependent on GPUs, and the calculation of the cosine similarity score relies primarily on the CPU. Therefore, when you are working on the embedding part (or the cosine similarity score part), it is advisable to use a computer with a large number of GPUs (or CPUs). Typically, a personal computer has one CPU and one GPU, which will make the work extremely slow.
-
-### NOTES 2:
-  * To save time on Step 7, you can follow the procedure below. Normally, Step 7 takes about 28 days, but the following method only requires about 36 hours.
-
-  * 7A) Complete Step 7 using a server with GPU (recommend at least AMD EPYC 7513 vCPUs (18 CPUs) / 80 GB RAM / A100 SXM4 80GB (1 GPU)) until the following four files are present in your working directory: patent_embeddings.npy, soc_embeddings.npy, filtered_df.pkl, soc_df.pkl. This process takes about 24 hours. 
-
-  * 7B) Use a CPU cloud server (not a GPU) to execute MatchSOC_Microsoft_server.py. This process takes about 12 hours. I recommend using TensorDock with the following specifications: Intel Xeon Platinum 8470 vCPUs (100 CPUs), 340GB RAM, 150GB SSD. 
-
-  * If you run MatchSOC_Microsoft.py from Step 7 on this server, the expected processing time would still be around 28 days. This is due to a bottleneck issue found in coding, MatchSOC_Microsoft.py, which cannot utilize 100 CPUs simultaneously. Instead, use MatchSOC_Microsoft_server.py, which has resolved these issues. On the contrary, if you try running MatchSOC_Microsoft_server.py on your local personal computer, the process will likely be terminated automatically. This is because your computer may not meet the code execution requirements of MatchSOC_Microsoft_server.py.
-
-  * 7C) Download the generated data files (1001 files) from the server to your local computer in your working directory. The resulting dataset is provided in Dropbox link. 
-
-### NOTES 3:
-  * To save time on Step 10, you can follow the procedure below. Normally, Step 10 takes about 10 days, but the following method only requires about 2 days. 
-
-  * 10A) Use a CPU cloud server (not a GPU) to execute MatchSOC_OpenAI_server.py. In MatchSOC_OpenAI_server.py, you should set correct OpenAI api key, and adjust the number of CPUs available in your server using code line 121 (max_workers: int = 100). For instance, it is set as 100. I recommend using TensorDock with the same speficiations explained above (Step 7B). 
-
-  * If you run MatchSOC_OpenAI.py on this server, the expected processing time would still be 10 days. This is because MatchSOC_OpenAI.py uses only four CPU cores (max_workers: int = 4) and automatically lowers it if your CPU cores are smaller than four.
-
-  * Unlike Step 7A, described above, utilizing the OpenAI method does not require GPU computing power, as it employs the server API from OpenAI, which is closed-source. In contrast, the Microsoft method (Step 7A) uses an open-source embedding feature that operates directly on your computer without relying on Microsoft's servers. This independence from Microsoft's servers is beneficial, but the downside is that computing speed crucially depends on your own computing power. This is why Step 7B requires a powerful GPU, such as the A100 SXM4 80GB. 
-
-  * 10B) Download the generated data files (1001 files) from the server to your local computer in your working directory. The resulting dataset is provided in Dropbox link. 
 
 ### NOTES 4:
   * In the meantime, I recommend using the "screen" program for Python. After installing it with "pip install screen", you can type "screen" to use it. This program allows you to reconnect to the server without losing currently running Python script when your local computer abruptly disconnects from the server. You can resume your Python execution by typing "screen -r 12345", where 12345 is your PID. PID can be found by typing "screen -ls". For instance, 12345.pts-0.hostname.
