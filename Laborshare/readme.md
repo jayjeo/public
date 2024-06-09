@@ -56,7 +56,7 @@
     * Specifically, you can replicate the "regression.do" file starting from code line 320 onwards.
     * Specifically, you can replicate the "accounting.do" file starting from code line 140 onwards.
     * Specifically, you can replicate the "elasticity.do" file starting from code line 20 onwards.
-  * By downloading this data, you can bypass the entire process before "regression.do", "accounting.do", "elasticity.do". 
+  * By downloading this data, you can bypass the entire process located before "regression.do", "accounting.do", "elasticity.do". 
   * In this way, you will not need to secure an official grant for the EU-Labor Force Survey data, which typically requires about two months of paperwork and waiting time. 
   * Additionally, you will not need to purchase IFR data, which costs about $3,000. 
   * This public release complies with the data protection agreements mandated by the EU-LFS and IFR, as it only contains aggregated information, not detailed data.
