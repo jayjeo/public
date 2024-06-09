@@ -57,9 +57,9 @@
     * Specifically, you can replicate the "accounting.do" file starting from code line 140 onwards.
     * Specifically, you can replicate the "elasticity.do" file starting from code line 20 onwards.
   * By downloading this data, you can bypass the entire process located before "regression.do", "accounting.do", "elasticity.do". 
-  * In this way, you will not need to secure an official grant for the EU-Labor Force Survey data, which typically requires about two months of paperwork and waiting time. 
-  * Additionally, you will not need to purchase IFR data, which costs about $3,000. 
-  * This public release complies with the data protection agreements mandated by the EU-LFS and IFR, as it only contains aggregated information, not detailed data.
+    * In this way, you will not need to secure an official grant for the EU-Labor Force Survey data, which typically requires about two months of paperwork and waiting time. 
+    * Additionally, you will not need to purchase IFR data, which costs about $3,000. 
+    * This public release complies with the data protection agreements mandated by the EU-LFS and IFR, as it only contains aggregated information, not detailed data.
 
 # Replication codes and data are provided for reference (Downloading them is not required for this paper). 
 * Gutiérrez, G., & Piton, S. (2020). Revisiting the global decline of the (non-housing) labor share. American Economic Review: Insights, 2(3), 321–338.
