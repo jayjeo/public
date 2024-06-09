@@ -1,7 +1,7 @@
 # General Instructions for Entire Paper.
   * [https://github.com/jayjeo/public/blob/main/Laborshare/readme.md](https://github.com/jayjeo/public/blob/main/Laborshare/readme.md)
 
-# Instructions for the comparison between ONET and ESCO by using embedding feature. 
+# Instructions for the comparison between ONET and ESCO. 
 
 ### VERSION CONTROLS:
 Developed under Python 3.10.9
