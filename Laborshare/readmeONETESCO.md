@@ -28,13 +28,14 @@ pip install bs4==0.0.2
 pip install openpyxl==3.1.3
 pip install psutil==5.9.8
 pip install pyreadstat==1.2.7
+pip install fuzzywuzzy==0.18.0
 ```
 
 ### STEPS:
   * Sequentially follow the steps explained in the "ESCO vs ONET comparison" section in master.do.
 
 ### NOTES 1:
-  * Import_ONET_Tasks.py may not work in the future.
+  * Import_ESCO_Tasks.py may not work in the future.
     * ESCO provides occupation and task information in a CSV file. Inside this CSV, they only provide HTML links to the ESCO webpage (they do not provide the actual code numbers or task descriptions). To avoid the tedious manual work of copying and pasting by visiting each link in each row, this Python code automatically visits the website, captures the necessary information, and stores it in a CSV file.
     * If the HTML structure of the webpage changes, you may need to adjust the parsing logic accordingly. Therefore, this Python code may not work in the future if there is a webpage update by ESCO.
   * In case the HTML structure has changed and this code does not work, and if you do not want to modify the Python code accordingly, just download the final result of this code from the link below. The final result is stored in a folder named 'ESCO HTML Parsing', so you can skip running this Python code, `Import_ONET_Tasks.py'.
