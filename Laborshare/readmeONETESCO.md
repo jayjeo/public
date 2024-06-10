@@ -48,3 +48,8 @@ pip install pyreadstat==1.2.7
     *  I recommend renting a server provided by TensorDock as it is relatively cheap, reliable, and the staff's feedback is fast.
   * If you desire to use a personal local computer with one CPU but it cannot handle these codes, modify the codes accordingly. Specifically, you will want to avoid using multiprocessing and instead use the threading feature.
 
+### NOTES 3:
+  * I share a final data file generated from ONET_ESCO_Matching.py, the final step. Therefore, if you want to skip the entire processes in "ESCO vs ONET comparison" section, you can simply download the files from the provided link: 
+  * [https://www.dropbox.com/scl/fo/jmbbjgw6hda3bn30abhv1/AGQ73nI4rysYXWC_rN2fjXE?rlkey=y5vnz4k3xl08j8oyomxypv2h4&st=qtfojwl7&dl=0](https://www.dropbox.com/scl/fo/jmbbjgw6hda3bn30abhv1/AGQ73nI4rysYXWC_rN2fjXE?rlkey=y5vnz4k3xl08j8oyomxypv2h4&st=qtfojwl7&dl=0)
+
+
