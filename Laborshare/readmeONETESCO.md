@@ -50,7 +50,7 @@ pip install fuzzywuzzy==0.18.0
   * If you desire to use a personal local computer with one CPU but it cannot handle these codes, modify the codes accordingly. Specifically, you will want to avoid using multiprocessing and instead use the threading feature.
 
 ### NOTES 3:
-  * 'ONET_ESCO_Matching.py' calculates the cosine similarity scores, which primarily rely on the CPU (not the GPU). Therefore, it is advisable to use a computer with a high number of CPUs. Typically, a personal computer has four CPU cores and one GPU, which will make the process slow (but it should not take more than an hour).
+  * 'ONET_ESCO_Matching.py' calculates the cosine similarity scores, which primarily rely on the CPU (not the GPU). Therefore, it is advisable to use a computer with a high number of CPUs. Typically, a personal computer has four CPU cores, which will make the process slow (but it should not take more than an hour).
   * 'ONET_ESCO_Matching.py' utilizes the multiprocessing feature to make the best use of the available number of CPUs in your computer. I checked whether this code works well on a local personal computer with one CPU, and it works well, albeit slowly.
 
 ### NOTES 4:
