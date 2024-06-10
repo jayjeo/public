@@ -43,7 +43,7 @@ pip install fuzzywuzzy==0.18.0
 
 ### NOTES 2:
   * These codes use the embedding feature recently developed by Microsoft.
-    * Utilizing the OpenAI embedding method does not require GPU computing power, as it employs the server API from OpenAI, which is closed-source. In contrast, the Microsoft method uses an open-source embedding feature that operates directly on your computer without relying on Microsoft's servers. This independence from Microsoft's servers is beneficial, but the downside is that computing speed crucially depends on your own computing power. This is why this code requires a powerful GPU.    
+    * Utilizing the OpenAI embedding method does not require GPU computing power, as it employs the server API from OpenAI, which is closed-source. In contrast, the Microsoft method uses an open-source embedding feature that operates directly on your computer without relying on Microsoft's servers. This independence from Microsoft's servers is beneficial, but the downside is that computing speed crucially depends on your own computing power. This is why this code requires a powerful GPU.
   * I used a server with 100 CPUs and a special GPU as described below. I cannot guarantee that a personal local computer with one CPU can handle this code. Fortunately, it may work well.
     *  AMD EPYC 7742 vCPUs (100 CPUs), A100 SXM4 80 GB (1 GPU), 340 GB RAM
     *  I recommend renting a server provided by TensorDock as it is relatively cheap, reliable, and the staff's feedback is fast.
