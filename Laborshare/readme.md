@@ -2,7 +2,6 @@
 - [Table of contents](#table-of-contents)
 - [Most Recent Paper](#most-recent-paper)
 - [General instructions for running the entire codes.](#general-instructions-for-running-the-entire-codes)
-- [Specific instructions for the comparison between ONET and ESCO.](#specific-instructions-for-the-comparison-between-onet-and-esco)
 - [Specific instructions for patent related works.](#specific-instructions-for-patent-related-works)
 - [Overview of Required Datasets](#overview-of-required-datasets)
         - [Public access is permitted with appropriate citation.:](#public-access-is-permitted-with-appropriate-citation)
@@ -18,9 +17,6 @@
     * Please be aware that initializing the download may take some time due to the large size of the file.
   * After the download is complete, execute the file named 'master.do'.
 
-# Specific instructions for the comparison between ONET and ESCO. 
-  * Follow this link: [https://github.com/jayjeo/public/blob/main/Laborshare/readmeONETESCO.md](https://github.com/jayjeo/public/blob/main/Laborshare/readmeONETESCO.md)
-  
 # Specific instructions for patent related works. 
   * Follow this link: [https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md](https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md)
 
