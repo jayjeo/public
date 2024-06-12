@@ -60,11 +60,11 @@ pip install pyreadstat==1.2.7
 
 6) Alternatively, you can skip Steps 1 through 5 to save time. You can just download finalized Stata dta file from my Dropbox link. This gives you Industryfound_patents.dta.
 
-7A) Execute 'MatchSOC_Microsoft.py' using a server with GPU (recommend at least AMD EPYC 7513 vCPUs (18 CPUs) / 80 GB RAM / A100 SXM4 80GB (1 GPU)) until the following four files are present in your working directory: patent_embeddings.npy, soc_embeddings.npy, filtered_df.pkl, soc_df.pkl. 
+7) (7A) Execute 'MatchSOC_Microsoft.py' using a server with GPU (recommend at least AMD EPYC 7513 vCPUs (18 CPUs) / 80 GB RAM / A100 SXM4 80GB (1 GPU)) until the following four files are present in your working directory: patent_embeddings.npy, soc_embeddings.npy, filtered_df.pkl, soc_df.pkl. 
   * This process takes about 24 hours. This step takes about 28 days if you use your personal computer such as INTEL i5-13500 (1 CPU) / 32 GB RAM / Nvidia RTX4070 12GB (1 GPU). 
   * This code does embedding tasks using Microsoft open source and calculates similarity scores based on these embedded vectors. 
 
-7B) Use a CPU cloud server (not a GPU) to execute MatchSOC_Microsoft_server.py. This process takes about 12 hours. 
+7) (7B) Use a CPU cloud server (not a GPU) to execute MatchSOC_Microsoft_server.py. This process takes about 12 hours. 
   * I recommend using TensorDock with the following specifications: Intel Xeon Platinum 8470 vCPUs (100 CPUs), 340GB RAM, 150GB SSD. 
   * If your server has both good CPUs and GPU, then you can execute Step 7A and 7B in the same server. 
   * If you run MatchSOC_Microsoft.py on this server for Step 7B, the expected processing time would still be around 28 days. This is due to a bottleneck issue found in coding, MatchSOC_Microsoft.py, which cannot utilize 100 CPUs simultaneously. Instead, use MatchSOC_Microsoft_server.py, which has resolved these issues. On the contrary, if you try running MatchSOC_Microsoft_server.py on your local personal computer, the process will likely be terminated automatically. This is because your computer may not meet the code execution requirements of MatchSOC_Microsoft_server.py.
