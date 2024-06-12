@@ -44,13 +44,15 @@ pip install pyreadstat==1.2.7
 ### NOTES 2:
   * To save time on Step 7, you can follow the procedure below. Normally, Step 7 takes about 28 days, but the following method only requires about 36 hours.
 
-  * 7A) Complete Step 7 using a server with GPU (recommend at least AMD EPYC 7513 vCPUs (18 CPUs) / 80 GB RAM / A100 SXM4 80GB (1 GPU)) until the following four files are present in your working directory: patent_embeddings.npy, soc_embeddings.npy, filtered_df.pkl, soc_df.pkl. This process takes about 24 hours. 
+  * 7A) Complete Step 7 (MatchSOC_Microsoft.py) using a server with GPU (recommend at least AMD EPYC 7513 vCPUs (18 CPUs) / 80 GB RAM / A100 SXM4 80GB (1 GPU)) until the following four files are present in your working directory: patent_embeddings.npy, soc_embeddings.npy, filtered_df.pkl, soc_df.pkl. This process takes about 24 hours. 
 
-  * 7B) Use a CPU cloud server (not a GPU) to execute MatchSOC_Microsoft_server.py. This process takes about 12 hours. I recommend using TensorDock with the following specifications: Intel Xeon Platinum 8470 vCPUs (100 CPUs), 340GB RAM, 150GB SSD. 
+  * 7B) Use a CPU cloud server (not a GPU) to execute MatchSOC_Microsoft_server.py. This process takes about 12 hours. I recommend using TensorDock with the following specifications: Intel Xeon Platinum 8470 vCPUs (100 CPUs), 340GB RAM, 150GB SSD. If your server has both good CPUs and GPU, then you can execute Step 7A and 7B in the same server. 
 
   * If you run MatchSOC_Microsoft.py from Step 7 on this server, the expected processing time would still be around 28 days. This is due to a bottleneck issue found in coding, MatchSOC_Microsoft.py, which cannot utilize 100 CPUs simultaneously. Instead, use MatchSOC_Microsoft_server.py, which has resolved these issues. On the contrary, if you try running MatchSOC_Microsoft_server.py on your local personal computer, the process will likely be terminated automatically. This is because your computer may not meet the code execution requirements of MatchSOC_Microsoft_server.py.
 
   * 7C) Download the generated data files (1001 files) from the server to your local computer in your working directory. The resulting dataset is provided in Dropbox link. 
+
+  * 7D) Resume Step 8 in any computer.   
 
 ### NOTES 3:
   * To save time on Step 10, you can follow the procedure below. Normally, Step 10 takes about 10 days, but the following method only requires about 2 days. 
@@ -61,7 +63,7 @@ pip install pyreadstat==1.2.7
 
   * Unlike Step 7A, described above, utilizing the OpenAI method does not require GPU computing power, as it employs the server API from OpenAI, which is closed-source. In contrast, the Microsoft method (Step 7A) uses an open-source embedding feature that operates directly on your computer without relying on Microsoft's servers. This independence from Microsoft's servers is beneficial, but the downside is that computing speed crucially depends on your own computing power. This is why Step 7B requires a powerful GPU, such as the A100 SXM4 80GB. 
 
-  * 10B) Download the generated data files (1001 files) from the server to your local computer in your working directory. The resulting dataset is provided in Dropbox link.
+  * 10B) Download the generated data files (1001 files) from the server to your local computer in your working directory.
 
 ### GENERAL STEPS:
 0) Follow Steps 1 through 5 in your personal computer. From Step 7, you may begin using a server. 
