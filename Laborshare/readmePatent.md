@@ -66,11 +66,11 @@ pip install pyreadstat==1.2.7
 ### GENERAL STEPS:
 1) Generate three folders: DownloadXML, SplitXML, and ExtractedXML.   <<< These folders should already exist. 
 
-2) Execute "downloadZIP.py"    <<< This takes about a day. 
+2) Execute "downloadZIP.py"    <<< This takes about few hours. 
 
 3) After downloading is finished, unzip all the files into a folder named DownloadXML. 
 
-4) Execute "parser master.py"   <<< This takes about three days. 
+4) Execute "parser_master.py"   <<< This takes about three days. 
 "Skipped: due to missing patent number or IPC information" is a part of the natural process. It is not error.
 
 5) Execute "MatchIndustry.py"
@@ -81,6 +81,7 @@ pip install pyreadstat==1.2.7
 <<< This process takes about 28 days under the condition of my local personal computer: INTEL i5-13500 (1 CPU) / 32 GB RAM / Nvidia RTX4070 12GB (1 GPU)
 
 8) Execute filter_top_scores_Microsoft.py. This gives you final_similarityresults_Microsoft.dta. 
+<<< Enter your actual number of chunks in Line 37
 <<< "filter_top_scores_Microsoft.py" works well with 100 CPUs but may not function correctly with only 1 CPU. The code needs to be modified accordingly for single CPU usage. I do not provide this code. 
 
 9) Steps 7 and 8 require about 150GB free disk space. Alternatively, you can skip Steps 7 and 8, and you can just download the final result from my Dropbox link. This gives you final_similarityresults_Microsoft.dta
@@ -89,6 +90,7 @@ pip install pyreadstat==1.2.7
 <<< This process takes 10 days under the condition of my personal computer: INTEL i5-13500 (1 CPU) / 32 GB RAM / Nvidia RTX4070 12GB (1 GPU)
 
 11) Execute filter_top_scores_OpenAI.py. This gives you final_similarityresults_OpenAI.dta
+<<< Enter your actual number of chunks in Line 37
 <<< "filter_top_scores_OpenAI.py" works well with 100 CPUs but may not function correctly with only 1 CPU. The code needs to be modified accordingly for single CPU usage. I do not provide this code.
 
 12) Steps 10 and 11 require about 150GB free disk space. Alternatively, you can skip Steps 10 and 11, and you can just download the final result from my Dropbox link. This gives you final_similarityresults_OpenAI.dta
