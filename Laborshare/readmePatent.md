@@ -95,7 +95,7 @@ pip install pyreadstat==1.2.7
 
 14) Execute remaining do files that appears in master.do
 
-### NOTES:
+### NOTES 2:
   * In the meantime, I recommend using the "screen" program for Python. After installing it with "pip install screen", you can type "screen" to use it. This program allows you to reconnect to the server without losing currently running Python script when your local computer abruptly disconnects from the server. You can resume your Python execution by typing "screen -r 12345", where 12345 is your PID. PID can be found by typing "screen -ls". For instance, 12345.pts-0.hostname.
 
   * Additionally, I recommend using WinSCP if your local computer runs a Windows system. WinSCP allows for easy and stable uploads and downloads of extremely large data files. It also enables you to resume uploads and downloads if your local computer experiences an unfortunate disconnection from the server.
