@@ -49,12 +49,12 @@
   * The final datasets required for processing 'regression.do', 'accounting.do', and 'elasticity.do' are provided in the link below.
     * Please download all files located in the folder named "Eventually required datasets".
     * https://www.dropbox.com/scl/fo/jmbbjgw6hda3bn30abhv1/AGQ73nI4rysYXWC_rN2fjXE?rlkey=y5vnz4k3xl08j8oyomxypv2h4&st=qtfojwl7&dl=0
-    * Specifically, you can replicate the "regression.do" file starting from code line 320 onwards.
-    * Specifically, you can replicate the "accounting.do" file starting from code line 140 onwards.
+    * Specifically, you can replicate the "regression.do" file starting from code line 264 onwards.
+    * Specifically, you can replicate the "accounting.do" file starting from code line 38 onwards.
     * Specifically, you can replicate the "elasticity.do" file starting from code line 20 onwards.
   * By downloading this data, you can bypass the entire process located before "regression.do", "accounting.do", "elasticity.do". 
     * In this way, you will not need to secure an official grant for the EU-Labor Force Survey data, which typically requires about two months of paperwork and waiting time. 
-    * Additionally, you will not need to purchase IFR data, which costs about $3,000. 
+    * Additionally, you will not need to purchase IFR data, which costs about $2,400. 
     * This public release complies with the data protection agreements mandated by the EU-LFS and IFR, as it only contains aggregated information, not detailed data.
 
 # Replication codes and data are provided for reference (Downloading them is not required for this paper). 
