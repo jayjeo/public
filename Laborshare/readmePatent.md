@@ -91,7 +91,7 @@ pip install pyreadstat==1.2.7
 
 12) Steps 10 and 11 require about 150GB free disk space. Alternatively, you can skip Steps 10 and 11, and you can just download the final result from my Dropbox link. This gives you final_similarityresults_OpenAI.dta
 
-13) Execute Compare_OAI_MS.py and Pythonplot_OAI_MS.py for a figure generation.
+13) Execute Compare_OAI_MS.py, Pythonplot_OAI_MS.py, and Pythonplot_OAI_MS_Fig2 for generation of figures.
 
 14) Execute remaining do files that appears in master.do
 

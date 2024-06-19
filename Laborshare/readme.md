@@ -12,7 +12,7 @@
   * [Automation, Human Task Innovation, and Labor Share: Unveiling the Role of Elasticity of Substitution](https://github.com/ubuzuz/public/blob/main/LaborShare/Automation_Human_Task_Innovation_and_Labor_Share.pdf)
 
 # General instructions for running the entire codes.
-  * Begin by downloading the files using [this link](https://www.dropbox.com/scl/fo/7o286o3ng67fefmfx1p42/AGn56s0a6W8o-HrwKSxairA?rlkey=t7w1vjmio9gugcujd0df3ngrb&st=ruezc8tj&dl=0)
+  * Begin by downloading the files using [this link](https://www.dropbox.com/scl/fo/ggk54vvqddwluuiv4g3jx/AFJQRRg3UvaenjoBth1S0N0?rlkey=ajrlp9xwa6gp54269kn58nkgl&st=w7jxj1n2&dl=0)
     * The files in this link has been verified and are free from viruses and malware.
     * Please be aware that initializing the download may take some time due to the large size of the file.
   * After the download is complete, execute the file named 'master.do'.
@@ -49,8 +49,8 @@
   * The final datasets required for processing 'regression.do', 'accounting.do', and 'elasticity.do' are provided in the link below.
     * Please download all files located in the folder named "Eventually required datasets".
     * https://www.dropbox.com/scl/fo/jmbbjgw6hda3bn30abhv1/AGQ73nI4rysYXWC_rN2fjXE?rlkey=y5vnz4k3xl08j8oyomxypv2h4&st=qtfojwl7&dl=0
-    * Specifically, you can replicate the "regression.do" file starting from code line 264 onwards.
-    * Specifically, you can replicate the "accounting.do" file starting from code line 38 onwards.
+    * Specifically, you can replicate the "regression.do" file starting from code line 256 onwards.
+    * Specifically, you can replicate the "accounting.do" file starting from code line 105 onwards.
     * Specifically, you can replicate the "elasticity.do" file starting from code line 20 onwards.
   * By downloading this data, you can bypass the entire process located before "regression.do", "accounting.do", "elasticity.do". 
     * In this way, you will not need to secure an official grant for the EU-Labor Force Survey data, which typically requires about two months of paperwork and waiting time. 
