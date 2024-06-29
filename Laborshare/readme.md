@@ -9,7 +9,7 @@
 - [Replication codes and data are provided for reference (Downloading them is not required for this paper).](#replication-codes-and-data-are-provided-for-reference-downloading-them-is-not-required-for-this-paper)
 
 # Most Recent Paper
-  * [Automation, Human Task Innovation, and Labor Share: Unveiling the Role of Elasticity of Substitution](https://github.com/ubuzuz/public/blob/main/LaborShare/Automation_Human_Task_Innovation_and_Labor_Share.pdf)
+  * [Automation, Human Task Innovation, and Labor Share: Unveiling the Role of Elasticity of Substitution](https://github.com/jayjeo/public/blob/main/LaborShare/Automation_Human_Task_Innovation_and_Labor_Share.pdf)
 
 # General instructions for running the entire codes.
   * Begin by downloading the files using [this link](https://www.dropbox.com/scl/fo/ggk54vvqddwluuiv4g3jx/AFJQRRg3UvaenjoBth1S0N0?rlkey=ajrlp9xwa6gp54269kn58nkgl&st=xliif4rj&dl=0)
