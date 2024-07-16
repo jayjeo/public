@@ -12,7 +12,7 @@
   * [Automation, Human Task Innovation, and Labor Share: Unveiling the Role of Elasticity of Substitution](https://github.com/jayjeo/public/blob/main/Laborshare/Automation_Human_Task_Innovation_and_Labor_Share.pdf)
 
 # General instructions for running the entire codes.
-  * Begin by downloading the files using [this link](https://www.dropbox.com/)
+  * Begin by downloading the files using [this link](https://www.dropbox.com/scl/fo/ggk54vvqddwluuiv4g3jx/AFJQRRg3UvaenjoBth1S0N0?rlkey=ajrlp9xwa6gp54269kn58nkgl&st=xliif4rj&dl=0)
     * The files in this link has been verified and are free from viruses and malware.
     * Please be aware that initializing the download may take some time due to the large size of the file.
   * After the download is complete, execute the file named 'master.do'.
