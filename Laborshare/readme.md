@@ -1,21 +1,24 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [Most Recent Paper](#most-recent-paper)
-- [Instructions for Running the Code](#instructions-for-running-the-code)
+- [General instructions for running the entire codes.](#general-instructions-for-running-the-entire-codes)
+- [Specific instructions for patent related works.](#specific-instructions-for-patent-related-works)
 - [Overview of Required Datasets](#overview-of-required-datasets)
         - [Public access is permitted with appropriate citation.:](#public-access-is-permitted-with-appropriate-citation)
         - [The datasets listed below are not available for public access.](#the-datasets-listed-below-are-not-available-for-public-access)
-- [Instructions for the comparison between ONET and ESCO by using embedding feature.](#instructions-for-the-comparison-between-onet-and-esco-by-using-embedding-feature)
-- [Instructions for Patent related works.](#instructions-for-patent-related-works)
 - [Replication codes and data are provided for reference (Downloading them is not required for this paper).](#replication-codes-and-data-are-provided-for-reference-downloading-them-is-not-required-for-this-paper)
 
 # Most Recent Paper
-  * [Automation, Human Task Innovation, and Labor Share: Unveiling the Role of Elasticity of Substitution](https://github.com/ubuzuz/public/blob/main/LaborShare/Automation_Human_Task_Innovation_and_Labor_Share.pdf)
-# Instructions for Running the Code
-  * Begin by downloading the files using [this link](https://www.dropbox.com/scl/fo/1pp7avt06esszoz1fju2b/AFS-SxHLbvrlEdmdIulogEE?rlkey=fvszr2ab7igw83xr7pd51vn2u&st=9ss50nq6&dl=0)
+  * [Automation, Human Task Innovation, and Labor Share: Unveiling the Role of Elasticity of Substitution](https://github.com/jayjeo/public/blob/main/Laborshare/Automation_Human_Task_Innovation_and_Labor_Share.pdf)
+
+# General instructions for running the entire codes.
+  * Begin by downloading the files using [this link](https://www.dropbox.com/scl/fo/ggk54vvqddwluuiv4g3jx/AFJQRRg3UvaenjoBth1S0N0?rlkey=ajrlp9xwa6gp54269kn58nkgl&st=xliif4rj&dl=0)
     * The files in this link has been verified and are free from viruses and malware.
     * Please be aware that initializing the download may take some time due to the large size of the file.
   * After the download is complete, execute the file named 'master.do'.
+
+# Specific instructions for patent related works. 
+  * Follow this link: [https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md](https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md)
 
 # Overview of Required Datasets
 ##### Public access is permitted with appropriate citation.:
@@ -44,21 +47,15 @@
 - However, it is possible to replicate "regression.do", "accounting.do", "elasticity.do". 
 ```
   * The final datasets required for processing 'regression.do', 'accounting.do', and 'elasticity.do' are provided in the link below.
-    * Specifically, you can replicate the "regression.do" file starting from code line 320 onwards.
-    * Specifically, you can replicate the "accounting.do" file starting from code line 140 onwards.
+    * Please download all files located in the folder named "Eventually required datasets".
+    * https://www.dropbox.com/scl/fo/jmbbjgw6hda3bn30abhv1/AGQ73nI4rysYXWC_rN2fjXE?rlkey=y5vnz4k3xl08j8oyomxypv2h4&st=qtfojwl7&dl=0
+    * Specifically, you can replicate the "regression.do" file starting from code line 256 onwards.
+    * Specifically, you can replicate the "accounting.do" file starting from code line 105 onwards.
     * Specifically, you can replicate the "elasticity.do" file starting from code line 20 onwards.
-  * Please download all files located in the folder named "Eventually required datasets".
-  * https://www.dropbox.com/scl/fo/jmbbjgw6hda3bn30abhv1/AGQ73nI4rysYXWC_rN2fjXE?rlkey=y5vnz4k3xl08j8oyomxypv2h4&st=qtfojwl7&dl=0
-  * By downloading this data, you can bypass the entire process before "regression.do", "accounting.do", "elasticity.do". 
-  * In this way, you will not need to secure an official grant for the EU-Labor Force Survey data, which typically requires about two months of paperwork and waiting time. 
-  * Additionally, you will not need to purchase IFR data, which costs about $3,000. 
-  * This public release complies with the data protection agreements mandated by the EU-LFS and IFR, as it only contains aggregated information, not detailed data.
-
-# Instructions for the comparison between ONET and ESCO by using embedding feature. 
-  * Follow this link: [https://github.com/jayjeo/public/blob/main/Laborshare/readmeONETESCO.md](https://github.com/jayjeo/public/blob/main/Laborshare/readmeONETESCO.md)
-  
-# Instructions for Patent related works. 
-  * Follow this link: [https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md](https://github.com/jayjeo/public/blob/main/Laborshare/readmePatent.md)
+  * By downloading this data, you can bypass the entire process located before "regression.do", "accounting.do", "elasticity.do". 
+    * In this way, you will not need to secure an official grant for the EU-Labor Force Survey data, which typically requires about two months of paperwork and waiting time. 
+    * Additionally, you will not need to purchase IFR data, which costs about $2,400. 
+    * This public release complies with the data protection agreements mandated by the EU-LFS and IFR, as it only contains aggregated information, not detailed data.
 
 # Replication codes and data are provided for reference (Downloading them is not required for this paper). 
 * Gutiérrez, G., & Piton, S. (2020). Revisiting the global decline of the (non-housing) labor share. American Economic Review: Insights, 2(3), 321–338.
