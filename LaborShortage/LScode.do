@@ -40,7 +40,7 @@ https://www.index.go.kr/potal/main/EachDtlPageDetail.do?idx_cd=1068 (opened to p
 
 *********************************************/
 
-** LScode ver16.5.do
+** LScode ver18.0.do
 cls
 clear all
 set scheme s1color, perm 
@@ -48,7 +48,8 @@ set scheme s1color, perm
 /*********************************************
 *********************************************/
 * NEED TO SET YOUR PREFERRED PATH
-global path="C:\Users\acube\ubuzuz Dropbox\J J\Study\UC Davis\Writings\Labor Shortage\test240524"   
+//global path="D:\ubuzuz Dropbox\J J\Study\UC Davis\Writings\Labor Shortage\210718\RnR 240927"   
+global path="C:\Users\acube\JJ Dropbox\J J\Study\UC Davis\Writings\Labor Shortage\210718\RnR 240927"
 /*********************************************
 *********************************************/
 cd "${path}"
@@ -69,6 +70,8 @@ ssc install ivreg2, replace
 cap ado uninstall ivreghdfe
 net install ivreghdfe, from("https://raw.githubusercontent.com/sergiocorreia/ivreghdfe/master/src/")
 ssc install ranktest, replace
+ssc install boottest
+ssc install ritest
 *To completely uninstall the files
 *ado uninstall filename
 
@@ -122,7 +125,7 @@ replace e9stock=e9stock/1000
 replace smooth_e9inflow=smooth_e9inflow/1000
 
 twoway (tsline smooth_e9inflow, lcolor(gs0))(tsline e9stock, lwidth(thick) lcolor(gs0) yaxis(2)) ///
-, xlabel(648(6)744) xlabel(, grid angle(270)) ylabel(0(50)200, axis(2)) xline(720) ytitle("a thousand person", axis(1)) ytitle("a thousand person", axis(2)) scheme(s1mono) ///
+, xlabel(648(6)775) xlabel(, grid angle(270)) ylabel(0(50)200, axis(2)) xline(720) ytitle("a thousand person", axis(1)) ytitle("a thousand person", axis(2)) scheme(s1mono) ///
 ysize(3.5) xsize(8) ///
 legend(label(1 "E9 inflow (left)") label(2 "E9 stock (right)")) ///
 caption("Source: Employment Permit System (EPS)")
@@ -170,7 +173,7 @@ gen forpercent=fw/(fw+dw)*100
 keep if month >= 648 
 
 twoway (tsline forpercent, lcolor(gs0)) ///
-, xlabel(648(6)743) ylabel(0(2)11) xlabel(, grid angle(270)) xline(720) xtitle("") ytitle("%") scheme(s1mono) ///
+, xlabel(648(6)775) ylabel(0(2)11) xlabel(, grid angle(270)) xline(720) xtitle("") ytitle("%") scheme(s1mono) ///
 ysize(3) xsize(8) legend(off) ///
 caption("Source: Korea Immigration Service Monthly Statistics & Survey on Immigrant's Living Conditions and Labour Force")
 graph export forpercent.eps, replace
@@ -281,6 +284,8 @@ graph export unauthorizedshare.eps, replace
 
 
 
+
+
 /*********************************************
 Data Merge
 *********************************************/
@@ -304,22 +309,8 @@ save ut, replace
 
 //!start
 cd "${path}"
-import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/e9inflow.csv", varnames(1) clear 
-destring *, replace dpcomma
-reshape long ym, i(indmc) j(j)
-rename ym e9inflow
-rename j ym
-save e9inflow, replace 
-
-//!start
-cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/cpi.csv", varnames(1) clear 
 save cpi, replace
-
-//!start
-cd "${path}"
-import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/exchangerate.csv", varnames(1) clear 
-save exchangerate, replace
 
 //!start
 cd "${path}"
@@ -331,11 +322,11 @@ cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/orig.csv", varnames(1) clear 
 merge 1:1 ym indmc using ut, nogenerate
 merge m:1 ym using cpi, nogenerate
-merge m:1 ym using exchangerate, nogenerate
-merge 1:1 ym indmc using e9inflow, nogenerate
 merge m:1 indmc using forper, nogenerate
 merge m:1 indmc using numd648, nogenerate
-
+merge m:1 indmc using forper_jikjong, nogenerate
+merge m:1 indmc using forper_TFWshare, nogenerate
+merge m:1 indmc using forper_TFWchg, nogenerate
 
 xtset indmc ym   // indmc = sub-sector of manufacturing industry. ; ym = monthly time.
 format ym %tm
@@ -352,17 +343,17 @@ gen uibOriginal=uib/numD*100*0.896503381
 *gen uibCC=uib/numD*100*0.896503381 if ym<720
 *replace uibCC=uib/numD*100*0.63 if ym>=720
 
-gen wage=wage_tot*100/cpi/hour/exchangerate  // cpi adjusted hourly wage (unit=USD)
-gen wagefull=wage_totfull*100/cpi/hourfull/exchangerate  // cpi adjusted hourly wage (unit=USD)
-gen wagepart=wage_totpart*100/cpi/hourpart/exchangerate  // cpi adjusted hourly wage (unit=USD)
+gen wage=wage_tot*100/cpi/hour   // cpi adjusted hourly wage (unit=KRW)
+gen wagefull=wage_totfull*100/cpi/hourfull   // cpi adjusted hourly wage (unit=KRW)
+gen wagepart=wage_totpart*100/cpi/hourpart   // cpi adjusted hourly wage (unit=KRW)
 
-gen uibmoney2=uibmoney/numd648/cpi/exchangerate
+gen uibmoney2=uibmoney/numd648/cpi 
 drop uibmoney
 rename uibmoney2 uibmoney
 
 drop if inlist(indmc,12)  // tobacco industry. Extremely few workers, and production data is not available.
 sort indmc ym
-keep if 648<=ym&ym<=769   // largest available data span.
+keep if 648<=ym&ym<=775   // largest available data span.
 
 gen Break1=0
 replace Break1=1 if ym>=717
@@ -469,8 +460,9 @@ gen e9share684=e9684/numD684*100
 gen e9share678=e9678/numD678*100
 gen e9share660=e9660/numD660*100
 gen e9share740=e9740/numD740*100
+gen e9share744=e9744/numD744*100
 
-keep indmc vchg e9chg e9share e9share684 e9share678 e9share660 e9share740 hourfull716
+keep indmc vchg e9chg e9share e9share684 e9share678 e9share660 e9share740 e9share744 hourfull716
 save chg, replace 
 
 use panelm, clear
@@ -602,6 +594,26 @@ drop profit_temp
 save panelf3, replace 
 
 
+/*********************************************
+Bad Control Check
+*********************************************/
+use panelf3, clear 
+keep ym indmc proddome prodabroad prodoper uib e9share profit
+keep if inlist(ym,719,744)
+reshape wide proddome prodabroad prodoper uib e9share profit, i(indmc) j(ym)
+drop if indmc==12|indmc==0|indmc==19  // too few observations
+drop e9share744
+rename e9share719 e9share
+foreach var of newlist proddome prodabroad prodoper uib profit {
+    gen chg`var'=(`var'744-`var'719)/`var'719
+}
+foreach var of newlist proddome prodabroad prodoper uib profit {
+    corr chg`var' e9share
+}
+
+
+
+
 
 /*********************************************
 DID Regressions
@@ -612,10 +624,9 @@ use panelf3, clear
 xtset indmc ym
 drop if indmc==0    // information for total manufacturing sectors. 
 //drop if indmc==32|indmc==16  // too much fluctuations
-drop if indmc==19  // too few observations
-gen d=0 if  648<=ym&ym<=719  // 684<=ym&ym<=719 // inlist(ym,712,713,714,715,716,717,718,719) 
-//gen d=0 if  708<=ym&ym<=719  // 684<=ym&ym<=719 // inlist(ym,712,713,714,715,716,717,718,719) 
-replace d=1 if 724<=ym&ym<=752 // inlist(ym,738,739,740,741,742,743,744)  752 = 2022m09, 769 = 2024m02
+drop if indmc==12|indmc==19  // too few observations
+gen d=0 if  693<=ym&ym<=719  // 684<=ym&ym<=719 // inlist(ym,712,713,714,715,716,717,718,719) 
+replace d=1 if 726<=ym&ym<=755 // inlist(ym,738,739,740,741,742,743,744)  752 = 2022m09, 769 = 2024m02
 drop if d==.
 
 gen forperd=forper*d
@@ -629,15 +640,20 @@ label var uibmoney "UIB"
 label var wagefull "Wage(Full)" 
 label var hourfull "Hour(Full)" 
 
+foreach var of varlist profit proddome prodabroad prodoper uibmoney {
+    replace `var'=ln(`var')
+}
+
+
 ******* Reduced form
 eststo clear 
-eststo: xtreg theta e9shared uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg v e9shared uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg vfull e9shared uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg vpart e9shared uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg numDpartproportion e9shared uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg wagefull e9shared uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtreg hourfull e9shared uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xi: xtreg theta e9shared i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
+eststo: xi: xtreg v e9shared i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
+eststo: xi: xtreg vfull e9shared i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
+eststo: xi: xtreg vpart e9shared i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
+eststo: xi: xtreg numDpartproportion e9shared i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
+eststo: xi: xtreg wagefull e9shared i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
+eststo: xi: xtreg hourfull e9shared i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
 
 esttab * using "tableapril1.tex", ///
     title(\label{tableapril1}) ///
@@ -647,15 +663,16 @@ esttab * using "tableapril1.tex", ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")
 
 
+
 ******* IV
 eststo clear 
-eststo: xtivreg theta (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg v (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg vfull (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg vpart (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg numDpartproportion (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg wagefull (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg hourfull (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+eststo: xi: ivregress 2sls theta (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym i.indmc, vce(cluster indmc) first
+eststo: xi: ivregress 2sls v (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym i.indmc, vce(cluster indmc) first
+eststo: xi: ivregress 2sls vfull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym i.indmc, vce(cluster indmc) first
+eststo: xi: ivregress 2sls vpart (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym i.indmc, vce(cluster indmc) first
+eststo: xi: ivregress 2sls numDpartproportion (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym i.indmc, vce(cluster indmc) first
+eststo: xi: ivregress 2sls wagefull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym i.indmc, vce(cluster indmc) first
+eststo: xi: ivregress 2sls hourfull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym i.indmc, vce(cluster indmc) first
 
 esttab * using "tableapril2.tex", ///
     title(\label{tableapril2}) ///
@@ -665,27 +682,46 @@ esttab * using "tableapril2.tex", ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
 
 
+
+******* IV  (Does not work)
+eststo clear 
+eststo: xi: xtivreg theta (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
+eststo: xi: xtivreg v (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
+eststo: xi: xtivreg vfull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
+eststo: xi: xtivreg vpart (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
+eststo: xi: xtivreg numDpartproportion (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
+eststo: xi: xtivreg wagefull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
+eststo: xi: xtivreg hourfull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
+
+esttab * using "tableapril0.tex", ///
+    title(\label{tableapril2}) ///
+    b(%9.5f) se(%9.5f) ///
+    lab se r2 pr2 noconstant replace ///
+    star(* 0.10 ** 0.05 *** 0.01) ///
+    addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
+
+
 // Find First-stage F statistics. Does not work below Stata version 17
-ivreghdfe theta (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe v (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe vfull (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe vpart (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe numDpartproportion (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe wagefull (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe hourfull (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first
+xi: ivreghdfe theta (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe v (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe vfull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe vpart (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe numDpartproportion (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe wagefull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe hourfull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first
 
 
 ******* Graphs
 twoway (scatter forper hourfull716)(lfit forper hourfull716), ///
-        xtitle("Fulltime Workers' Monthly Work Hours") ytitle("TFW Share (%)") legend(off) ///
+        xtitle("Permanent Workers' Monthly Work Hours") ytitle("TFW Share (%)") legend(off) ///
         title("Panel (F): Corr between Work hours and TFW share") xline(174)
 graph export TFWsharehourfull716.eps, replace
 
 
 ******* IV (Robustness Check)
 eststo clear 
-eststo: xtivreg theta_alter (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
-eststo: xtivreg v_alter (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, fe vce(cluster indmc)
+xi: eststo: xtivreg theta_alter (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
+xi: eststo: xtivreg v_alter (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
 esttab * using "tableapril4.tex", ///
     title(\label{tableapril4}) ///
     b(%9.3f) se(%9.3f) ///
@@ -693,10 +729,20 @@ esttab * using "tableapril4.tex", ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
 
 // Find First-stage F statistics. Does not work below Stata version 16
-ivreghdfe theta_alter (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
-ivreghdfe v_alter (e9chgd=e9shared) uibmoney profit proddome prodabroad prodoper i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe theta_alter (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe v_alter (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
 
 
+******* Boottest
+foreach var of varlist theta v vfull vpart {
+    regress `var' e9shared i.indmc##c.uibmoney proddome i.ym i.indmc, vce(cluster indmc)
+    boottest e9shared = 0, reps(9999) seed(12345)
+}
+
+foreach var of varlist theta v vfull vpart {
+    ivregress 2sls `var' (e9chgd = e9shared) i.indmc##c.uibmoney proddome i.ym i.indmc, vce(cluster indmc)
+    boottest e9chgd = 0, reps(9999) seed(12345)
+}
 
 /*********************************************
 Continuous DID Regressions (monthly) 2014~
@@ -708,26 +754,30 @@ drop if indmc==0    // information for total manufacturing sectors.
 //drop if indmc==32|indmc==16  // too much fluctuations
 drop if indmc==19  // too few observations
 
-keep if 648<=ym&ym<=752  // 752 = 2022m09, 769 = 2024m02
+keep if 648<=ym&ym<=774
 tab ym, gen(dum)
 
 label var theta "Tightness" 
 
-foreach i of numlist 1/104 {
+foreach i of numlist 1/126 {
     gen e9sharedum`i'=e9share*dum`i'
 }
 * dum61 = 2020m1
+
+foreach var of varlist profit proddome prodabroad prodoper uibmoney {
+    replace `var'=ln(`var')
+}
 
 order *, sequential
 capture program drop contdidreg
 program contdidreg 
 args i j
     preserve
-            xtreg `i' e9sharedum1-e9sharedum71 e9sharedum73-e9sharedum104 i.ym profit proddome prodabroad prodoper uibmoney, fe vce(cluster indmc) 
+            xi: xtreg `i' e9sharedum1-e9sharedum126 i.ym rho1-rho4 proddome i.indmc*uibmoney, fe vce(cluster indmc) 
             mat b2=e(b)'
-            mat b=b2[1..71,1]\0\b2[72..103,1]   
+            mat b=b2[1..126,1]
             mat v2=vecdiag(e(V))'
-            mat v=v2[1..71,1]\0\v2[72..103,1]
+            mat v=v2[1..126,1]
             scalar invttail=invttail(e(df_r),0.025)
             matain b
             matain v
@@ -759,19 +809,19 @@ args i j
             label var theta "Tightness"
             label var theta_alter "Tightness(alter)" 
             label var v "Vacancy" 
-            label var vfull "Vacancy(Full)" 
-            label var vpart "Vacancy(Part)" 
+            label var vfull "Vacancy(Perm)" 
+            label var vpart "Vacancy(Fixed)" 
             label var v_alter "Vacancy(alter)" 
-            label var vfull_alter "Vacancy(Full,alter)" 
-            label var numDpartproportion "Part/Full" 
-            label var hourfull "Work Hours(Full)" 
-            label var wagefull "Wage(Full)" 
+            label var vfull_alter "Vacancy(Perm,alter)" 
+            label var numDpartproportion "Fixed/Perm" 
+            label var hourfull "Work Hours(Perm)" 
+            label var wagefull "Wage(Perm)" 
             label var dw_approx "Domestic Workers" 
             label var a_unbiased "Match Efficiency" 
             label var lambda "Termination" 
 
             twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t), xline(719) yline(0) xtitle("") ytitle("") /// 
-            legend(off) xlabel(648(12)752) ///
+            legend(off) xlabel(648(12)775) ///
             title(Panel(`j'): `: variable label `i'')
             graph export contdid`i'`j'.eps, replace
     restore
@@ -842,11 +892,15 @@ drop if indmc==0
 drop if indmc==19  // too few observations
 xtset indmc ym 
 
-keep if 648<=ym&ym<=752   // 752 = 2022m09, 769 = 2024m02
+keep if 648<=ym&ym<=774   // 752 = 2022m09, 769 = 2024m02
 tab ym, gen(dum)
 
-foreach i of numlist 1/104 {
+foreach i of numlist 1/126 {
     gen e9sharedum`i'=e9share*dum`i'
+}
+
+foreach var of varlist profit proddome prodabroad prodoper uibmoney {
+    replace `var'=ln(`var')
 }
 
 order *, sequential
@@ -854,11 +908,11 @@ capture program drop contdidreg2
 program contdidreg2
 args i j
     preserve
-            xtreg `i' e9sharedum1-e9sharedum71 e9sharedum73-e9sharedum104 i.ym profit proddome prodabroad prodoper uibmoney, fe vce(cluster indmc)
+            xi: xtreg `i' e9sharedum1-e9sharedum126 i.ym rho1-rho4 proddome i.indmc*uibmoney, fe vce(cluster indmc)
             mat b2=e(b)'
-            mat b=b2[1..71,1]\0\b2[72..103,1]   
+            mat b=b2[1..126,1]
             mat v2=vecdiag(e(V))'
-            mat v=v2[1..71,1]\0\v2[72..103,1]
+            mat v=v2[1..126,1]
             scalar invttail=invttail(e(df_r),0.025)
             matain b
             matain v
@@ -878,7 +932,7 @@ args i j
             label var dw_approx "Domestic Workers" 
 
             twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t), xline(719) yline(0) xtitle("") ytitle("") /// 
-            legend(off) xlabel(648(12)752) ///
+            legend(off) xlabel(648(12)775) ///
             title(Panel(`j'): `: variable label `i'')
             graph export contdid`i'`j'.eps, replace
     restore
@@ -887,16 +941,99 @@ end
 contdidreg2 dw_approx D
 
 
+
+
+/*********************************************
+Testing the Number of Firms
+*********************************************/
+*!start
+cd "${path}"
+use panelf3, clear
+drop if indmc==0    // information for total manufacturing sectors. 
+//drop if indmc==32|indmc==16  // too much fluctuations
+drop if indmc==19  // too few observations
+
+keep if 648<=ym&ym<=774
+tab ym, gen(dum)
+
+gen numTOT=numD+numE
+label var numTOT "Number of Firms" 
+label var uib "UIB Receivers" 
+
+foreach i of numlist 1/126 {
+    gen e9sharedum`i'=e9share*dum`i'
+}
+* dum61 = 2020m1
+
+gen prodd=proddome+prodabroad
+foreach var of varlist profit prodd prodoper uibmoney {
+    replace `var'=ln(`var')
+}
+
+order *, sequential
+capture program drop contdidreg
+program contdidreg 
+args i j
+    preserve
+            xi: xtreg `i' e9sharedum1-e9sharedum126 i.ym rho1-rho4 i.indmc*uibmoney, fe vce(cluster indmc) 
+            mat b2=e(b)'
+            mat b=b2[1..126,1]
+            mat v2=vecdiag(e(V))'
+            mat v=v2[1..126,1]
+            scalar invttail=invttail(e(df_r),0.025)
+            matain b
+            matain v
+            mata se=sqrt(v)
+            clear
+            getmata b  
+            getmata se
+            gen lb=b-invttail*se
+            gen ub=b+invttail*se
+            gen t=_n
+            replace t=t+647
+            tsset t, monthly
+            format t %tm
+    
+            gen numTOT=.
+            gen uib=.
+            gen prodd=.
+            gen prodoper=.
+
+            label var numTOT "Number of Firms" 
+            label var uib "UIB Receivers"      
+            label var prodd "Production"  
+            label var prodoper "Operation (%)"  
+
+            twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t), xline(719) yline(0) xtitle("") ytitle("") /// 
+            legend(off) xlabel(648(12)775) ///
+            title(Panel(`j'): `: variable label `i'')
+            graph export contdid`i'`j'.eps, replace
+    restore
+end
+
+contdidreg numTOT A
+contdidreg prodoper B
+contdidreg uib C
+contdidreg prodd D
+
+
+
 /*********************************************
 Local Projection method (DD)
 *********************************************/
 *!start
 cd "${path}"
 
+
 capture program drop LPDID
 program LPDID 
     args j depvar
     use panelf3, clear
+    
+    foreach var of varlist profit proddome prodabroad prodoper uibmoney {
+        replace `var'=ln(`var')
+    }
+    
     xtset indmc ym
 
     drop if indmc==0    // information for total manufacturing sectors. 
@@ -905,24 +1042,24 @@ program LPDID
     keep if 708<=ym
 
     label var v "Vacancy" 
-    label var vfull "Vacancy(Full)" 
-    label var vpart "Vacancy(Part)" 
-    label var hourfull "Work Hours(Full)" 
-    label var wagefull "Wage(Full)" 
+    label var vfull "Vacancy(Perm)" 
+    label var vpart "Vacancy(Fixed)" 
+    label var hourfull "Work Hours(Perm)" 
+    label var wagefull "Wage(Perm)" 
 
     gen e9numD=e9/numD*100
     gen LP=.
     gen ub=.
     gen lb=.
 
-    forvalues h=0(1)40 {
+    forvalues h=0(1)46 {
         preserve
             gen Fv=F`h'.`depvar'
             gen d=0 if  710<=ym&ym<=719  
-            replace d=1 if 720<=ym&ym<=729    // 752 = 2022m09, 769 = 2024m02
+            replace d=1 if 720<=ym&ym<=729    // 752 = 2022m09, 769 = 2024m02, 775 = 2024m8
             drop if d==.
             gen e9shared=e9share*d
-            xtreg Fv e9shared profit proddome prodabroad prodoper uibmoney i.ym, fe vce(cluster indmc)
+            xi: xtreg Fv e9shared i.ym, fe vce(cluster indmc)
         restore
         replace LP = _b[e9shared] if _n==`h'+1
         replace ub = _b[e9shared] + 1.645* _se[e9shared] if _n==`h'+1
@@ -930,7 +1067,7 @@ program LPDID
     }
 
     replace ym=ym+12
-    keep if _n<=40
+    keep if _n<=46
     gen Zero=0
     twoway ///
     (rarea ub lb ym,  ///
@@ -939,7 +1076,7 @@ program LPDID
     lpattern(solid) lwidth(thick)) ///
     (line Zero ym, lcolor(black)), legend(off) ///
     ytitle("", size(medsmall)) xtitle("", size(medsmall)) ///
-    graphregion(color(white)) plotregion(color(white)) xlabel(720(4)758) ///
+    graphregion(color(white)) plotregion(color(white)) xlabel(720(4)764) ///
     title(Panel(`j'): `: variable label `depvar'') ///
     ysize(1) xsize(3)
     graph export LP`depvar'.eps, replace
@@ -950,7 +1087,6 @@ LPDID A v
 LPDID B vfull
 LPDID C vpart
 LPDID D numDpartproportion
-
 
 
 
@@ -1044,6 +1180,7 @@ use panelf3, clear
 keep if indmc==0
 merge 1:1 ym using ut
 keep ym v prod uC
+keep if ym<=752
 drop if uC==.
 tsset ym, monthly
 tsfilter hp v_hp = v, trend(smooth_v) smooth(1)
