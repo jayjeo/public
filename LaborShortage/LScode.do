@@ -40,7 +40,7 @@ https://www.index.go.kr/potal/main/EachDtlPageDetail.do?idx_cd=1068 (opened to p
 
 *********************************************/
 
-** LScode ver17.1.do
+** LScode ver18.0.do
 cls
 clear all
 set scheme s1color, perm 
@@ -74,6 +74,8 @@ ssc install boottest
 ssc install ritest
 *To completely uninstall the files
 *ado uninstall filename
+
+
 
 /*********************************************
 Graphs generation
@@ -711,7 +713,7 @@ xi: ivreghdfe hourfull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(
 
 ******* Graphs
 twoway (scatter forper hourfull716)(lfit forper hourfull716), ///
-        xtitle("Fulltime Workers' Monthly Work Hours") ytitle("TFW Share (%)") legend(off) ///
+        xtitle("Permanent Workers' Monthly Work Hours") ytitle("TFW Share (%)") legend(off) ///
         title("Panel (F): Corr between Work hours and TFW share") xline(174)
 graph export TFWsharehourfull716.eps, replace
 
@@ -807,13 +809,13 @@ args i j
             label var theta "Tightness"
             label var theta_alter "Tightness(alter)" 
             label var v "Vacancy" 
-            label var vfull "Vacancy(Full)" 
-            label var vpart "Vacancy(Part)" 
+            label var vfull "Vacancy(Perm)" 
+            label var vpart "Vacancy(Fixed)" 
             label var v_alter "Vacancy(alter)" 
-            label var vfull_alter "Vacancy(Full,alter)" 
-            label var numDpartproportion "Part/Full" 
-            label var hourfull "Work Hours(Full)" 
-            label var wagefull "Wage(Full)" 
+            label var vfull_alter "Vacancy(Perm,alter)" 
+            label var numDpartproportion "Fixed/Perm" 
+            label var hourfull "Work Hours(Perm)" 
+            label var wagefull "Wage(Perm)" 
             label var dw_approx "Domestic Workers" 
             label var a_unbiased "Match Efficiency" 
             label var lambda "Termination" 
@@ -1040,10 +1042,10 @@ program LPDID
     keep if 708<=ym
 
     label var v "Vacancy" 
-    label var vfull "Vacancy(Full)" 
-    label var vpart "Vacancy(Part)" 
-    label var hourfull "Work Hours(Full)" 
-    label var wagefull "Wage(Full)" 
+    label var vfull "Vacancy(Perm)" 
+    label var vpart "Vacancy(Fixed)" 
+    label var hourfull "Work Hours(Perm)" 
+    label var wagefull "Wage(Perm)" 
 
     gen e9numD=e9/numD*100
     gen LP=.
