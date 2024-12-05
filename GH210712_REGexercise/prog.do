@@ -641,7 +641,7 @@ mata
 	bh=optimize(S)
 
 	bh
-	sqrt(diagonal(optimize_result_V_robust(S)))'    // Not identical to canned result. Don't know why. 
+	sqrt(diagonal(optimize_result_V_robust(S)))'    
 end
 
 
