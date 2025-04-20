@@ -40,16 +40,17 @@ https://www.index.go.kr/potal/main/EachDtlPageDetail.do?idx_cd=1068 (opened to p
 
 *********************************************/
 
-** LScode ver18.0.do
+** LScode ver19.0.do
 cls
 clear all
 set scheme s1color, perm 
+version 14.2
+set more off
 
 /*********************************************
 *********************************************/
 * NEED TO SET YOUR PREFERRED PATH
-//global path="D:\ubuzuz Dropbox\J J\Study\UC Davis\Writings\Labor Shortage\210718\RnR 240927"   
-global path="C:\Users\acube\JJ Dropbox\J J\Study\UC Davis\Writings\Labor Shortage\210718\RnR 240927"
+global path="G:\JJ Dropbox\J J\Study\UC Davis\Writings\Labor Shortage\210718\RNR second\LaborShortage"
 /*********************************************
 *********************************************/
 cd "${path}"
@@ -316,6 +317,16 @@ save cpi, replace
 cd "${path}"
 import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/totalforeignproportion.csv", varnames(1) clear 
 save forper, replace 
+
+
+//!start
+use "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/forper_jikjong.dta", clear
+save forper_jikjong, replace
+use "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/forper_TFWshare.dta", clear
+save forper_TFWshare, replace
+use "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/forper_TFWchg.dta", clear
+save forper_TFWchg, replace
+
 
 //!start
 cd "${path}"
@@ -647,13 +658,9 @@ foreach var of varlist profit proddome prodabroad prodoper uibmoney {
 
 ******* Reduced form
 eststo clear 
-eststo: xi: xtreg theta e9shared i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
-eststo: xi: xtreg v e9shared i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
-eststo: xi: xtreg vfull e9shared i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
-eststo: xi: xtreg vpart e9shared i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
-eststo: xi: xtreg numDpartproportion e9shared i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
-eststo: xi: xtreg wagefull e9shared i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
-eststo: xi: xtreg hourfull e9shared i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
+foreach var of varlist theta v vfull vpart numDpartproportion wagefull hourfull{
+    eststo: xi: xtreg `var' e9shared i.indmc|uibmoney proddome i.ym, fe vce(cluster indmc)
+}
 
 esttab * using "tableapril1.tex", ///
     title(\label{tableapril1}) ///
@@ -663,16 +670,11 @@ esttab * using "tableapril1.tex", ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")
 
 
-
 ******* IV
 eststo clear 
-eststo: xi: ivregress 2sls theta (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym i.indmc, vce(cluster indmc) first
-eststo: xi: ivregress 2sls v (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym i.indmc, vce(cluster indmc) first
-eststo: xi: ivregress 2sls vfull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym i.indmc, vce(cluster indmc) first
-eststo: xi: ivregress 2sls vpart (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym i.indmc, vce(cluster indmc) first
-eststo: xi: ivregress 2sls numDpartproportion (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym i.indmc, vce(cluster indmc) first
-eststo: xi: ivregress 2sls wagefull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym i.indmc, vce(cluster indmc) first
-eststo: xi: ivregress 2sls hourfull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym i.indmc, vce(cluster indmc) first
+foreach var of varlist theta v vfull vpart numDpartproportion wagefull hourfull{
+    eststo: xi: xtivreg `var' (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, fe vce(cluster indmc) first
+}
 
 esttab * using "tableapril2.tex", ///
     title(\label{tableapril2}) ///
@@ -682,33 +684,14 @@ esttab * using "tableapril2.tex", ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
 
 
-
-******* IV  (Does not work)
-eststo clear 
-eststo: xi: xtivreg theta (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
-eststo: xi: xtivreg v (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
-eststo: xi: xtivreg vfull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
-eststo: xi: xtivreg vpart (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
-eststo: xi: xtivreg numDpartproportion (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
-eststo: xi: xtivreg wagefull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
-eststo: xi: xtivreg hourfull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
-
-esttab * using "tableapril0.tex", ///
-    title(\label{tableapril2}) ///
-    b(%9.5f) se(%9.5f) ///
-    lab se r2 pr2 noconstant replace ///
-    star(* 0.10 ** 0.05 *** 0.01) ///
-    addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
-
-
 // Find First-stage F statistics. Does not work below Stata version 17
-xi: ivreghdfe theta (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
-xi: ivreghdfe v (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
-xi: ivreghdfe vfull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
-xi: ivreghdfe vpart (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
-xi: ivreghdfe numDpartproportion (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
-xi: ivreghdfe wagefull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
-xi: ivreghdfe hourfull (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first
+xi: ivreghdfe theta (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe v (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe vfull (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe vpart (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe numDpartproportion (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe wagefull (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe hourfull (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first
 
 
 ******* Graphs
@@ -720,8 +703,9 @@ graph export TFWsharehourfull716.eps, replace
 
 ******* IV (Robustness Check)
 eststo clear 
-xi: eststo: xtivreg theta_alter (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
-xi: eststo: xtivreg v_alter (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, fe vce(cluster indmc)
+xi: eststo: xtivreg theta_alter (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, fe vce(cluster indmc)
+xi: eststo: xtivreg v_alter (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, fe vce(cluster indmc)
+
 esttab * using "tableapril4.tex", ///
     title(\label{tableapril4}) ///
     b(%9.3f) se(%9.3f) ///
@@ -729,20 +713,22 @@ esttab * using "tableapril4.tex", ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
 
 // Find First-stage F statistics. Does not work below Stata version 16
-xi: ivreghdfe theta_alter (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
-xi: ivreghdfe v_alter (e9chgd=e9shared) i.indmc*uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe theta_alter (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe v_alter (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
 
 
 ******* Boottest
 foreach var of varlist theta v vfull vpart {
-    regress `var' e9shared i.indmc##c.uibmoney proddome i.ym i.indmc, vce(cluster indmc)
+    xi: xtreg `var' e9shared i.indmc|uibmoney proddome i.ym, fe vce(cluster indmc)
     boottest e9shared = 0, reps(9999) seed(12345)
 }
 
 foreach var of varlist theta v vfull vpart {
-    ivregress 2sls `var' (e9chgd = e9shared) i.indmc##c.uibmoney proddome i.ym i.indmc, vce(cluster indmc)
+    xi: xtivreg `var' (e9chgd = e9shared) i.indmc|uibmoney proddome i.ym, fe vce(cluster indmc)
     boottest e9chgd = 0, reps(9999) seed(12345)
 }
+
+
 
 /*********************************************
 Continuous DID Regressions (monthly) 2014~
@@ -773,7 +759,7 @@ capture program drop contdidreg
 program contdidreg 
 args i j
     preserve
-            xi: xtreg `i' e9sharedum1-e9sharedum126 i.ym rho1-rho4 proddome i.indmc*uibmoney, fe vce(cluster indmc) 
+            xi: xtreg `i' e9sharedum1-e9sharedum126 i.ym rho1-rho4 proddome i.indmc|uibmoney, fe vce(cluster indmc) 
             mat b2=e(b)'
             mat b=b2[1..126,1]
             mat v2=vecdiag(e(V))'
@@ -908,7 +894,7 @@ capture program drop contdidreg2
 program contdidreg2
 args i j
     preserve
-            xi: xtreg `i' e9sharedum1-e9sharedum126 i.ym rho1-rho4 proddome i.indmc*uibmoney, fe vce(cluster indmc)
+            xi: xtreg `i' e9sharedum1-e9sharedum126 i.ym rho1-rho4 proddome i.indmc|uibmoney, fe vce(cluster indmc)
             mat b2=e(b)'
             mat b=b2[1..126,1]
             mat v2=vecdiag(e(V))'
