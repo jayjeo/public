@@ -28,8 +28,8 @@
 - Deep Research 기능은 알아본 결과 아쉽게도 API로 구동 못하게 막혀있음
    
 ### 다운로드는 아래의 링크에서 받는다
-
+[Download](https://www.dropbox.com/scl/fi/tdcs1xi52hxc8gq9r818v/aiLLM.py?rlkey=ydofyravxwcaqj0sr3c6flezx&st=7luz1lsz)
 
 ### 파이썬 원본 코드는 아래에서 받을 수 있다
-(Download)[https://www.dropbox.com/scl/fi/tdcs1xi52hxc8gq9r818v/aiLLM.py?rlkey=ydofyravxwcaqj0sr3c6flezx&st=7luz1lsz]
+[Download](https://www.dropbox.com/scl/fi/tdcs1xi52hxc8gq9r818v/aiLLM.py?rlkey=ydofyravxwcaqj0sr3c6flezx&st=7luz1lsz)
 
