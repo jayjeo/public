@@ -26,8 +26,8 @@
 - Deep Research 기능은 알아본 결과 아쉽게도 API로 구동 못하게 막혀있음
    
 ### 다운로드는 아래의 링크에서 받는다
-[Download](https://www.dropbox.com/scl/fi/jrwjnc1vmjdk93w5n31pg/LLM.exe?rlkey=eeqe97qzlcyus6z62bwanxk1u&st=bp6ggfzq)
+[Download](https://www.dropbox.com/scl/fi/jrwjnc1vmjdk93w5n31pg/LLM.exe?rlkey=eeqe97qzlcyus6z62bwanxk1u&st=lkshc3q4)
 
 ### 파이썬 원본 코드는 아래에서 받을 수 있다
-[Download](https://www.dropbox.com/scl/fi/l08e42k52d6fz87kx0bbl/LLM.py?rlkey=mvsjzojxq9zmqps914z8ko7r5&st=ios8902z)
+[Download](https://www.dropbox.com/scl/fi/l08e42k52d6fz87kx0bbl/LLM.py?rlkey=mvsjzojxq9zmqps914z8ko7r5&st=4nyauq4a)
 
