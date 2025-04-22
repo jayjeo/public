@@ -11,6 +11,7 @@
 
 ### 이 프로그램은 API로 우회하기 때문에 회사 전산망에서 IP가 차단된 경우도 작동 가능함
 ##### 현재 Google Gemini가 차단된 상태이나 정상 작동함
+##### 추후에 다른 AI가 차단되더라도 여전히 사용가능할 것임
 
 ### 정덕재 사비로 API를 지불하는 현 상황에서 만약 API 비용이 월 10만원을 초과하면 API를 닫아버릴 예정
 ##### 되도록 개발원에서 비용을 지원해주면 좋겠다는 바램이 있음
@@ -27,4 +28,8 @@
 1. Deep Research 기능은 알아본 결과 아쉽게도 API로 구동 못하게 막혀있음
    
 ### 다운로드는 아래의 링크에서 받는다
+
+
+### 파이썬 원본 코드는 아래에서 받을 수 있다
+(Download)[https://www.dropbox.com/scl/fi/tdcs1xi52hxc8gq9r818v/aiLLM.py?rlkey=ydofyravxwcaqj0sr3c6flezx&st=7luz1lsz]
 
