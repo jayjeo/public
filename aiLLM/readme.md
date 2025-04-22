@@ -29,4 +29,4 @@
 
 ### 파이썬 원본 코드는 아래에서 받을 수 있다
 [Download](https://www.dropbox.com/scl/fi/l08e42k52d6fz87kx0bbl/LLM.py?rlkey=mvsjzojxq9zmqps914z8ko7r5&st=4nyauq4a)
-- 코드 확인을 통해서 바이러스나 멀웨어가 숨어있지 않음을 확인 가능능
+- 코드 확인을 통해서 바이러스나 멀웨어가 숨어있지 않음을 확인 가능
