@@ -23,7 +23,9 @@
 
 ### 지원하지 않는 기능
 - Deep Research 기능은 알아본 결과 아쉽게도 API로 구동 못하게 막혀있음
-   
+- API를 사용하다보니 웹에서 직접 쓰는 AI보다 성능이 확실히 많이 떨어짐. 가급적 웹 버전의 순정 AI를 쓰는 것을 권장장
+
+
 ### 다운로드는 아래의 링크에서 받는다
 [Download](https://www.dropbox.com/scl/fi/jrwjnc1vmjdk93w5n31pg/LLM.exe?rlkey=eeqe97qzlcyus6z62bwanxk1u&st=lkshc3q4)
 
