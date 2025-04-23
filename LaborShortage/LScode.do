@@ -45,12 +45,13 @@ cls
 clear all
 set scheme s1color, perm 
 version 14.2
-set more off
+set more off, perm
 
 /*********************************************
 *********************************************/
 * NEED TO SET YOUR PREFERRED PATH
 global path="G:\JJ Dropbox\J J\Study\UC Davis\Writings\Labor Shortage\210718\RNR second\LaborShortage"
+//global path="D:\JJ Dropbox\J J\Study\UC Davis\Writings\Labor Shortage\210718\RNR second\LaborShortage"
 /*********************************************
 *********************************************/
 cd "${path}"
@@ -605,8 +606,9 @@ drop profit_temp
 save panelf3, replace 
 
 
+
 /*********************************************
-Bad Control Check
+Bad Control Check (Figure)
 *********************************************/
 use panelf3, clear 
 keep ym indmc proddome prodabroad prodoper uib e9share profit
@@ -621,6 +623,89 @@ foreach var of newlist proddome prodabroad prodoper uib profit {
 foreach var of newlist proddome prodabroad prodoper uib profit {
     corr chg`var' e9share
 }
+
+
+
+*!start
+cd "${path}"
+use panelf3, clear
+drop if indmc==0    // information for total manufacturing sectors. 
+//drop if indmc==32|indmc==16  // too much fluctuations
+drop if indmc==19  // too few observations
+
+keep if 648<=ym&ym<=774
+tab ym, gen(dum)
+
+label var theta "Tightness" 
+
+foreach i of numlist 1/127 {
+    gen e9sharedum`i'=e9share*dum`i'
+}
+* dum61 = 2020m1
+
+foreach var of varlist profit uibmoney {
+    replace `var'=ln(`var')
+}
+
+order *, sequential
+capture program drop contdidreg
+program contdidreg 
+args i j
+    preserve
+            xi: xtreg `i' e9sharedum1-e9sharedum71 e9sharedum73-e9sharedum127 i.ym rho1-rho4, fe vce(cluster indmc) 
+            mat b2=e(b)'
+            mat b=b2[1..126,1]
+            mat v2=vecdiag(e(V))'
+            mat v=v2[1..126,1]
+            scalar invttail=invttail(e(df_r),0.025)
+            matain b
+            matain v
+            mata se=sqrt(v)
+            clear
+            getmata b  
+            getmata se
+            gen lb=b-invttail*se
+            gen ub=b+invttail*se
+            gen t=_n
+            replace t=t+647
+            tsset t, monthly
+            format t %tm
+    
+            gen profit=.
+            gen proddome=.
+            gen prodabroad=.
+            gen prodoper=.
+            gen uibmoney=.
+
+            label var profit "profit"
+            label var proddome "Domestic production" 
+            label var prodabroad "International production" 
+            label var prodoper "prodoper" 
+            label var uibmoney "UIB" 
+
+            * Create yearly ticks at January of each year
+            local xlab ""
+            forvalues yr = 2014/2025 {
+                local m = 12*(`yr'-1960) + 1
+                if `m' >= 648 & `m' <= 775 {
+                    local xlab "`xlab' `m' "`yr'""
+                }
+            }
+
+            twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t), xline(719) yline(0) xtitle("") ytitle("") /// 
+            legend(off) xlabel(`xlab') ///
+            title(Panel(`j'): `: variable label `i'')
+            graph export contdid`i'`j'.eps, replace
+    restore
+end
+
+    
+contdidreg profit A
+contdidreg uibmoney B
+contdidreg proddome C
+contdidreg prodabroad D
+
+contdidreg prodoper E
 
 
 
@@ -651,15 +736,14 @@ label var uibmoney "UIB"
 label var wagefull "Wage(Full)" 
 label var hourfull "Hour(Full)" 
 
-foreach var of varlist profit proddome prodabroad prodoper uibmoney {
+foreach var of varlist wagefull {
     replace `var'=ln(`var')
 }
-
 
 ******* Reduced form
 eststo clear 
 foreach var of varlist theta v vfull vpart numDpartproportion wagefull hourfull{
-    eststo: xi: xtreg `var' e9shared i.indmc|uibmoney proddome i.ym, fe vce(cluster indmc)
+    eststo: xi: xtreg `var' e9shared i.indmc|uibmoney prodabroad i.ym, fe vce(cluster indmc)
 }
 
 esttab * using "tableapril1.tex", ///
@@ -673,7 +757,7 @@ esttab * using "tableapril1.tex", ///
 ******* IV
 eststo clear 
 foreach var of varlist theta v vfull vpart numDpartproportion wagefull hourfull{
-    eststo: xi: xtivreg `var' (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, fe vce(cluster indmc) first
+    eststo: xi: xtivreg `var' (e9chgd=e9shared) i.indmc|uibmoney prodabroad i.ym, fe vce(cluster indmc) first
 }
 
 esttab * using "tableapril2.tex", ///
@@ -685,13 +769,13 @@ esttab * using "tableapril2.tex", ///
 
 
 // Find First-stage F statistics. Does not work below Stata version 17
-xi: ivreghdfe theta (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
-xi: ivreghdfe v (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
-xi: ivreghdfe vfull (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
-xi: ivreghdfe vpart (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
-xi: ivreghdfe numDpartproportion (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
-xi: ivreghdfe wagefull (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
-xi: ivreghdfe hourfull (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first
+xi: ivreghdfe theta (e9chgd=e9shared) i.indmc|uibmoney prodabroad i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe v (e9chgd=e9shared) i.indmc|uibmoney prodabroad i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe vfull (e9chgd=e9shared) i.indmc|uibmoney prodabroad i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe vpart (e9chgd=e9shared) i.indmc|uibmoney prodabroad i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe numDpartproportion (e9chgd=e9shared) i.indmc|uibmoney prodabroad i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe wagefull (e9chgd=e9shared) i.indmc|uibmoney prodabroad i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe hourfull (e9chgd=e9shared) i.indmc|uibmoney prodabroad i.ym, absorb(indmc) cluster(indmc) first
 
 
 ******* Graphs
@@ -703,8 +787,8 @@ graph export TFWsharehourfull716.eps, replace
 
 ******* IV (Robustness Check)
 eststo clear 
-xi: eststo: xtivreg theta_alter (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, fe vce(cluster indmc)
-xi: eststo: xtivreg v_alter (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, fe vce(cluster indmc)
+xi: eststo: xtivreg theta_alter (e9chgd=e9shared) i.indmc|uibmoney prodabroad i.ym, fe vce(cluster indmc)
+xi: eststo: xtivreg v_alter (e9chgd=e9shared) i.indmc|uibmoney prodabroad i.ym, fe vce(cluster indmc)
 
 esttab * using "tableapril4.tex", ///
     title(\label{tableapril4}) ///
@@ -713,18 +797,18 @@ esttab * using "tableapril4.tex", ///
     addnotes("$\text{S}_i$ and $\text{T}_t$ included but not reported.")	
 
 // Find First-stage F statistics. Does not work below Stata version 16
-xi: ivreghdfe theta_alter (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
-xi: ivreghdfe v_alter (e9chgd=e9shared) i.indmc|uibmoney proddome i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe theta_alter (e9chgd=e9shared) i.indmc|uibmoney prodabroad i.ym, absorb(indmc) cluster(indmc) first  
+xi: ivreghdfe v_alter (e9chgd=e9shared) i.indmc|uibmoney prodabroad i.ym, absorb(indmc) cluster(indmc) first  
 
 
 ******* Boottest
 foreach var of varlist theta v vfull vpart {
-    xi: xtreg `var' e9shared i.indmc|uibmoney proddome i.ym, fe vce(cluster indmc)
+    xi: xtreg `var' e9shared i.indmc|uibmoney prodabroad i.ym, fe vce(cluster indmc)
     boottest e9shared = 0, reps(9999) seed(12345)
 }
 
 foreach var of varlist theta v vfull vpart {
-    xi: xtivreg `var' (e9chgd = e9shared) i.indmc|uibmoney proddome i.ym, fe vce(cluster indmc)
+    xi: xtivreg `var' (e9chgd = e9shared) i.indmc|uibmoney prodabroad i.ym, fe vce(cluster indmc)
     boottest e9chgd = 0, reps(9999) seed(12345)
 }
 
@@ -750,7 +834,7 @@ foreach i of numlist 1/126 {
 }
 * dum61 = 2020m1
 
-foreach var of varlist profit proddome prodabroad prodoper uibmoney {
+foreach var of varlist wagefull hourfull {
     replace `var'=ln(`var')
 }
 
@@ -759,7 +843,7 @@ capture program drop contdidreg
 program contdidreg 
 args i j
     preserve
-            xi: xtreg `i' e9sharedum1-e9sharedum126 i.ym rho1-rho4 proddome i.indmc|uibmoney, fe vce(cluster indmc) 
+            xi: xtreg `i' e9sharedum1-e9sharedum126 i.ym rho1-rho4 prodabroad i.indmc|uibmoney, fe vce(cluster indmc) 
             mat b2=e(b)'
             mat b=b2[1..126,1]
             mat v2=vecdiag(e(V))'
@@ -802,12 +886,18 @@ args i j
             label var numDpartproportion "Fixed/Perm" 
             label var hourfull "Work Hours(Perm)" 
             label var wagefull "Wage(Perm)" 
-            label var dw_approx "Domestic Workers" 
-            label var a_unbiased "Match Efficiency" 
-            label var lambda "Termination" 
 
+            * Create yearly ticks at January of each year
+            local xlab ""
+            forvalues yr = 2014/2025 {
+                local m = 12*(`yr'-1960) + 1
+                if `m' >= 648 & `m' <= 775 {
+                    local xlab "`xlab' `m' "`yr'""
+                }
+            }
+            
             twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t), xline(719) yline(0) xtitle("") ytitle("") /// 
-            legend(off) xlabel(648(12)775) ///
+            legend(off) xlabel(`xlab') ///
             title(Panel(`j'): `: variable label `i'')
             graph export contdid`i'`j'.eps, replace
     restore
@@ -885,7 +975,7 @@ foreach i of numlist 1/126 {
     gen e9sharedum`i'=e9share*dum`i'
 }
 
-foreach var of varlist profit proddome prodabroad prodoper uibmoney {
+foreach var of varlist dw_approx {
     replace `var'=ln(`var')
 }
 
@@ -894,7 +984,7 @@ capture program drop contdidreg2
 program contdidreg2
 args i j
     preserve
-            xi: xtreg `i' e9sharedum1-e9sharedum126 i.ym rho1-rho4 proddome i.indmc|uibmoney, fe vce(cluster indmc)
+            xi: xtreg `i' e9sharedum1-e9sharedum126 i.ym rho1-rho4 prodabroad i.indmc|uibmoney, fe vce(cluster indmc)
             mat b2=e(b)'
             mat b=b2[1..126,1]
             mat v2=vecdiag(e(V))'
@@ -917,8 +1007,17 @@ args i j
 
             label var dw_approx "Domestic Workers" 
 
+            * Create yearly ticks at January of each year
+            local xlab ""
+            forvalues yr = 2014/2025 {
+                local m = 12*(`yr'-1960) + 1
+                if `m' >= 648 & `m' <= 775 {
+                    local xlab "`xlab' `m' "`yr'""
+                }
+            }
+
             twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t), xline(719) yline(0) xtitle("") ytitle("") /// 
-            legend(off) xlabel(648(12)775) ///
+            legend(off) xlabel(`xlab') ///
             title(Panel(`j'): `: variable label `i'')
             graph export contdid`i'`j'.eps, replace
     restore
@@ -943,7 +1042,7 @@ keep if 648<=ym&ym<=774
 tab ym, gen(dum)
 
 gen numTOT=numD+numE
-label var numTOT "Number of Firms" 
+label var numTOT "Log of Number of Firms" 
 label var uib "UIB Receivers" 
 
 foreach i of numlist 1/126 {
@@ -952,7 +1051,7 @@ foreach i of numlist 1/126 {
 * dum61 = 2020m1
 
 gen prodd=proddome+prodabroad
-foreach var of varlist profit prodd prodoper uibmoney {
+foreach var of varlist numTOT profit prodd prodoper uibmoney {
     replace `var'=ln(`var')
 }
 
@@ -961,7 +1060,7 @@ capture program drop contdidreg
 program contdidreg 
 args i j
     preserve
-            xi: xtreg `i' e9sharedum1-e9sharedum126 i.ym rho1-rho4 i.indmc*uibmoney, fe vce(cluster indmc) 
+            xi: xtreg `i' e9sharedum1-e9sharedum126 i.ym rho1-rho4 i.indmc|uibmoney, fe vce(cluster indmc) 
             mat b2=e(b)'
             mat b=b2[1..126,1]
             mat v2=vecdiag(e(V))'
@@ -987,20 +1086,31 @@ args i j
 
             label var numTOT "Number of Firms" 
             label var uib "UIB Receivers"      
-            label var prodd "Production"  
+            label var prodd "Production Index"  
             label var prodoper "Operation (%)"  
 
+            * Create yearly ticks at January of each year
+            local xlab ""
+            forvalues yr = 2014/2025 {
+                local m = 12*(`yr'-1960) + 1
+                if `m' >= 648 & `m' <= 775 {
+                    local xlab "`xlab' `m' "`yr'""
+                }
+            }
+
             twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t), xline(719) yline(0) xtitle("") ytitle("") /// 
-            legend(off) xlabel(648(12)775) ///
+            legend(off) xlabel(`xlab') ///
             title(Panel(`j'): `: variable label `i'')
             graph export contdid`i'`j'.eps, replace
     restore
 end
 
 contdidreg numTOT A
+contdidreg prodd B
+
 contdidreg prodoper B
 contdidreg uib C
-contdidreg prodd D
+
 
 
 
