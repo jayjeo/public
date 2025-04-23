@@ -21,15 +21,17 @@
 - 실시간 웹 검색기능
 - PDF, 아래아한글, 워드, 엑셀, 텍스트 파일을 첨부해서 읽어들일수 있음. 이미지 분석도 가능함
 - 기본적인 텍스트 입력을 통한 질문 기능도 당연히 포함됨
-- 채팅 기록 저장기능 및 채팅 내용을 통한 제목 자동 생성 기능
+- 채팅 기록 저장기능
   - 채팅 히스토리는 본인만 볼 수 있으며 심지어 개발자도 접근 못함. 개인 컴퓨터에 json 파일로 개별 저장되기 때문임
 
 ### 지원하지 않는 기능
 - Deep Research 기능은 알아본 결과 아쉽게도 API로 구동 못하게 막혀있음
-   
+- API를 사용하다보니 웹에서 직접 쓰는 AI보다 성능이 확실히 많이 떨어짐. 가급적 웹 버전의 순정 AI를 쓰는 것을 권장장
+
+
 ### 다운로드는 아래의 링크에서 받는다
 [Download](https://www.dropbox.com/scl/fi/jrwjnc1vmjdk93w5n31pg/LLM.exe?rlkey=eeqe97qzlcyus6z62bwanxk1u&st=lkshc3q4)
 
 ### 파이썬 원본 코드는 아래에서 받을 수 있다
 [Download](https://www.dropbox.com/scl/fi/l08e42k52d6fz87kx0bbl/LLM.py?rlkey=mvsjzojxq9zmqps914z8ko7r5&st=4nyauq4a)
-
+- 코드 확인을 통해서 바이러스나 멀웨어가 숨어있지 않음을 확인 가능
