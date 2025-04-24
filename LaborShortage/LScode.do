@@ -40,7 +40,7 @@ https://www.index.go.kr/potal/main/EachDtlPageDetail.do?idx_cd=1068 (opened to p
 
 *********************************************/
 
-** LScode ver19.0.do
+** LScode ver20.0.do
 cls
 clear all
 set scheme s1color, perm 
@@ -814,6 +814,8 @@ foreach var of varlist theta v vfull vpart {
 
 
 
+
+
 /*********************************************
 Continuous DID Regressions (monthly) 2014~
 *********************************************/
@@ -913,6 +915,7 @@ contdidreg hourfull H
 contdidreg theta_alter A
 contdidreg v_alter B
 contdidreg vfull_alter C
+
 
 
 
