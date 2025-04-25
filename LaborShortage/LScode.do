@@ -50,8 +50,8 @@ set more off, perm
 /*********************************************
 *********************************************/
 * NEED TO SET YOUR PREFERRED PATH
-global path="G:\JJ Dropbox\J J\Study\UC Davis\Writings\Labor Shortage\210718\RNR second\LaborShortage"
-//global path="D:\JJ Dropbox\J J\Study\UC Davis\Writings\Labor Shortage\210718\RNR second\LaborShortage"
+//global path="G:\JJ Dropbox\J J\Study\UC Davis\Writings\Labor Shortage\210718\RNR second\LaborShortage"
+global path="D:\JJ Dropbox\J J\Study\UC Davis\Writings\Labor Shortage\210718\RNR second\LaborShortage"
 /*********************************************
 *********************************************/
 cd "${path}"
