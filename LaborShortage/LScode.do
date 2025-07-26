@@ -365,7 +365,7 @@ rename uibmoney2 uibmoney
 
 drop if inlist(indmc,12)  // tobacco industry. Extremely few workers, and production data is not available.
 sort indmc ym
-keep if 648<=ym&ym<=775   // largest available data span.
+keep if 648<=ym&ym<=784   // largest available data span.
 
 gen Break1=0
 replace Break1=1 if ym>=717
@@ -587,7 +587,7 @@ reshape long y, i(ind) j(j)
 rename y profit_temp
 rename j year
 rename ind indmc
-gen ym = ym(year, 1)  // Generate monthly time variable starting January each year
+gen ym = ym(year, 6)  // Generate monthly time variable starting January each year
 xtset indmc ym, monthly
 tsfill, full 
 drop year 
@@ -596,13 +596,24 @@ save MSMMmonth, replace
 use panelf3_temp5, clear 
 merge 1:1 indmc ym using MSMMmonth, nogenerate
 sort indmc ym 
-by indmc: ipolate profit_temp ym, gen(profit) epolate
+by indmc: ipolate profit_temp ym, gen(profit_temp2) epolate
+replace profit_temp2=. if ym>=767
+tsfilter hp profit_hp = profit_temp2, trend(profit) smooth(60)
 foreach var of varlist uibmoney profit proddome prodabroad prodoper {
         egen `var'_sd=sd(`var')
         replace `var'=(`var')/`var'_sd
         drop `var'_sd
     }
 drop profit_temp
+save panelf3_temp7, replace
+
+
+import excel "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/ml_final_m.xlsx", sheet("Sheet1") firstrow clear
+rename ind indmc
+generate ym = ym(year, month)
+keep indmc ym profit_ml year month
+order indmc profit_ml year month ym
+
 save panelf3, replace 
 
 
@@ -1159,6 +1170,7 @@ program LPDID
             replace d=1 if 720<=ym&ym<=733    // 752 = 2022m09, 769 = 2024m02, 775 = 2024m8
             drop if d==.
             gen e9shared=e9share*d
+            di "h="`h'
             xi: xtreg Fv e9shared i.ym uibmoney prodabroad, fe vce(cluster indmc)
         restore
         replace LP = _b[e9shared] if _n==`h'+1
@@ -1183,13 +1195,77 @@ program LPDID
 end
 
 
-LPDID D profit
-
 LPDID A v
 LPDID B vfull
 LPDID C vpart
 //LPDID D numDpartproportion
 LPDID D profit
+
+
+
+
+capture program drop LPDID
+program LPDID 
+    args j depvar
+    use panelf3, clear
+    
+    foreach var of varlist profit proddome prodabroad prodoper uibmoney {
+        replace `var'=ln(`var')
+    }
+    
+    xtset indmc ym
+
+    drop if indmc==0    // information for total manufacturing sectors. 
+    //drop if indmc==32|indmc==16  // too much fluctuations
+    drop if indmc==12|indmc==19  // too few observations
+    keep if 706<=ym
+
+    label var v "Vacancy" 
+    label var vfull "Vacancy(Perm)" 
+    label var vpart "Vacancy(Fixed)" 
+    label var hourfull "Work Hours(Perm)" 
+    label var wagefull "Wage(Perm)" 
+    label var profit "Profit" 
+
+    gen e9numD=e9/numD*100
+    gen LP=.
+    gen ub=.
+    gen lb=.
+
+    forvalues h=0(1)46 {
+        preserve
+            gen Fv=F`h'.`depvar'
+            gen d=0 if  706<=ym&ym<=719  
+            replace d=1 if 720<=ym&ym<=733    // 752 = 2022m09, 769 = 2024m02, 775 = 2024m8
+            drop if d==.
+            gen e9shared=e9share*d
+            di "h="`h'
+            xi: xtreg Fv e9shared i.ym uibmoney prodabroad, fe vce(cluster indmc)
+        restore
+        replace LP = _b[e9shared] if _n==`h'+1
+        replace ub = _b[e9shared] + 1.645* _se[e9shared] if _n==`h'+1
+        replace lb = _b[e9shared] - 1.645* _se[e9shared] if _n==`h'+1
+    }
+
+    replace ym=ym+15
+    keep if _n<=46
+    gen Zero=0
+    twoway ///
+    (rarea ub lb ym,  ///
+    fcolor(gs13) lcolor(gs13) lw(none) lpattern(solid)) ///
+    (line LP ym, lcolor(blue) ///
+    lpattern(solid) lwidth(thick)) ///
+    (line Zero ym, lcolor(black)), legend(off) ///
+    ytitle("", size(medsmall)) xtitle("", size(medsmall)) ///
+    graphregion(color(white)) plotregion(color(white)) xlabel(720(6)786) ///
+    title(Panel(`j'): `: variable label `depvar'') ///
+    ysize(1) xsize(3)
+    graph export LP`depvar'.eps, replace
+end
+
+
+LPDID D profit
+
 
 
 /*********************************************
