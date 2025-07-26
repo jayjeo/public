@@ -1137,36 +1137,37 @@ program LPDID
 
     drop if indmc==0    // information for total manufacturing sectors. 
     //drop if indmc==32|indmc==16  // too much fluctuations
-    drop if indmc==19  // too few observations
-    keep if 708<=ym
+    drop if indmc==12|indmc==19  // too few observations
+    keep if 706<=ym
 
     label var v "Vacancy" 
     label var vfull "Vacancy(Perm)" 
     label var vpart "Vacancy(Fixed)" 
     label var hourfull "Work Hours(Perm)" 
     label var wagefull "Wage(Perm)" 
+    label var profit "Profit" 
 
     gen e9numD=e9/numD*100
     gen LP=.
     gen ub=.
     gen lb=.
 
-    forvalues h=0(1)46 {
+    forvalues h=0(1)66 {
         preserve
             gen Fv=F`h'.`depvar'
-            gen d=0 if  710<=ym&ym<=719  
-            replace d=1 if 720<=ym&ym<=729    // 752 = 2022m09, 769 = 2024m02, 775 = 2024m8
+            gen d=0 if  706<=ym&ym<=719  
+            replace d=1 if 720<=ym&ym<=733    // 752 = 2022m09, 769 = 2024m02, 775 = 2024m8
             drop if d==.
             gen e9shared=e9share*d
-            xi: xtreg Fv e9shared i.ym, fe vce(cluster indmc)
+            xi: xtreg Fv e9shared i.ym uibmoney prodabroad, fe vce(cluster indmc)
         restore
         replace LP = _b[e9shared] if _n==`h'+1
         replace ub = _b[e9shared] + 1.645* _se[e9shared] if _n==`h'+1
         replace lb = _b[e9shared] - 1.645* _se[e9shared] if _n==`h'+1
     }
 
-    replace ym=ym+12
-    keep if _n<=46
+    replace ym=ym+15
+    keep if _n<=66
     gen Zero=0
     twoway ///
     (rarea ub lb ym,  ///
@@ -1175,18 +1176,20 @@ program LPDID
     lpattern(solid) lwidth(thick)) ///
     (line Zero ym, lcolor(black)), legend(off) ///
     ytitle("", size(medsmall)) xtitle("", size(medsmall)) ///
-    graphregion(color(white)) plotregion(color(white)) xlabel(720(4)764) ///
+    graphregion(color(white)) plotregion(color(white)) xlabel(720(6)786) ///
     title(Panel(`j'): `: variable label `depvar'') ///
     ysize(1) xsize(3)
     graph export LP`depvar'.eps, replace
 end
 
 
+LPDID D profit
+
 LPDID A v
 LPDID B vfull
 LPDID C vpart
-LPDID D numDpartproportion
-
+//LPDID D numDpartproportion
+LPDID D profit
 
 
 /*********************************************
