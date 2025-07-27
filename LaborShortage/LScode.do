@@ -40,7 +40,7 @@ https://www.index.go.kr/potal/main/EachDtlPageDetail.do?idx_cd=1068 (opened to p
 
 *********************************************/
 
-** LScode ver20.0.do
+** LScode ver22.0.do
 cls
 clear all
 set scheme s1color, perm 
@@ -50,8 +50,8 @@ set more off, perm
 /*********************************************
 *********************************************/
 * NEED TO SET YOUR PREFERRED PATH
-//global path="G:\JJ Dropbox\J J\Study\UC Davis\Writings\Labor Shortage\210718\RNR second\LaborShortage"
-global path="D:\JJ Dropbox\J J\Study\UC Davis\Writings\Labor Shortage\210718\RNR second\LaborShortage"
+global path="D:\JJ Dropbox\J J\Study\UC Davis\Writings\Labor Shortage\250717\RNR third\LaborShortage"
+//global path="D:\JJ Dropbox\J J\Study\UC Davis\Writings\Labor Shortage\250717\RNR third\LaborShortage"
 /*********************************************
 *********************************************/
 cd "${path}"
@@ -524,7 +524,21 @@ gen theta=v/uibC
 gen theta_alter=v_alter/uibC
 label var theta "Tightness" 
 label var theta_alter "Tightness(alter)" 
-save panelf3_temp4, replace 
+save panelf3_temp4_3, replace 
+
+import excel "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/ml_final_m.xlsx", sheet("Sheet1") firstrow clear
+rename ind indmc
+generate ym = ym(year, month)
+keep indmc ym profit_ml year month
+drop year month 
+sort indmc ym
+xtset indmc ym
+save ml_final_m, replace 
+
+use panelf3_temp4_3, clear 
+merge 1:1 indmc ym using ml_final_m, nogenerate
+save panelf3_temp4, replace
+
 
 
 
@@ -563,8 +577,11 @@ foreach i of numlist 0 10 11 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 
         reg hourpart tau2-tau12
         predict hourpart_p, residuals
         replace hourpart_p=hourpart_p+_b[_cons]
-        drop v vpart vfull wage wagefull wagepart hour hourfull hourpart
-        rename (v_p vpart_p vfull_p wage_p wagefull_p wagepart_p hour_p hourfull_p hourpart_p)(v vpart vfull wage wagefull wagepart hour hourfull hourpart)
+        reg profit_ml tau2-tau12
+        predict profit_ml_p, residuals
+        replace profit_ml_p=profit_ml_p+_b[_cons]
+        drop v vpart vfull wage wagefull wagepart hour hourfull hourpart profit_ml
+        rename (v_p vpart_p vfull_p wage_p wagefull_p wagepart_p hour_p hourfull_p hourpart_p profit_ml_p)(v vpart vfull wage wagefull wagepart hour hourfull hourpart profit_ml)
         save panelf3_temp5_seasonal`i', replace 
     restore
 }
@@ -605,15 +622,9 @@ foreach var of varlist uibmoney profit proddome prodabroad prodoper {
         drop `var'_sd
     }
 drop profit_temp
-save panelf3_temp7, replace
-
-
-import excel "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/ml_final_m.xlsx", sheet("Sheet1") firstrow clear
-rename ind indmc
-generate ym = ym(year, month)
-keep indmc ym profit_ml year month
-order indmc profit_ml year month ym
-
+rename profit_ml profit_ml2
+tsfilter hp profit_ml_hp = profit_ml2, trend(profit_ml) smooth(5)
+drop profit_ml_hp profit_ml2
 save panelf3, replace 
 
 
@@ -654,7 +665,7 @@ foreach i of numlist 1/127 {
 }
 * dum61 = 2020m1
 
-foreach var of varlist profit uibmoney {
+foreach var of varlist profit profit_ml uibmoney {
     replace `var'=ln(`var')
 }
 
@@ -683,6 +694,7 @@ args i j
             format t %tm
     
             gen profit=.
+            gen profit_ml=.
             gen proddome=.
             gen prodabroad=.
             gen prodoper=.
@@ -692,7 +704,8 @@ args i j
             label var proddome "Domestic production" 
             label var prodabroad "International production" 
             label var prodoper "prodoper" 
-            label var uibmoney "UIB" 
+            label var uibmoney "UIB"
+            label var profit_ml "Profit" 
 
             * Create yearly ticks at January of each year
             local xlab ""
@@ -710,7 +723,8 @@ args i j
     restore
 end
 
-    
+contdidreg profit_ml E    
+
 contdidreg profit A
 contdidreg uibmoney B
 contdidreg proddome C
@@ -1140,7 +1154,7 @@ program LPDID
     args j depvar
     use panelf3, clear
     
-    foreach var of varlist profit proddome prodabroad prodoper uibmoney {
+    foreach var of varlist profit profit_ml proddome prodabroad prodoper uibmoney {
         replace `var'=ln(`var')
     }
     
@@ -1157,6 +1171,7 @@ program LPDID
     label var hourfull "Work Hours(Perm)" 
     label var wagefull "Wage(Perm)" 
     label var profit "Profit" 
+    label var profit_ml "Profit" 
 
     gen e9numD=e9/numD*100
     gen LP=.
@@ -1194,12 +1209,11 @@ program LPDID
     graph export LP`depvar'.eps, replace
 end
 
-
 LPDID A v
 LPDID B vfull
 LPDID C vpart
 //LPDID D numDpartproportion
-LPDID D profit
+
 
 
 
@@ -1209,7 +1223,7 @@ program LPDID
     args j depvar
     use panelf3, clear
     
-    foreach var of varlist profit proddome prodabroad prodoper uibmoney {
+    foreach var of varlist profit profit_ml proddome prodabroad prodoper uibmoney {
         replace `var'=ln(`var')
     }
     
@@ -1226,6 +1240,7 @@ program LPDID
     label var hourfull "Work Hours(Perm)" 
     label var wagefull "Wage(Perm)" 
     label var profit "Profit" 
+    label var profit_ml "Profit" 
 
     gen e9numD=e9/numD*100
     gen LP=.
@@ -1240,7 +1255,7 @@ program LPDID
             drop if d==.
             gen e9shared=e9share*d
             di "h="`h'
-            xi: xtreg Fv e9shared i.ym uibmoney prodabroad, fe vce(cluster indmc)
+            xi: reg Fv e9shared i.ym i.indmc uibmoney prodabroad, vce(cluster indmc)
         restore
         replace LP = _b[e9shared] if _n==`h'+1
         replace ub = _b[e9shared] + 1.645* _se[e9shared] if _n==`h'+1
@@ -1264,7 +1279,7 @@ program LPDID
 end
 
 
-LPDID D profit
+LPDID D profit_ml
 
 
 
