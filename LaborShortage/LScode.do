@@ -960,7 +960,6 @@ use panelf3, clear
 drop if indmc==0
 collapse (sum) e9, by(ym)
 rename e9 e9tot
-replace e9tot=129808 if e9tot==0 //temporary
 save e9tot, replace 
 
 //!start
@@ -998,10 +997,10 @@ drop if indmc==0
 drop if indmc==19  // too few observations
 xtset indmc ym 
 
-keep if 648<=ym&ym<=774   // 752 = 2022m09, 769 = 2024m02
+keep if 648<=ym&ym<=785   // 752 = 2022m09, 769 = 2024m02
 tab ym, gen(dum)
 
-foreach i of numlist 1/126 {
+foreach i of numlist 1/137 {
     gen e9sharedum`i'=e9share*dum`i'
 }
 
@@ -1014,11 +1013,11 @@ capture program drop contdidreg2
 program contdidreg2
 args i j
     preserve
-            xi: xtreg `i' e9sharedum1-e9sharedum126 i.ym rho1-rho4 prodabroad i.indmc|uibmoney, fe vce(cluster indmc)
+            xi: xtreg `i' e9sharedum1-e9sharedum137 i.ym rho1-rho4 prodabroad i.indmc|uibmoney, fe vce(cluster indmc)
             mat b2=e(b)'
-            mat b=b2[1..126,1]
+            mat b=b2[1..137,1]
             mat v2=vecdiag(e(V))'
-            mat v=v2[1..126,1]
+            mat v=v2[1..137,1]
             scalar invttail=invttail(e(df_r),0.025)
             matain b
             matain v
@@ -1041,7 +1040,7 @@ args i j
             local xlab ""
             forvalues yr = 2014/2025 {
                 local m = 12*(`yr'-1960) + 1
-                if `m' >= 648 & `m' <= 775 {
+                if `m' >= 648 & `m' <= 785 {
                     local xlab "`xlab' `m' "`yr'""
                 }
             }
@@ -1211,11 +1210,76 @@ program LPDID
     graph export LP`depvar'.eps, replace
 end
 
+
 LPDID A v
 LPDID B vfull
 LPDID C vpart
 //LPDID D numDpartproportion
 
+
+
+capture program drop LPDID
+program LPDID 
+    args j depvar
+    use numDrobust, clear
+    
+    foreach var of varlist `depvar' profit profit_ml proddome prodabroad prodoper uibmoney {
+        replace `var'=ln(`var')
+    }
+    
+    xtset indmc ym
+
+    drop if indmc==0    // information for total manufacturing sectors. 
+    //drop if indmc==32|indmc==16  // too much fluctuations
+    drop if indmc==12|indmc==19  // too few observations
+    keep if 706<=ym
+
+    label var v "Vacancy" 
+    label var vfull "Vacancy(Perm)" 
+    label var vpart "Vacancy(Fixed)" 
+    label var hourfull "Work Hours(Perm)" 
+    label var wagefull "Wage(Perm)" 
+    label var profit "Profit" 
+    label var profit_ml "Profit" 
+
+    gen e9numD=e9/numD*100
+    gen LP=.
+    gen ub=.
+    gen lb=.
+
+    forvalues h=0(1)65 {
+        preserve
+            gen Fv=F`h'.`depvar'
+            gen d=0 if  706<=ym&ym<=719  
+            replace d=1 if 720<=ym&ym<=733    // 752 = 2022m09, 769 = 2024m02, 775 = 2024m8
+            drop if d==.
+            gen e9shared=e9share*d
+            di "h="`h'
+            xi: xtreg Fv e9shared i.ym uibmoney prodabroad, fe vce(cluster indmc)
+        restore
+        replace LP = _b[e9shared] if _n==`h'+1
+        replace ub = _b[e9shared] + 1.645* _se[e9shared] if _n==`h'+1
+        replace lb = _b[e9shared] - 1.645* _se[e9shared] if _n==`h'+1
+    }
+
+    replace ym=ym+15
+    keep if _n<=65
+    gen Zero=0
+    twoway ///
+    (rarea ub lb ym,  ///
+    fcolor(gs13) lcolor(gs13) lw(none) lpattern(solid)) ///
+    (line LP ym, lcolor(blue) ///
+    lpattern(solid) lwidth(thick)) ///
+    (line Zero ym, lcolor(black)), legend(off) ///
+    ytitle("", size(medsmall)) xtitle("", size(medsmall)) ///
+    graphregion(color(white)) plotregion(color(white)) xlabel(720(6)786) ///
+    title(Panel(`j'): `: variable label `depvar'') ///
+    ysize(1) xsize(3)
+    graph export LP`depvar'.eps, replace
+end
+
+
+LPDID D dw_approx
 
 
 
