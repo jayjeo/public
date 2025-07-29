@@ -615,7 +615,8 @@ merge 1:1 indmc ym using MSMMmonth, nogenerate
 sort indmc ym 
 by indmc: ipolate profit_temp ym, gen(profit_temp2) epolate
 replace profit_temp2=. if ym>=767
-tsfilter hp profit_hp = profit_temp2, trend(profit) smooth(60)
+//tsfilter hp profit_hp = profit_temp2, trend(profit) smooth(60)
+rename profit_temp2 profit
 foreach var of varlist uibmoney profit proddome prodabroad prodoper {
         egen `var'_sd=sd(`var')
         replace `var'=(`var')/`var'_sd
@@ -723,7 +724,6 @@ args i j
     restore
 end
 
-contdidreg profit_ml E    
 
 contdidreg profit A
 contdidreg uibmoney B
@@ -732,6 +732,7 @@ contdidreg prodabroad D
 
 contdidreg prodoper E
 
+contdidreg profit_ml E    
 
 
 
@@ -840,7 +841,6 @@ foreach var of varlist theta v vfull vpart {
 
 
 
-
 /*********************************************
 Continuous DID Regressions (monthly) 2014~
 *********************************************/
@@ -851,12 +851,12 @@ drop if indmc==0    // information for total manufacturing sectors.
 //drop if indmc==32|indmc==16  // too much fluctuations
 drop if indmc==19  // too few observations
 
-keep if 648<=ym&ym<=774
+keep if 648<=ym&ym<=785
 tab ym, gen(dum)
 
 label var theta "Tightness" 
 
-foreach i of numlist 1/126 {
+foreach i of numlist 1/137 {
     gen e9sharedum`i'=e9share*dum`i'
 }
 * dum61 = 2020m1
@@ -870,11 +870,11 @@ capture program drop contdidreg
 program contdidreg 
 args i j
     preserve
-            xi: xtreg `i' e9sharedum1-e9sharedum126 i.ym rho1-rho4 prodabroad i.indmc|uibmoney, fe vce(cluster indmc) 
+            xi: xtreg `i' e9sharedum1-e9sharedum137 i.ym rho1-rho4 prodabroad i.indmc|uibmoney, fe vce(cluster indmc) 
             mat b2=e(b)'
-            mat b=b2[1..126,1]
+            mat b=b2[1..137,1]
             mat v2=vecdiag(e(V))'
-            mat v=v2[1..126,1]
+            mat v=v2[1..137,1]
             scalar invttail=invttail(e(df_r),0.025)
             matain b
             matain v
@@ -918,7 +918,7 @@ args i j
             local xlab ""
             forvalues yr = 2014/2025 {
                 local m = 12*(`yr'-1960) + 1
-                if `m' >= 648 & `m' <= 775 {
+                if `m' >= 648 & `m' <= 785 {
                     local xlab "`xlab' `m' "`yr'""
                 }
             }
@@ -932,6 +932,7 @@ end
 
 contdidreg theta A
 contdidreg v B
+
 contdidreg vfull C
 contdidreg vpart D
 contdidreg numDpartproportion E
@@ -961,6 +962,7 @@ collapse (sum) e9, by(ym)
 rename e9 e9tot
 replace e9tot=129808 if e9tot==0 //temporary
 save e9tot, replace 
+
 //!start
 cd "${path}"
 use panelf3, clear
@@ -1154,7 +1156,7 @@ program LPDID
     args j depvar
     use panelf3, clear
     
-    foreach var of varlist profit profit_ml proddome prodabroad prodoper uibmoney {
+    foreach var of varlist `depvar' profit profit_ml proddome prodabroad prodoper uibmoney {
         replace `var'=ln(`var')
     }
     
@@ -1278,6 +1280,7 @@ program LPDID
     graph export LP`depvar'.eps, replace
 end
 
+LPDID D profit
 
 LPDID D profit_ml
 
