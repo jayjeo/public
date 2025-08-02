@@ -932,7 +932,6 @@ end
 
 contdidreg theta A
 contdidreg v B
-
 contdidreg vfull C
 contdidreg vpart D
 contdidreg numDpartproportion E
