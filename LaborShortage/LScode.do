@@ -127,7 +127,7 @@ replace e9stock=e9stock/1000
 replace smooth_e9inflow=smooth_e9inflow/1000
 
 twoway (tsline smooth_e9inflow, lcolor(gs0))(tsline e9stock, lwidth(thick) lcolor(gs0) yaxis(2)) ///
-, xlabel(648(6)775) xlabel(, grid angle(270)) ylabel(0(50)200, axis(2)) xline(720) ytitle("a thousand person", axis(1)) ytitle("a thousand person", axis(2)) scheme(s1mono) ///
+, xlabel(648(6)784) xlabel(, grid angle(270)) ylabel(0(50)200, axis(2)) xline(720) ytitle("a thousand person", axis(1)) ytitle("a thousand person", axis(2)) xtitle("") scheme(s1mono) ///
 ysize(3.5) xsize(8) ///
 legend(label(1 "E9 inflow (left)") label(2 "E9 stock (right)")) ///
 caption("Source: Employment Permit System (EPS)")
@@ -175,7 +175,7 @@ gen forpercent=fw/(fw+dw)*100
 keep if month >= 648 
 
 twoway (tsline forpercent, lcolor(gs0)) ///
-, xlabel(648(6)775) ylabel(0(2)11) xlabel(, grid angle(270)) xline(720) xtitle("") ytitle("%") scheme(s1mono) ///
+, xlabel(648(6)784) ylabel(0(2)11) xlabel(, grid angle(270)) xline(720) xtitle("") ytitle("%") scheme(s1mono) ///
 ysize(3) xsize(8) legend(off) ///
 caption("Source: Korea Immigration Service Monthly Statistics & Survey on Immigrant's Living Conditions and Labour Force")
 graph export forpercent.eps, replace
@@ -656,12 +656,12 @@ drop if indmc==0    // information for total manufacturing sectors.
 //drop if indmc==32|indmc==16  // too much fluctuations
 drop if indmc==19  // too few observations
 
-keep if 648<=ym&ym<=774
+keep if 648<=ym&ym<=784
 tab ym, gen(dum)
 
 label var theta "Tightness" 
 
-foreach i of numlist 1/127 {
+foreach i of numlist 1/136 {
     gen e9sharedum`i'=e9share*dum`i'
 }
 * dum61 = 2020m1
@@ -675,11 +675,11 @@ capture program drop contdidreg
 program contdidreg 
 args i j
     preserve
-            xi: xtreg `i' e9sharedum1-e9sharedum71 e9sharedum73-e9sharedum127 i.ym rho1-rho4, fe vce(cluster indmc) 
+            xi: xtreg `i' e9sharedum1-e9sharedum136 i.ym rho1-rho4, fe vce(cluster indmc) 
             mat b2=e(b)'
-            mat b=b2[1..126,1]
+            mat b=b2[1..136,1]
             mat v2=vecdiag(e(V))'
-            mat v=v2[1..126,1]
+            mat v=v2[1..136,1]
             scalar invttail=invttail(e(df_r),0.025)
             matain b
             matain v
@@ -712,7 +712,7 @@ args i j
             local xlab ""
             forvalues yr = 2014/2025 {
                 local m = 12*(`yr'-1960) + 1
-                if `m' >= 648 & `m' <= 775 {
+                if `m' >= 648 & `m' <= 784 {
                     local xlab "`xlab' `m' "`yr'""
                 }
             }
@@ -723,6 +723,10 @@ args i j
             graph export contdid`i'`j'.eps, replace
     restore
 end
+
+
+
+contdidreg profit A
 
 
 contdidreg profit A
@@ -851,12 +855,12 @@ drop if indmc==0    // information for total manufacturing sectors.
 //drop if indmc==32|indmc==16  // too much fluctuations
 drop if indmc==19  // too few observations
 
-keep if 648<=ym&ym<=785
+keep if 648<=ym&ym<=784
 tab ym, gen(dum)
 
 label var theta "Tightness" 
 
-foreach i of numlist 1/137 {
+foreach i of numlist 1/136 {
     gen e9sharedum`i'=e9share*dum`i'
 }
 * dum61 = 2020m1
@@ -870,11 +874,11 @@ capture program drop contdidreg
 program contdidreg 
 args i j
     preserve
-            xi: xtreg `i' e9sharedum1-e9sharedum137 i.ym rho1-rho4 prodabroad i.indmc|uibmoney, fe vce(cluster indmc) 
+            xi: xtreg `i' e9sharedum1-e9sharedum136 i.ym rho1-rho4 prodabroad i.indmc|uibmoney, fe vce(cluster indmc) 
             mat b2=e(b)'
-            mat b=b2[1..137,1]
+            mat b=b2[1..136,1]
             mat v2=vecdiag(e(V))'
-            mat v=v2[1..137,1]
+            mat v=v2[1..136,1]
             scalar invttail=invttail(e(df_r),0.025)
             matain b
             matain v
@@ -1178,7 +1182,7 @@ program LPDID
     gen ub=.
     gen lb=.
 
-    forvalues h=0(1)66 {
+    forvalues h=0(1)65 {
         preserve
             gen Fv=F`h'.`depvar'
             gen d=0 if  706<=ym&ym<=719  
@@ -1194,7 +1198,7 @@ program LPDID
     }
 
     replace ym=ym+15
-    keep if _n<=66
+    keep if _n<=65
     gen Zero=0
     twoway ///
     (rarea ub lb ym,  ///
@@ -1239,7 +1243,7 @@ program LPDID
     label var hourfull "Work Hours(Perm)" 
     label var wagefull "Wage(Perm)" 
     label var profit "Profit" 
-    label var profit_ml "Profit" 
+    label var dw_approx "Domestic Workers" 
 
     gen e9numD=e9/numD*100
     gen LP=.
@@ -1278,7 +1282,7 @@ program LPDID
 end
 
 
-LPDID D dw_approx
+LPDID A dw_approx
 
 
 
@@ -1343,7 +1347,7 @@ program LPDID
     graph export LP`depvar'.eps, replace
 end
 
-LPDID D profit
+LPDID B profit
 
 LPDID D profit_ml
 
