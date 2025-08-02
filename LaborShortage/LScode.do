@@ -526,7 +526,7 @@ label var theta "Tightness"
 label var theta_alter "Tightness(alter)" 
 save panelf3_temp4_3, replace 
 
-import excel "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/ml_final_m.xlsx", sheet("Sheet1") firstrow clear
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/ml_final_m.csv", delimiter(comma) varnames(1) encoding(UTF-8) clear
 rename ind indmc
 generate ym = ym(year, month)
 keep indmc ym profit_ml year month
