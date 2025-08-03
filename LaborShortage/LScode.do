@@ -628,7 +628,7 @@ tsfilter hp profit_ml_hp = profit_ml2, trend(profit_ml) smooth(5)
 drop profit_ml_hp profit_ml2
 save panelf3, replace 
 
-gen profit_noise2 = profit + runiform(-0.00001, 0.00001)
+gen profit_noise2 = profit + runiform(-0.0000001, 0.0000001)
 drop profit
 rename profit_noise2 profit 
 keep indmc ym profit
