@@ -615,7 +615,7 @@ merge 1:1 indmc ym using MSMMmonth, nogenerate
 sort indmc ym 
 by indmc: ipolate profit_temp ym, gen(profit_temp2) epolate
 replace profit_temp2=. if ym>=767
-//tsfilter hp profit_hp = profit_temp2, trend(profit) smooth(5)
+//tsfilter hp profit_hp = profit_temp2, trend(profit) smooth(60)
 rename profit_temp2 profit
 foreach var of varlist uibmoney profit proddome prodabroad prodoper {
         egen `var'_sd=sd(`var')
@@ -647,91 +647,7 @@ foreach var of newlist proddome prodabroad prodoper uib profit {
     corr chg`var' e9share
 }
 
-*********************************************
 
-
-*!start
-cd "${path}"
-use panelf3, clear
-drop if indmc==0    // information for total manufacturing sectors. 
-//drop if indmc==32|indmc==16  // too much fluctuations
-drop if indmc==19  // too few observations
-
-keep if 648<=ym&ym<=767
-tab ym, gen(dum)
-
-label var theta "Tightness" 
-
-foreach i of numlist 1/119 {
-    gen e9sharedum`i'=e9share*dum`i'
-}
-* dum61 = 2020m1
-
-foreach var of varlist profit profit_ml uibmoney {
-    replace `var'=ln(`var')
-}
-
-order *, sequential
-capture program drop contdidreg
-program contdidreg 
-args i j
-    preserve
-            xi: xtreg `i' e9sharedum1-e9sharedum71 e9sharedum73-e9sharedum119 i.ym rho1-rho4, fe vce(cluster indmc) 
-            mat b2=e(b)'
-            mat b=b2[1..118,1]
-            mat v2=vecdiag(e(V))'
-            mat v=v2[1..118,1]
-            scalar invttail=invttail(e(df_r),0.025)
-            matain b
-            matain v
-            mata se=sqrt(v)
-            clear
-            getmata b  
-            getmata se
-            gen lb=b-invttail*se
-            gen ub=b+invttail*se
-            gen t=_n
-            replace t=t+647
-            tsset t, monthly
-            format t %tm
-    
-            gen profit=.
-            gen profit_ml=.
-            gen proddome=.
-            gen prodabroad=.
-            gen prodoper=.
-            gen uibmoney=.
-
-            label var profit "profit"
-            label var proddome "Domestic production" 
-            label var prodabroad "International production" 
-            label var prodoper "prodoper" 
-            label var uibmoney "UIB"
-            label var profit_ml "Profit" 
-
-            * Create yearly ticks at January of each year
-            local xlab ""
-            forvalues yr = 2014/2025 {
-                local m = 12*(`yr'-1960) + 1
-                if `m' >= 648 & `m' <= 775 {
-                    local xlab "`xlab' `m' "`yr'""
-                }
-            }
-
-            twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t), xline(719) yline(0) xtitle("") ytitle("") /// 
-            legend(off) xlabel(`xlab') ///
-            title(Panel(`j'): `: variable label `i'')
-            graph export contdid`i'`j'.eps, replace
-    restore
-end
-
-contdidreg profit A
-contdidreg profit_ml E    
-
-
-
-
-*********************************************
 
 *!start
 cd "${path}"
@@ -809,9 +725,20 @@ args i j
 end
 
 
+
+contdidreg profit A
+
+
+contdidreg profit A
 contdidreg uibmoney B
 contdidreg proddome C
 contdidreg prodabroad D
+
+contdidreg prodoper E
+
+contdidreg profit_ml E    
+
+
 
 
 /*********************************************
