@@ -680,7 +680,7 @@ args i j
             gen prodoper=.
             gen uibmoney=.
 
-            label var profit "profit"
+            label var profit "Profit"
             label var proddome "Domestic production" 
             label var prodabroad "International production" 
             label var prodoper "prodoper" 
