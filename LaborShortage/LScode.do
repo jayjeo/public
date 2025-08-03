@@ -597,13 +597,42 @@ drop wage wagefull wagepart hour hourfull hourpart
 merge 1:1 indmc ym using panelf3_temp5_seasonal, nogenerate
 save panelf3_temp5, replace 
 
-use "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/profit", clear
-save profit, replace 
+
+
+import delimited "https://raw.githubusercontent.com/jayjeo/public/master/LaborShortage/MSMMyear.csv", clear
+reshape long y, i(ind) j(j)
+rename y profit_temp
+rename j year
+rename ind indmc
+gen ym = ym(year, 6)  // Generate monthly time variable starting January each year
+xtset indmc ym, monthly
+tsfill, full 
+drop year 
+save MSMMmonth, replace 
 
 use panelf3_temp5, clear 
-merge 1:1 indmc ym using profit, nogenerate
+merge 1:1 indmc ym using MSMMmonth, nogenerate
+sort indmc ym 
+by indmc: ipolate profit_temp ym, gen(profit_temp2) epolate
+replace profit_temp2=. if ym>=767
+//tsfilter hp profit_hp = profit_temp2, trend(profit) smooth(5)
+rename profit_temp2 profit
+foreach var of varlist uibmoney profit proddome prodabroad prodoper {
+        egen `var'_sd=sd(`var')
+        replace `var'=(`var')/`var'_sd
+        drop `var'_sd
+    }
+drop profit_temp
+rename profit_ml profit_ml2
+tsfilter hp profit_ml_hp = profit_ml2, trend(profit_ml) smooth(5)
+drop profit_ml_hp profit_ml2
 save panelf3, replace 
 
+gen profit_noise2 = profit + rnormal(0, 0.02)
+drop profit
+rename profit_noise2 profit 
+keep indmc ym profit
+save profit, replace
 
 
 /*********************************************
