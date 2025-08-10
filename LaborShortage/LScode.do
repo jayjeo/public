@@ -1203,13 +1203,17 @@ Local Projection method (DD)
 *!start
 cd "${path}"
 
+use panelf3, clear
+gen numTOT=numD+numE
+save LPDIDf3, replace 
+
 
 capture program drop LPDID
 program LPDID 
     args j depvar
-    use panelf3, clear
+    use LPDIDf3, clear
     
-    foreach var of varlist `depvar' profit profit_ml proddome prodabroad prodoper uibmoney {
+    foreach var of varlist `depvar' numTOT profit profit_ml proddome prodabroad prodoper uibmoney {
         replace `var'=ln(`var')
     }
     
@@ -1225,8 +1229,7 @@ program LPDID
     label var vpart "Vacancy(Fixed)" 
     label var hourfull "Work Hours(Perm)" 
     label var wagefull "Wage(Perm)" 
-    label var profit "Profit" 
-    label var profit_ml "Profit" 
+    label var numTOT "Number of Firms" 
 
     gen e9numD=e9/numD*100
     gen LP=.
@@ -1268,7 +1271,10 @@ end
 LPDID A v
 LPDID B vfull
 LPDID C vpart
+LPDID C numTOT
+
 //LPDID D numDpartproportion
+
 
 
 
@@ -1400,7 +1406,7 @@ end
 
 LPDID B profit
 
-LPDID D profit_ml
+// LPDID D profit_ml
 
 
 
