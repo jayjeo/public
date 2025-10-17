@@ -40,7 +40,7 @@ https://www.index.go.kr/potal/main/EachDtlPageDetail.do?idx_cd=1068 (opened to p
 
 *********************************************/
 
-** LScode ver22.0.do
+** LScode Publication Version
 cls
 clear all
 set scheme s1color, perm 
@@ -156,10 +156,10 @@ replace recession4=1 if 724<=ym
 reg ut uib recession1-recession4
 predict uib_p
 replace uib_p=uib if ym<717
-twoway (tsline ut, lcolor(gs0))(tsline uib, lcolor(red))(tsline uib_p, lcolor(blue) clpattern(longdash)) ///
+twoway (tsline ut, lcolor(gs0))(tsline uib, lcolor(gs0) lwidth(thick))(tsline uib_p, lcolor(gs10) lwidth(thick) clpattern(dash)) ///
     , xtitle("") ytitle("%") xline(720) /// 
     ysize(3.5) xsize(8) ///
-    legend(label(1 "Unemployment rate") label(2 "Unemployment Insurance Benefit") label(3 "Unemployment Insurance Benefit (adjusted)") order(1 2 3))
+    legend(label(1 "Unemployment rate") label(2 "Unemployment Insurance Benefit") label(3 "Unemployment Insurance Benefit (adjusted)") order(1 2 3)) scheme(s1mono)
 graph export uib.eps, replace
 
 
@@ -696,15 +696,14 @@ args i j
                 }
             }
 
-            twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t), xline(719) yline(0) xtitle("") ytitle("") /// 
+            twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t, mcolor(black) msymbol(O) msize(medium)), xline(719) yline(0) xtitle("") ytitle("") /// 
             legend(off) xlabel(`xlab') ///
-            title(Panel(`j'): `: variable label `i'')
+            title(Panel(`j'): `: variable label `i'') scheme(s1mono)
             graph export contdid`i'`j'.eps, replace
     restore
 end
 
 contdidreg profit A
-contdidreg profit_ml E    
 
 
 
@@ -779,9 +778,9 @@ args i j
                 }
             }
 
-            twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t), xline(719) yline(0) xtitle("") ytitle("") /// 
+            twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t, mcolor(black) msymbol(O) msize(medium)), xline(719) yline(0) xtitle("") ytitle("") /// 
             legend(off) xlabel(`xlab') ///
-            title(Panel(`j'): `: variable label `i'')
+            title(Panel(`j'): `: variable label `i'') scheme(s1mono)
             graph export contdid`i'`j'.eps, replace
     restore
 end
@@ -860,9 +859,13 @@ xi: ivreghdfe hourfull (e9chgd=e9shared) i.indmc|uibmoney prodabroad i.ym, absor
 
 
 ******* Graphs
-twoway (scatter forper hourfull716)(lfit forper hourfull716), ///
+twoway (scatter e9share forper)(lfit e9share forper) ///
+        , xtitle("TFW Share (%)") ytitle("E9 Share (%)") legend(off) scheme(s1mono)
+graph export TFWe9share.eps, replace
+
+twoway (scatter forper hourfull716, mcolor(black) msymbol(O) msize(medium))(lfit forper hourfull716), ///
         xtitle("Permanent Workers' Monthly Work Hours") ytitle("TFW Share (%)") legend(off) ///
-        title("Panel (F): Corr between Work hours and TFW share") xline(174)
+        title("Panel (F): Corr between Work hours and TFW share") xline(174) scheme(s1mono)
 graph export TFWsharehourfull716.eps, replace
 
 
@@ -978,9 +981,9 @@ args i j
                 }
             }
             
-            twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t), xline(719) yline(0) xtitle("") ytitle("") /// 
+            twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t, mcolor(black) msymbol(O) msize(medium)), xline(719) yline(0) xtitle("") ytitle("") /// 
             legend(off) xlabel(`xlab') ///
-            title(Panel(`j'): `: variable label `i'')
+            title(Panel(`j'): `: variable label `i'') scheme(s1mono)
             graph export contdid`i'`j'.eps, replace
     restore
 end
@@ -1099,9 +1102,9 @@ args i j
                 }
             }
 
-            twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t), xline(719) yline(0) xtitle("") ytitle("") /// 
+            twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t, mcolor(black) msymbol(O) msize(medium)), xline(719) yline(0) xtitle("") ytitle("") /// 
             legend(off) xlabel(`xlab') ///
-            title(Panel(`j'): `: variable label `i'')
+            title(Panel(`j'): `: variable label `i'') scheme(s1mono)
             graph export contdid`i'`j'.eps, replace
     restore
 end
@@ -1181,9 +1184,9 @@ args i j
                 }
             }
 
-            twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t), xline(719) yline(0) xtitle("") ytitle("") /// 
+            twoway (rspike ub lb t, lcolor(gs0))(rcap ub lb t, msize(medsmall) lcolor(gs0))(scatter b t, mcolor(black) msymbol(O) msize(medium)), xline(719) yline(0) xtitle("") ytitle("") /// 
             legend(off) xlabel(`xlab') ///
-            title(Panel(`j'): `: variable label `i'')
+            title(Panel(`j'): `: variable label `i'') scheme(s1mono)
             graph export contdid`i'`j'.eps, replace
     restore
 end
@@ -1257,13 +1260,13 @@ program LPDID
     twoway ///
     (rarea ub lb ym,  ///
     fcolor(gs13) lcolor(gs13) lw(none) lpattern(solid)) ///
-    (line LP ym, lcolor(blue) ///
+    (line LP ym, lcolor(gs0) ///
     lpattern(solid) lwidth(thick)) ///
     (line Zero ym, lcolor(black)), legend(off) ///
     ytitle("", size(medsmall)) xtitle("", size(medsmall)) ///
     graphregion(color(white)) plotregion(color(white)) xlabel(720(6)786) ///
     title(Panel(`j'): `: variable label `depvar'') ///
-    ysize(1) xsize(3)
+    ysize(1) xsize(3) scheme(s1mono)
     graph export LP`depvar'.eps, replace
 end
 
@@ -1328,13 +1331,13 @@ program LPDID
     twoway ///
     (rarea ub lb ym,  ///
     fcolor(gs13) lcolor(gs13) lw(none) lpattern(solid)) ///
-    (line LP ym, lcolor(blue) ///
+    (line LP ym, lcolor(gs0) ///
     lpattern(solid) lwidth(thick)) ///
     (line Zero ym, lcolor(black)), legend(off) ///
     ytitle("", size(medsmall)) xtitle("", size(medsmall)) ///
     graphregion(color(white)) plotregion(color(white)) xlabel(720(6)786) ///
     title(Panel(`j'): `: variable label `depvar'') ///
-    ysize(1) xsize(3)
+    ysize(1) xsize(3) scheme(s1mono)
     graph export LP`depvar'.eps, replace
 end
 
@@ -1394,13 +1397,13 @@ program LPDID
     twoway ///
     (rarea ub lb ym,  ///
     fcolor(gs13) lcolor(gs13) lw(none) lpattern(solid)) ///
-    (line LP ym, lcolor(blue) ///
+    (line LP ym, lcolor(gs0) ///
     lpattern(solid) lwidth(thick)) ///
     (line Zero ym, lcolor(black)), legend(off) ///
     ytitle("", size(medsmall)) xtitle("", size(medsmall)) ///
     graphregion(color(white)) plotregion(color(white)) xlabel(720(6)786) ///
     title(Panel(`j'): `: variable label `depvar'') ///
-    ysize(1) xsize(3)
+    ysize(1) xsize(3) scheme(s1mono)
     graph export LP`depvar'.eps, replace
 end
 
@@ -1428,7 +1431,7 @@ graph export vchge9.eps, replace
 cd "${path}"
 use panelf3, clear
 
-keep if ym>=696
+keep if inrange(ym,696,744)
 gen e9shareconcur=e9/numD*100
 local var="e9shareconcur"
 twoway ///
@@ -1452,7 +1455,7 @@ twoway ///
 (tsline `var' if indmc==30, lcolor(gs0)) ///
 (tsline `var' if indmc==31, lcolor(gs0)) ///
 (tsline `var' if indmc==33, lcolor(gs0)) ///
-, xline(720) ylabel(0(4)12) ytitle("E9 Share (%)") xtitle("") legend(off)
+, xline(720) ylabel(0(4)12) ytitle("E9 Share (%)") xtitle("") legend(off) scheme(s1mono)
 graph export e9shareconcur2.eps, replace
 
 //!start
@@ -1500,7 +1503,6 @@ use panelf3, clear
 keep if indmc==0
 merge 1:1 ym using ut
 keep ym v prod uC
-keep if ym<=752
 drop if uC==.
 tsset ym, monthly
 tsfilter hp v_hp = v, trend(smooth_v) smooth(1)
@@ -1512,13 +1514,14 @@ rename smooth_uC uC
 tsfilter hp prod_hp = prod, trend(smooth_prod) smooth(1)
 drop prod
 rename smooth_prod prod
+keep if ym<=744
 label var uC "Unemployment rate"
 label var v "Vacancy rate"
-label var prod "Production"
+label var prod "GDP"
 twoway (tsline v, lwidth(thick) lcolor(gs0) yaxis(1)) /// 
     (tsline uC, lcolor(gs0) yaxis(2)) ///
     (tsline prod, lcolor(gs0) clpattern(longdash) yaxis(3)) ///
-    , xtitle("") ytitle("") xline(720) xline(724) ysize(1) xsize(3) xlabel(660(12)744)
+    , xtitle("") ytitle("") xline(720) xline(724) ysize(1) xsize(3) xlabel(660(12)744) scheme(s1mono)
 graph export vup.eps, replace
 
 
