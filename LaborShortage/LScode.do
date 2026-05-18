@@ -183,7 +183,7 @@ graph export forpercent.eps, replace
 
 *********************
 *!start
-***** Need to manually download dataset from https://www.dropbox.com/s/gpy3ekn6w3ve8np/cps.dta
+***** CPS data: need to manually download dataset from http://acubens555HOME.quickconnect.to/d/s/18FdeJFdDMCTWNhsSL18AKBuMzGKYBNh/ufP22WEeF5D-JMvZIvm2oO5HCA2gmHAi-I7YAYhZrNA0
 cd "${path}"
 use cps, clear
 gen date= ym(real(substr(string(infile),1,4)), real(substr(string(infile),5,2)))
